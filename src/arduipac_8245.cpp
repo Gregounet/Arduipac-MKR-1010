@@ -28,7 +28,9 @@ uint8_t collision_table[256];
 long clip_low;
 long clip_high;
 
-uint8_t bmp[BITMAP_WIDTH * BITMAP_HEIGHT];
+// uint8_t bmp[BITMAP_WIDTH * BITMAP_HEIGHT];
+
+uint8_t bmp[1];
 
 void
 draw_grid ()
