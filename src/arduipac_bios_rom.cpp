@@ -1,6 +1,8 @@
 //
 // ./arduipac_rom: traitement des fichiers odyssey2.bin(BIOS) et alien_invaders_usa_eu.bin(CARTOUCHE)
 //
+#include <Arduino.h>
+
 #include <stdint.h>
 
 #include "arduipac_bios_rom.h"

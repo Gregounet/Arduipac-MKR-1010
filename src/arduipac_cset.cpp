@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "arduipac_cset.h"
 
 #define DEBUG 0

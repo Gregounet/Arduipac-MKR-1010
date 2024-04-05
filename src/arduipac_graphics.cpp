@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <stdint.h>
 
 #include "arduipac_graphics.h"
