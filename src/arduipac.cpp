@@ -11,7 +11,7 @@
 #define DEBUG 0
 
 
-void setup() {
+void setup()
 {
   if (DEBUG)
     fprintf (stderr, "Entering main()\n");
@@ -34,5 +34,6 @@ void setup() {
 }
 
 
-void loop() {
+void loop() { 
+  Serial.println("Looping");
 }
