@@ -12,6 +12,9 @@
 
 #define FPS 50
 
+#define DEBUG_SERIAL
+#undef DEBUG_TFT
+
 uint8_t x_latch, y_latch;
 uint32_t int_clk;
 uint32_t master_clk;
@@ -31,7 +34,7 @@ void init_vmachine()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("Entering init_vmachine()");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
 
 	master_clk = 0;
@@ -46,7 +49,7 @@ void init_vmachine()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("Initializing external_ram[]");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
 
 	for (uint8_t i = 0x00; i < 0xFF; i++)
@@ -60,7 +63,7 @@ void init_vmachine()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("Launching clear_collision()");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
 
 	clear_collision();
@@ -78,7 +81,7 @@ void handle_start_vbl()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("handle_vbl() -> ext_irq()");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
 
 	ext_irq();
@@ -96,7 +99,7 @@ void handle_end_vbl()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("Running handle_end_vbl()");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
 
 	master_clk -= END_VBLCLK;
@@ -193,7 +196,7 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 		text_print_string("Accessing video_ram[]");
-		delay(100);
+		delay(TFT_DEBUG_DELAY);
 #endif
 
 		/*
@@ -265,7 +268,7 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 			text_print_string("Octet de controle - []");
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 
 			if (addr == 0xA0)
@@ -294,7 +297,7 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 				text_print_string("Control register: Display enable");
-				delay(100);
+				delay(TFT_DEBUG_DELAY);
 #endif
 
 				if (intel8245_ram[0xA0] & 0x02 && !data & 0x02)
@@ -319,7 +322,7 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 				text_print_string("Status register: SHOULD NOT WRITE HERE !");
-				delay(100);
+				delay(TFT_DEBUG_DELAY);
 #endif
 			}
 
@@ -334,7 +337,7 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 				text_print_string("Collision register");
-				delay(100);
+				delay(TFT_DEBUG_DELAY);
 #endif
 			}
 
@@ -354,7 +357,7 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 				text_print_string("Color register: Background color");
-				delay(100);
+				delay(TFT_DEBUG_DELAY);
 #endif
 			}
 			else if (addr >= 0x40 && addr < 0x80 && addr & (0x02 == 0)) // 0x40 - 0x7F : les quatre Quads, addr & 0x02 == 0 -> les positions X et Y_start du caractère
@@ -368,7 +371,7 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 				text_print_string("Simplifying quad data");
-				delay(100);
+				delay(TFT_DEBUG_DELAY);
 #endif
 
 				addr = addr & 0x71;
@@ -391,7 +394,7 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 				text_print_string("Son");
-				delay(100);
+				delay(TFT_DEBUG_DELAY);
 #endif
 
 				intel8245_ram[addr] = data;

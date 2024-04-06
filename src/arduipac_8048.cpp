@@ -19,7 +19,7 @@
 
 #undef DEBUG_STDERR
 #define DEBUG_TFT
-#define DEBUG_SERIAL
+#undef DEBUG_SERIAL
 #define TFT_DEBUG_DELAY 0
 
 #define push(d)                    \
@@ -215,7 +215,7 @@ void exec_8048()
 #ifdef DEBUG_SERIAL
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
-		Serial.print("BS: ");
+/*		Serial.print("BS: ");
 		Serial.print(bs >> 4);
 		Serial.print(" SP: ");
 		Serial.print(sp, HEX);
@@ -239,6 +239,7 @@ void exec_8048()
 		Serial.print(intel8048_ram[reg_pnt + 6], HEX);
 		Serial.print(" R7: ");
 		Serial.println(intel8048_ram[reg_pnt + 7], HEX);
+*/
 		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
 		Serial.print(" PC: ");
@@ -254,6 +255,7 @@ void exec_8048()
 		text_tft.fillScreen(ST77XX_BLACK);
 
 		// Bank Select
+/*
 		text_tft.setCursor(0, 0);
 		text_print_string("BS ");
 		text_print_dec(bs >> 4);
@@ -299,6 +301,7 @@ void exec_8048()
 		text_print_hex(intel8048_ram[0x2A]);
 		text_print_string(" R7 ");
 		text_print_hex(intel8048_ram[0x2B]);
+*/
 
 		// Accumulateur
 		text_tft.setCursor(0, 48);
@@ -347,10 +350,11 @@ void exec_8048()
 		text_tft.setCursor(232, 104);
 		text_print_hex(intel8048_ram[9]);
 */
+/*
 		text_tft.setCursor(0, 64);
 		text_print_string("SP ");
 		text_print_hex(sp);
-
+*/
 		// Clock
 		text_tft.setCursor(0, 120);
 		text_print_string("Clock: ");
@@ -373,7 +377,7 @@ void exec_8048()
 
 		delay(TFT_DEBUG_DELAY);
 		//for (int i = 0; i < 1; i++)
-		//u	delay(1000);
+		//	delay(TFT_DEBUG_DELAY);
 #endif
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
 		pc++;
@@ -1307,6 +1311,7 @@ void exec_8048()
 
 #undef DEBUG_TFT
 
+/*
 #ifdef DEBUG_STDERR
 		fprintf(stderr, "master_clk == %d\n", master_clk);
 #endif
@@ -1319,6 +1324,7 @@ void exec_8048()
 		text_print_string("\n");
 		delay(TFT_DEBUG_DELAY);
 #endif
+*/
 
 		horizontal_clock += clk;
 

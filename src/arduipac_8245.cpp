@@ -29,7 +29,7 @@
 #define COLLISION_CHAR 0x80
 
 #undef DEBUG_STDERR
-#define DEBUG_TFT
+#undef DEBUG_TFT
 #define DEBUG_SERIAL
 
 uint8_t intel8245_ram[256];

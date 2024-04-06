@@ -57,27 +57,27 @@ void graphic_drawtext(char *text, uint16_t color)
 #define ARDUIPAC_VERSION "Dual Screen++"
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(100);
 
   text_tft.initR(INITR_BLACKTAB);
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 
   graphic_tft.init(240, 320);
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 
   text_tft.fillScreen(ST77XX_BLACK);
   text_tft.setRotation(1);
   text_tft.setCursor(0, 0);
   text_tft.setTextColor(ST77XX_GREEN);
   text_tft.setTextWrap(false);
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 
   graphic_tft.fillScreen(ST77XX_BLACK);
   text_tft.setCursor(0, 0);
   text_tft.setTextColor(ST77XX_WHITE);
   text_tft.setTextWrap(true);
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 
 #define WELCOME_STRING "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION
 #ifdef DEBUG_STDERR
@@ -88,9 +88,9 @@ void setup()
 #endif
 #ifdef DEBUG_TFT
   text_print_string(WELCOME_STRING);
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
   graphic_drawtext(WELCOME_STRING, ST77XX_WHITE);
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   // tft.setSPISpeed(40000000);
@@ -103,7 +103,7 @@ void setup()
 #endif
 #ifdef DEBUG_TFT
   text_print_string("Entering main()\n");
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   // collision = NULL;
@@ -116,7 +116,7 @@ void setup()
 #endif
 #ifdef DEBUG_TFT
   text_print_string("main(): launching init_intel8245()\n");
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   init_intel8245();
@@ -129,7 +129,7 @@ void setup()
 #endif
 #ifdef DEBUG_TFT
   text_print_string("main(): launching init_intel8048()\n");
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   init_intel8048();
@@ -142,7 +142,7 @@ void setup()
 #endif
 #ifdef DEBUG_TFT
   text_print_string("main(): launching init_vmachine()\n");
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   init_vmachine();
@@ -155,7 +155,7 @@ void setup()
 #endif
 #ifdef DEBUG_TFT
   text_print_string("main(): launching exec_8048()\n");
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   exec_8048();
@@ -164,5 +164,5 @@ void setup()
 void loop()
 {
   Serial.println("Looping, really ?");
-  delay(2000);
+  delay(TFT_DEBUG_DELAY);
 }

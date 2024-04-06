@@ -20,7 +20,7 @@ void write_p1(uint8_t data)
 #endif
 #ifdef DEBUG_TFT
       text_print_string("write_p1()");
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   p1 = data;
@@ -42,7 +42,7 @@ read_p2()
 #endif
 #ifdef DEBUG_TFT
   text_print_string("\nread_p2()\n");
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   if (!(p1 & 0x04)) // Lecture du clavier
@@ -90,7 +90,7 @@ in_bus()
 #endif
 #ifdef DEBUG_TFT
   text_print_string("\nread_p2()\n");
-  delay(100);
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   if ((p1 & 0x08) && (p1 & 0x10)) // Ni le 8245 ni la RAM externe ne sont activés TODO: remplacer par p1 & 0x18 == 0x18
