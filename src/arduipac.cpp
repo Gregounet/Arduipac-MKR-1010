@@ -33,25 +33,16 @@ Adafruit_ST7789 graphic_tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GR
 
 void text_print_string(char *text)
 {
-  //text_tft.setCursor(0, 0);
-  //text_tft.setTextColor(color);
-  //text_tft.setTextWrap(true);
-  text_tft.print(text);
+   text_tft.print(text);
 }
 
 void text_print_dec(uint32_t number)
 {
-  //text_tft.setCursor(0, 0);
-  //text_tft.setTextColor(color);
-  //text_tft.setTextWrap(true);
   text_tft.print(number, DEC);
 }
 
 void text_print_hex(uint32_t number)
 {
-  //text_tft.setCursor(0, 0);
-  //text_tft.setTextColor(color);
-  //text_tft.setTextWrap(true);
   text_tft.print(number, HEX);
 }
 
@@ -76,9 +67,15 @@ void setup()
   delay(100);
 
   text_tft.fillScreen(ST77XX_BLACK);
+  text_tft.setCursor(0, 0);
+  text_tft.setTextColor(ST77XX_GREEN);
+  text_tft.setTextWrap(true);
   delay(100);
 
   graphic_tft.fillScreen(ST77XX_BLACK);
+  text_tft.setCursor(0, 0);
+  text_tft.setTextColor(ST77XX_WHITE);
+  text_tft.setTextWrap(true);
   delay(100);
 
 #define WELCOME_STRING "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION
@@ -89,7 +86,7 @@ void setup()
   Serial.println(WELCOME_STRING);
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+  text_print_string(WELCOME_STRING);
   delay(100);
   graphic_drawtext(WELCOME_STRING, ST77XX_WHITE);
   delay(100);
@@ -104,7 +101,7 @@ void setup()
   Serial.println("Entering main()");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext("Entering main()", ST77XX_GREEN);
+  text_print_string("Entering main()\n");
   delay(100);
 #endif
 
@@ -117,7 +114,7 @@ void setup()
   Serial.println("main(): launching init_intel8245()");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext("main(): launching init_intel8245()", ST77XX_GREEN);
+  text_print_string("main(): launching init_intel8245()\n");
   delay(100);
 #endif
 
@@ -130,7 +127,7 @@ void setup()
   Serial.println("main(): launching init_intel8048()");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext("main(): launching init_intel8048()", ST77XX_GREEN);
+  text_print_string("main(): launching init_intel8048()\n");
   delay(100);
 #endif
 
@@ -143,7 +140,7 @@ void setup()
   Serial.println("main(): launching init_vmachine()");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext("main(): launching init_vmachine()", ST77XX_GREEN);
+  text_print_string("main(): launching init_vmachine()\n");
   delay(100);
 #endif
 
@@ -156,7 +153,7 @@ void setup()
   Serial.println("main(): launching exec_8048()");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext("main(): launching exec_8048()", ST77XX_GREEN);
+  text_print_string("main(): launching exec_8048()\n");
   delay(100);
 #endif
 

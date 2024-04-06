@@ -1,7 +1,13 @@
 #include <Arduino.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
+#include <Adafruit_ST7789.h>
+#include <SPI.h>
 
 #include "arduipac.h"
 #include "arduipac_8048.h"
@@ -10,6 +16,10 @@
 #include "arduipac_bios_rom.h"
 #include "mnemonics.h"
 #include "arduipac_config.h"
+
+#undef DEBUG_STDERR
+#define DEBUG_TFT
+#define DEBUG_SERIAL
 
 #define push(d)                    \
 	{                              \
@@ -105,7 +115,7 @@ void init_intel8048()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("Initializing intel8048_ram\n");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
 	for (uint8_t i = 0; i < 0x40; i++)
 		intel8048_ram[i] = 0;
@@ -121,7 +131,7 @@ void ext_irq()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("ext_irq()\n");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
 
 	int_clk = 5;
@@ -149,8 +159,9 @@ void timer_irq()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("timer_irq()\n");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
+
 	if (tirq_enabled && !executing_isr)
 	{
 		executing_isr = 2;
@@ -180,7 +191,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("Entering exec_8048()\n");
-	delay(100);
+	delay(TFT_DEBUG_DELAY);
 #endif
 
 	for (;;)
@@ -268,13 +279,16 @@ void exec_8048()
 		text_print_hex(acc);
 		text_print_string(" PC: ");
 		text_print_dec(pc);
-		text_print_string((pc < 0x400) ? "(bios)" : "(cart)");
+		if (pc < 0x400)
+			text_print_string("(bios)");
+		else
+			text_print_string("(cart)");
 		text_print_string(" OP: ");
 		text_print_hex(op);
 		text_print_string("\n");
 		text_print_string(lookup[op].mnemonic);
 		text_print_string(" ");
-		delay(100);
+		delay(TFT_DEBUG_DELAY);
 #endif
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
 		pc++;
@@ -346,8 +360,9 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
+
 			ac = 0x00;
 			switch (op)
 			{
@@ -375,8 +390,9 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM((pc & 0xF00) | acc));
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
+
 			acc = ROM((pc & 0xF00) | acc);
 			clk = 2;
 			break;
@@ -416,8 +432,9 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(pc);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
+
 			clk = 2;
 			break;
 		case 0x05: /* EN I */
@@ -463,8 +480,9 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
+
 			if (acc & (0x01 << ((op - 0x12) / 0x20)))
 				pc = (pc & 0xF00) | data;
 			else
@@ -481,8 +499,9 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(pc);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
+
 			if (timer_flag)
 				pc = (pc & 0xF00) | data;
 			else
@@ -514,7 +533,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			acc = ROM(pc++);
 			clk = 2;
@@ -528,7 +547,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			acc &= ROM(pc++);
 			clk = 2;
@@ -592,7 +611,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(intel8048_ram[intel8048_ram[reg_pnt + (op - 0x40)]]);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			acc |= intel8048_ram[intel8048_ram[reg_pnt + (op - 0x40)]];
 			break;
@@ -605,7 +624,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			acc |= ROM(pc++);
 			clk = 2;
@@ -637,7 +656,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			switch (op)
 			{
@@ -803,7 +822,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (int_clk > 0)
 				pc = (pc & 0xF00) | data;
@@ -821,7 +840,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (op == 0x89)
 				write_p1(p1 | ROM(pc++));
@@ -871,7 +890,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (op == 0x99)
 				write_p1(p1 & ROM(pc++));
@@ -902,7 +921,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (f0)
 				pc = (pc & 0xF00) | data;
@@ -926,7 +945,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (f1)
 				pc = (pc & 0xF00) | data;
@@ -960,7 +979,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
 			clk = 2;
@@ -986,7 +1005,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			intel8048_ram[reg_pnt + (op - 0xB8)] = ROM(pc++);
 			clk = 2;
@@ -1006,7 +1025,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (acc == 0)
 				pc = (pc & 0xF00) | data;
@@ -1024,7 +1043,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (acc != 0)
 				pc = (pc & 0xF00) | data;
@@ -1069,7 +1088,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			acc ^= ROM(pc++);
 			clk = 2;
@@ -1097,7 +1116,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (cy)
 				pc = (pc & 0xF00) | data;
@@ -1115,7 +1134,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (!cy)
 				pc = (pc & 0xF00) | data;
@@ -1141,7 +1160,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(data);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			if (intel8048_ram[reg_pnt + (op - 0xE8)] != 0)
 				pc = (pc & 0xF00) | data;
@@ -1174,7 +1193,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_hex(pc);
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			clk = 2;
 			break;
@@ -1194,11 +1213,10 @@ void exec_8048()
 #endif
 #ifdef DEBUG_SERIAL
 		Serial.println();
-		Serial.println();
 #endif
 #ifdef DEBUG_TFT
-		text_drawtext("\n");
-		delay(100);
+		text_print_string("\n");
+		delay(TFT_DEBUG_DELAY);
 #endif
 		bigben++;
 
@@ -1213,7 +1231,7 @@ void exec_8048()
 #ifdef DEBUG_TFT
 		text_print_dec(master_clk);
 		text_print_string("\n");
-		delay(100);
+		delay(TFT_DEBUG_DELAY);
 #endif
 
 		horizontal_clock += clk;
@@ -1233,7 +1251,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_TFT
 			text_print_string("xirq_pending -> ext_irq()\n");
-			delay(100);
+			delay(TFT_DEBUG_DELAY);
 #endif
 			ext_irq();
 		}
@@ -1289,7 +1307,7 @@ void exec_8048()
 		text_print_string(", master_clk == ");
 		text_print_dec(master_clk);
 		text_print_string("\n");
-		delay(100);
+		delay(TFT_DEBUG_DELAY);
 #endif
 
 		if (mstate == 0 && master_clk > START_VBLCLK)
@@ -1301,8 +1319,8 @@ void exec_8048()
 			Serial.println("handle_vbl()");
 #endif
 #ifdef DEBUG_TFT
-			text_drawtext("handle_vbl()\n");
-			delay(100);
+			text_print_string("handle_vbl()\n");
+			delay(TFT_DEBUG_DELAY);
 #endif
 			handle_start_vbl();
 		}
@@ -1315,10 +1333,13 @@ void exec_8048()
 			Serial.println("handle_evbl()");
 #endif
 #ifdef DEBUG_TFT
-			text_drawtext("handle_evbl()\n");
-			delay(100);
+			text_print_string("handle_evbl()\n");
+			delay(TFT_DEBUG_DELAY);
 #endif
 			handle_end_vbl();
 		}
+#ifdef DEBUG_SERIAL
+		Serial.println("\n");
+#endif
 	}
 }

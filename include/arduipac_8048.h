@@ -1,7 +1,6 @@
 #ifndef ARDUIPAC_8048_H
 #define ARDUIPAC_8048_H
 
-#define ROM(addr) (rom[(addr) & 0xFFF])
 
 extern uint8_t p1;
 extern uint8_t p2;

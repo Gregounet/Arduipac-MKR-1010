@@ -1,9 +1,15 @@
 #include <Arduino.h>
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
+
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
+#include <Adafruit_ST7789.h>
+#include <SPI.h>
 
 #include "arduipac.h"
 #include "arduipac_8245.h"
@@ -21,6 +27,10 @@
 #define COLLISION_VGRID 0x10
 #define COLLISION_HGRID 0x20
 #define COLLISION_CHAR 0x80
+
+#undef DEBUG_STDERR
+#define DEBUG_TFT
+#define DEBUG_SERIAL
 
 uint8_t intel8245_ram[256];
 uint8_t collision_table[256];
@@ -165,7 +175,7 @@ void show_1char(uint8_t x, uint16_t y, uint8_t car, uint8_t color)
 
       if ((y > 0) && (y < 232) && (xpos < 157)) {                        // TODO Comme y est un uint8_t le test > 0 est inutile
     for (uint8_t j = 0; j < n; j++) {                                  // On va donc looper entre 2 et 8 fois
-        d1 = cset[c + j];
+        d1 = CSET[c + j];
         for (uint8_t b = 0; b < 8; b++) {                              // On parcourt les 8 bits (pixels) de chaque octet provenant de cset[]
       if (d1 & 0x80) {
           if ((xpos - 8 + b < 160) && (y + j < 240)) {       // x est exprimé sous la forme [0-159] et non [0-319]
@@ -394,8 +404,8 @@ void init_intel8245()
   Serial.println("Initializing intel8225_ram");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext(WELCOME_STRING, ST77XX_GREEN);
-  delay(100);
+  text_print_string("Initializing intel8225_ram\n");
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   for (uint8_t i = 0x00; i < 0xFF; i++)
@@ -408,8 +418,8 @@ void init_intel8245()
   Serial.println("Initializing bitmap");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext(WELCOME_STRING, ST77XX_GREEN);
-  delay(100);
+  text_print_string("Initializing bitmap\n");
+  delay(TFT_DEBUG_DELAY);
 #endif
 
   // for (uint32_t i = 0; i < BITMAP_WIDTH * BITMAP_HEIGHT; i++)
