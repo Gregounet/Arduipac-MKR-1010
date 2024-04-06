@@ -54,7 +54,7 @@ void graphic_drawtext(char *text, uint16_t color)
   graphic_tft.print(text);
 }
 
-#define ARDUIPAC_VERSION "Dual Screen"
+#define ARDUIPAC_VERSION "Dual Screen++"
 void setup()
 {
   Serial.begin(9600);
@@ -67,6 +67,7 @@ void setup()
   delay(100);
 
   text_tft.fillScreen(ST77XX_BLACK);
+  text_tft.setRotation(1);
   text_tft.setCursor(0, 0);
   text_tft.setTextColor(ST77XX_GREEN);
   text_tft.setTextWrap(true);

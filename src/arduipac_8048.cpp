@@ -203,7 +203,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_STDERR
 		fprintf(stderr,
-				"%06d\tBS: %d SP: 0x%02X REGPNT: 0x%02X CY: %d\tR0: 0x%02X R1: 0x%02X R2: 0x%02X R3: 0x%02X R4: 0x%02X R5: 0x%02X R6: 0x%02X R7 :0x%02X\t\tACC: 0x%02X\tPC: 0x%03X (%s)\tOP: 0x%02X\t%s",
+				"%06d\tBS: %d SP: 0x%02X REGPNT: 0x%02X Cy: %d\tR0: 0x%02X R1: 0x%02X R2: 0x%02X R3: 0x%02X R4: 0x%02X R5: 0x%02X R6: 0x%02X R7: 0x%02X\t\tAcc: 0x%02X\tPC: 0x%03X (%s)\tOp: 0x%02X\t%s",
 				bigben, bs >> 4) sp, reg_pnt, cy, intel8048_ram[reg_pnt],
 				intel8048_ram[reg_pnt + 1], intel8048_ram[reg_pnt + 2],
 				intel8048_ram[reg_pnt + 3], intel8048_ram[reg_pnt + 4],
@@ -220,7 +220,7 @@ void exec_8048()
 		Serial.print(sp, HEX);
 		Serial.print(" REGPNT: ");
 		Serial.print(reg_pnt, HEX);
-		Serial.print(" CY: ");
+		Serial.print(" Cy: ");
 		Serial.println(cy);
 		Serial.print("R0: ");
 		Serial.print(intel8048_ram[reg_pnt], HEX);
@@ -236,58 +236,137 @@ void exec_8048()
 		Serial.print(intel8048_ram[reg_pnt + 5], HEX);
 		Serial.print(" R6: ");
 		Serial.print(intel8048_ram[reg_pnt + 6], HEX);
-		Serial.print(" R7 ");
+		Serial.print(" R7: ");
 		Serial.println(intel8048_ram[reg_pnt + 7], HEX);
-		Serial.print("ACC: ");
+		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
 		Serial.print(" PC: ");
 		Serial.print(pc);
 		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
-		Serial.print(" OP: ");
+		Serial.print(" Op: ");
 		Serial.println(op, HEX);
 		Serial.print(lookup[op].mnemonic);
 		Serial.print(" ");
 #endif
 #ifdef DEBUG_TFT
-		text_print_string("Big Ben: ");
-		text_print_dec(bigben);
+
+		text_tft.fillScreen(ST77XX_BLACK);
+
+		// Bank Select 1x5
+		text_tft.setCursor(0, 0);
 		text_print_string("BS: ");
 		text_print_dec(bs >> 4);
-		text_print_string(" SP: ");
-		text_print_hex(sp);
-		text_print_string(" REGPNT: ");
-		text_print_hex(reg_pnt);
-		text_print_string(" CY: ");
-		text_print_dec(cy);
+
+		// Registres - Bank 0 2x27
+		text_tft.setCursor(6, 0);
 		text_print_string("R0: ");
-		text_print_hex(intel8048_ram[reg_pnt]);
+		text_print_hex(intel8048_ram[0]);
 		text_print_string(" R1: ");
-		text_print_hex(intel8048_ram[reg_pnt + 1]);
+		text_print_hex(intel8048_ram[1]);
 		text_print_string(" R2: ");
-		text_print_hex(intel8048_ram[reg_pnt + 2]);
+		text_print_hex(intel8048_ram[2]);
 		text_print_string(" R3: ");
-		text_print_hex(intel8048_ram[reg_pnt + 3]);
+		text_print_hex(intel8048_ram[3]);
+
+		text_tft.setCursor(6, 1);
 		text_print_string(" R4: ");
-		text_print_hex(intel8048_ram[reg_pnt + 4]);
+		text_print_hex(intel8048_ram[4]);
 		text_print_string(" R5: ");
-		text_print_hex(intel8048_ram[reg_pnt + 5]);
+		text_print_hex(intel8048_ram[5]);
 		text_print_string(" R6: ");
-		text_print_hex(intel8048_ram[reg_pnt + 6]);
-		text_print_string(" R7 ");
-		text_print_hex(intel8048_ram[reg_pnt + 7]);
-		text_print_string("ACC: ");
+		text_print_hex(intel8048_ram[6]);
+		text_print_string(" R7: ");
+		text_print_hex(intel8048_ram[7]);
+
+		// Registres - Bank 0 2x27
+		text_tft.setCursor(6, 3);
+		text_print_string("R0: ");
+		text_print_hex(intel8048_ram[0x24]);
+		text_print_string(" R1: ");
+		text_print_hex(intel8048_ram[0x25]);
+		text_print_string(" R2: ");
+		text_print_hex(intel8048_ram[0x26]);
+		text_print_string(" R3: ");
+		text_print_hex(intel8048_ram[0x27]);
+
+		text_tft.setCursor(6, 4);
+		text_print_string(" R4: ");
+		text_print_hex(intel8048_ram[0x28]);
+		text_print_string(" R5: ");
+		text_print_hex(intel8048_ram[0x29]);
+		text_print_string(" R6: ");
+		text_print_hex(intel8048_ram[0x2A]);
+		text_print_string("R7: ");
+		text_print_hex(intel8048_ram[0x2B]);
+
+		// Accumulateur 1x7
+		text_tft.setCursor(0, 6);
+		text_print_string("Acc: ");
 		text_print_hex(acc);
-		text_print_string(" PC: ");
-		text_print_dec(pc);
+
+		// Flags 1x11
+		text_tft.setCursor(8, 6);
+		text_print_string("Cy: ");
+		text_print_dec(cy);
+		text_print_string(" AC: ");
+		text_print_dec(ac);
+
+		// Stack 9x7 + Stack Pointer 1x6 -> 10x7
+		text_tft.setCursor(27, 6);
+		text_print_hex(intel8048_ram[22]);
+		text_tft.setCursor(30, 6);
+		text_print_hex(intel8048_ram[23]);
+		text_tft.setCursor(27, 7);
+		text_print_hex(intel8048_ram[20]);
+		text_tft.setCursor(30, 7);
+		text_print_hex(intel8048_ram[21]);
+		text_tft.setCursor(27, 8);
+		text_print_hex(intel8048_ram[18]);
+		text_tft.setCursor(30, 8);
+		text_print_hex(intel8048_ram[19]);
+		text_tft.setCursor(27, 9);
+		text_print_hex(intel8048_ram[16]);
+		text_tft.setCursor(30, 9);
+		text_print_hex(intel8048_ram[17]);
+		text_tft.setCursor(27, 10);
+		text_print_hex(intel8048_ram[14]);
+		text_tft.setCursor(30, 10);
+		text_print_hex(intel8048_ram[15]);
+		text_tft.setCursor(27, 11);
+		text_print_hex(intel8048_ram[12]);
+		text_tft.setCursor(30, 11);
+		text_print_hex(intel8048_ram[13]);
+		text_tft.setCursor(27, 12);
+		text_print_hex(intel8048_ram[10]);
+		text_tft.setCursor(30, 12);
+		text_print_hex(intel8048_ram[11]);
+		text_tft.setCursor(27, 13);
+		text_print_hex(intel8048_ram[8]);
+		text_tft.setCursor(30, 13);
+		text_print_hex(intel8048_ram[9]);
+
+		text_tft.setCursor(26, 14);
+		text_print_string("SP: ");
+		text_print_hex(sp);
+
+		// Exécution 1x28
+		text_tft.setCursor(0, 8);
+		text_print_string("PC: ");
+		text_print_hex(pc);
 		if (pc < 0x400)
-			text_print_string("(bios)");
+			text_print_string(" (bios)");
 		else
-			text_print_string("(cart)");
-		text_print_string(" OP: ");
+			text_print_string(" (cart)");
+		text_print_string(" Op: ");
 		text_print_hex(op);
-		text_print_string("\n");
-		text_print_string(lookup[op].mnemonic);
 		text_print_string(" ");
+		text_print_string(lookup[op].mnemonic);
+
+		// Clock 1x26
+		text_tft.setCursor(0, 19);
+		text_print_string("Clock: ");
+		text_print_dec(bigben);
+
 		delay(TFT_DEBUG_DELAY);
 #endif
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
@@ -295,6 +374,8 @@ void exec_8048()
 #else
 		op = ROM(pc++);
 #endif
+
+#undef DEBUG_TFT
 
 		switch (op)
 		{
