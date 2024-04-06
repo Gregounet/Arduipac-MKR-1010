@@ -14,7 +14,7 @@ extern uint8_t intel8245_ram[];
 
 extern uint8_t *col;
 
-void init_intel8225 ();
+void init_intel8245 ();
 void draw_display ();
 void finish_display ();
 
