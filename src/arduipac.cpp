@@ -70,7 +70,7 @@ void setup()
   text_tft.setRotation(1);
   text_tft.setCursor(0, 0);
   text_tft.setTextColor(ST77XX_GREEN);
-  text_tft.setTextWrap(true);
+  text_tft.setTextWrap(false);
   delay(100);
 
   graphic_tft.fillScreen(ST77XX_BLACK);

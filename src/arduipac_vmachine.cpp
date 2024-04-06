@@ -30,7 +30,7 @@ void init_vmachine()
 	Serial.println("Entering init_vmachine()");
 #endif
 #ifdef DEBUG_TFT
-	text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+	text_print_string("Entering init_vmachine()");
 	delay(100);
 #endif
 
@@ -45,7 +45,7 @@ void init_vmachine()
 	Serial.println("Initializing external_ram[]");
 #endif
 #ifdef DEBUG_TFT
-	text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+	text_print_string("Initializing external_ram[]");
 	delay(100);
 #endif
 
@@ -59,7 +59,7 @@ void init_vmachine()
 	Serial.println("Launching clear_collision()");
 #endif
 #ifdef DEBUG_TFT
-	text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+	text_print_string("Launching clear_collision()");
 	delay(100);
 #endif
 
@@ -77,7 +77,7 @@ void handle_start_vbl()
 	Serial.println("handle_vbl() -> ext_irq()");
 #endif
 #ifdef DEBUG_TFT
-	text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+	text_print_string("handle_vbl() -> ext_irq()");
 	delay(100);
 #endif
 
@@ -95,7 +95,7 @@ void handle_end_vbl()
 	Serial.println("Running handle_end_vbl()");
 #endif
 #ifdef DEBUG_TFT
-	text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+	text_print_string("Running handle_end_vbl()");
 	delay(100);
 #endif
 
@@ -192,7 +192,7 @@ void ext_write(uint8_t data, uint8_t addr)
 		Serial.println(data, HEX);
 #endif
 #ifdef DEBUG_TFT
-		text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+		text_print_string("Accessing video_ram[]");
 		delay(100);
 #endif
 
@@ -264,7 +264,7 @@ void ext_write(uint8_t data, uint8_t addr)
 			Serial.println(data, HEX);
 #endif
 #ifdef DEBUG_TFT
-			text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+			text_print_string("Octet de controle - []");
 			delay(100);
 #endif
 
@@ -293,7 +293,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.println((data & 0x02) >> 1);
 #endif
 #ifdef DEBUG_TFT
-				text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+				text_print_string("Control register: Display enable");
 				delay(100);
 #endif
 
@@ -318,7 +318,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.print("Status register: SHOULD NOT WRITE HERE !");
 #endif
 #ifdef DEBUG_TFT
-				text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+				text_print_string("Status register: SHOULD NOT WRITE HERE !");
 				delay(100);
 #endif
 			}
@@ -333,7 +333,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.println("Collision register");
 #endif
 #ifdef DEBUG_TFT
-				text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+				text_print_string("Collision register");
 				delay(100);
 #endif
 			}
@@ -353,7 +353,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.println((data & 0x40) > 6, HEX);
 #endif
 #ifdef DEBUG_TFT
-				text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+				text_print_string("Color register: Background color");
 				delay(100);
 #endif
 			}
@@ -367,7 +367,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.println("Simplifying quad data");
 #endif
 #ifdef DEBUG_TFT
-				text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+				text_print_string("Simplifying quad data");
 				delay(100);
 #endif
 
@@ -390,7 +390,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.println(data, HEX);
 #endif
 #ifdef DEBUG_TFT
-				text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+				text_print_string("Son");
 				delay(100);
 #endif
 

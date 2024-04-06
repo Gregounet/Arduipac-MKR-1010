@@ -11,15 +11,15 @@ void write_p1(uint8_t data)
 {
 
 #ifdef DEBUG_STDERR
-  fprintf(stderr, "write_p1(0x%02X)\n", data);
+  fprintf(stderr, "\nwrite_p1(0x%02X)\n", data);
 #endif
 #ifdef DEBUG_SERIAL
-  Serial.print("write_p1(0x");
+  Serial.print("\nwrite_p1(0x");
   Serial.print(data, HEX);
-  Serial.println(")");
+  Serial.println(")\n");
 #endif
 #ifdef DEBUG_TFT
-      text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+      text_print_string("write_p1()");
   delay(100);
 #endif
 
@@ -35,13 +35,13 @@ read_p2()
   int keymap;
 
 #ifdef DEBUG_STDERR
-  fprintf(stderr, "read_p2()\n");
+  fprintf(stderr, "\nread_p2()\n");
 #endif
 #ifdef DEBUG_SERIAL
-  Serial.println("read_p2()");
+  Serial.println("\nread_p2()\n");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+  text_print_string("\nread_p2()\n");
   delay(100);
 #endif
 
@@ -83,13 +83,13 @@ in_bus()
   uint8_t jn = 0;
 
 #ifdef DEBUG_STDERR
-  fprintf(stderr, "read_p2()\n");
+  fprintf(stderr, "\nread_p2()\n");
 #endif
 #ifdef DEBUG_SERIAL
-  Serial.println("read_p2()");
+  Serial.println("\nread_p2()\n");
 #endif
 #ifdef DEBUG_TFT
-  text_drawtext(WELCOME_STRING, ST77XX_GREEN);
+  text_print_string("\nread_p2()\n");
   delay(100);
 #endif
 
