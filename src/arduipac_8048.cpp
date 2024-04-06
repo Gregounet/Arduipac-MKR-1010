@@ -1384,6 +1384,7 @@ void exec_8048()
 			}
 		}
 
+#define DEBUG_TFT
 #ifdef DEBUG_STDERR
 		fprintf(stderr, "mstate == %d, master_clk == %d\n", mstate, master_clk);
 #endif
@@ -1394,11 +1395,11 @@ void exec_8048()
 		Serial.println(master_clk);
 #endif
 #ifdef DEBUG_TFT
-		text_print_string("mstate == ");
+		text_tft.setCursor(0,112);
+		text_print_string("mstate ");
 		text_print_dec(mstate);
-		text_print_string(", master_clk == ");
+		text_print_string(" master_clk ");
 		text_print_dec(master_clk);
-		text_print_string("\n");
 		delay(TFT_DEBUG_DELAY);
 #endif
 
