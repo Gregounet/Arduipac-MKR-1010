@@ -6,10 +6,11 @@
 #include "arduipac_vmachine.h"
 #include "arduipac_8048.h"
 #include "arduipac_8245.h"
-#include "arduipac_graphics.h"
 #include "arduipac_bios_rom.h"
 #include "arduipac_config.h"
 
+uint16_t vertical_clock;
+uint8_t horizontal_clock;
 uint8_t x_latch, y_latch;
 uint8_t machine_state; // 0 during normal operation and 1 during Vertical Blank
 uint8_t external_ram[128];
@@ -79,7 +80,7 @@ ext_read(uint8_t addr)
 			if ((intel8245_ram[0xA0] & 0x02))
 			{
 				y_latch = vertical_clock / 22;
-				if (y_latch > 241)
+				if (y_latch > 241) // TODO ça fait un écran de 242 de large et j'aurais voulu 240
 					y_latch = 0xFF;
 			}
 			return y_latch;

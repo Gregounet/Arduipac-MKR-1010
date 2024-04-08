@@ -72,10 +72,7 @@ uint16_t a11;		 // Address 11th bit (control which 2kB ROM bank is in use) (valu
 uint16_t a11_backup; // Backup for Address 11th bit                             (values 0x000 / 0x800)
 
 uint8_t op_cycles;
-
-uint16_t vertical_clock;
 uint8_t interrupt_clock;
-uint8_t horizontal_clock;
 
 uint16_t master_counter;
 
@@ -1369,7 +1366,7 @@ void exec_8048()
 
 		if (machine_state == 0 && vertical_clock > START_VBLCLK)
 		{
-			draw_display);
+			draw_display();
 			ext_irq();		   // TODO: pourquoi une ext_irq ici ?
 			machine_state = 1; // On passe dans la phase de Vertical Blank
 		}

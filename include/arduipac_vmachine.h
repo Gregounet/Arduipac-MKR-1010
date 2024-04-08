@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+extern uint16_t vertical_clock;
+extern uint8_t horizontal_clock;
+
 /*
  * Relatif au 8245
  */

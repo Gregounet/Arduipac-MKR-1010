@@ -16,7 +16,6 @@
 #include "arduipac_8048.h"
 #include "arduipac_vmachine.h"
 #include "arduipac_cset.h"
-#include "arduipac_graphics.h"
 #include "arduipac_config.h"
 
 #define COLLISION_SP0 0x01
@@ -194,14 +193,14 @@ void show_1quad(uint8_t quad_indx)
   color = (intel8245_ram[quad_indx + 0x03] & 0x0E) >> 1;
   show_1char(x, y, pattern, color);
 
-  arduipac_x = intel8245_ram[quad_indx + 0x05] & 0xFF;
-  arduipac_y = intel8245_ram[quad_indx + 0x04] >> 1;
-  arduipac_car =
+  x = intel8245_ram[quad_indx + 0x05] & 0xFF;
+  y = intel8245_ram[quad_indx + 0x04] >> 1;
+  pattern =
       intel8245_ram[quad_indx + 0x07] & 0x01 | intel8245_ram[quad_indx +
                                                              0x06] &
                                                    0xFF;
-  arduipac_color = (intel8245_ram[quad_indx + 0x0A] & 0x0E) >> 1;
-  show_1char(arduipac_x, arduipac_y, arduipac_car, arduipac_color);
+  color = (intel8245_ram[quad_indx + 0x0A] & 0x0E) >> 1;
+  show_1char(x, y, pattern, color);
 
   // Renouveller l'opération pour les trois autres caractères TODO
 }
@@ -228,67 +227,59 @@ void show_4sprites()
     cl = ((t & 0x38) >> 3);
     cl = ((cl & 2) | ((cl & 1) << 2) | ((cl & 4) >> 2)) + 8; // Il faudrait peut-être écrire une fonction pour cela pour gagner de la mémoire ? TODO
 
-/*
-    if ((x < 164) && (y > 0) && (y < 232))
-    {
-      pnt = y * BITMAP_WIDTH + (x * 2) + 20;
-      if (t & 4)
-      {
-        if ((pnt + BITMAP_WIDTH * 32 >= clip_low) && (pnt <= clip_high))
+    /*
+        if ((x < 164) && (y > 0) && (y < 232))
         {
-          for (uint8_t j = 0; j < 8; j++)
+          pnt = y * BITMAP_WIDTH + (x * 2) + 20;
+          if (t & 4)
           {
-            sm = (((j % 2 == 0) && (((t >> 1) & 1) != (t & 1))) || ((j % 2 == 1) && (t & 1))) ? 1 : 0;
-            d1 = intel8245_ram[pnt2++];
-            for (uint8_t b = 0; b < 8; b++)
+            if ((pnt + BITMAP_WIDTH * 32 >= clip_low) && (pnt <= clip_high))
             {
-              if (d1 & 0x01)
+              for (uint8_t j = 0; j < 8; j++)
               {
-                if ((x + b + sm < 159) && (y + j < 247))
+                sm = (((j % 2 == 0) && (((t >> 1) & 1) != (t & 1))) || ((j % 2 == 1) && (t & 1))) ? 1 : 0;
+                d1 = intel8245_ram[pnt2++];
+                for (uint8_t b = 0; b < 8; b++)
                 {
-                  /*
-                     mputvid (sm + pnt                   , 4, cl, c);
-                     mputvid (sm + pnt +     BITMAP_WIDTH, 4, cl, c);
-                     mputvid (sm + pnt + 2 * BITMAP_WIDTH, 4, cl, c);
-                     mputvid (sm + pnt + 3 * BITMAP_WIDTH, 4, cl, c);
-                   */
+                  if (d1 & 0x01)
+                  {
+                    if ((x + b + sm < 159) && (y + j < 247))
+                    {
+                                    }
+                  }
+                  // pnt += 4;
+                  d1 >>= 1;
                 }
+                // pnt += BITMAP_WIDTH * 4 - 32;
               }
-              // pnt += 4;
-              d1 >>= 1;
             }
-            // pnt += BITMAP_WIDTH * 4 - 32;
           }
-        }
-      }
-      else
-      {
-        /*
-        if ((pnt + BITMAP_WIDTH * 16 >= clip_low) && (pnt <= clip_high))
-        {
-          for (uint8_t j = 0; j < 8; j++)
+          else
           {
-            sm = (((j % 2 == 0) && (((t >> 1) & 1) != (t & 1))) || ((j % 2 == 1) && (t & 1))) ? 1 : 0;
-            d1 = intel8245_ram[pnt2++];
-            for (uint8_t b = 0; b < 8; b++)
+            /*
+            if ((pnt + BITMAP_WIDTH * 16 >= clip_low) && (pnt <= clip_high))
             {
-              if (d1 & 0x01)
+              for (uint8_t j = 0; j < 8; j++)
               {
-                if ((x + b + sm < 160) && (y + j < 249))
+                sm = (((j % 2 == 0) && (((t >> 1) & 1) != (t & 1))) || ((j % 2 == 1) && (t & 1))) ? 1 : 0;
+                d1 = intel8245_ram[pnt2++];
+                for (uint8_t b = 0; b < 8; b++)
                 {
+                  if (d1 & 0x01)
+                  {
+                    if ((x + b + sm < 160) && (y + j < 249))
+                    {
+                    }
+                  }
+                  pnt += 2;
+                  d1 >>= 1;
                 }
+                pnt += BITMAP_WIDTH * 2 - 16;
               }
-              pnt += 2;
-              d1 >>= 1;
             }
-            pnt += BITMAP_WIDTH * 2 - 16;
-          }
-        }
-        */
-      }
-    }
-    c >>= 1;
+            */
   }
+  c >>= 1;
 }
 
 /*

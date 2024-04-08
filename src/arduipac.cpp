@@ -82,7 +82,7 @@ void setup()
 #ifdef DEBUG_TFT
   text_print_string(WELCOME_STRING);
   delay(TFT_DEBUG_DELAY);
-  graphic_drawtext(WELCOME_STRING, ST77XX_WHITE);
+  graphic_drawtext(WELCOME_STRING);
   delay(TFT_DEBUG_DELAY);
 #endif
 
