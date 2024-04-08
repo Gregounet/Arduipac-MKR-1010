@@ -1,0 +1,193 @@
+NOTES
+
+07/04/2024 Notes sur le fonctionnement des clocks du 8245
+
+arduipac_vmachine.h
+
+Chiffres valables pour NTSC:
+Fréquence CPU = 5,37 MHz
+Cycle instruction = 2,79 us (pourquoi ? alors que 1/(5,37*10**6) ne donne pas ça. Ca correspond à 15 cycles d'horloge
+par instruction)
+Fréquence VDC = 3,58 MHz
+FPS = 60
+262 lignes par trame (dont VBLANK = 22 et affichées = 240)
+VBLANK = 22 lignes
+Donc 60 * 262 = 15.720 lignes par seconde
+Soit 63,61 us par ligne
+Donc 22,8 cycles instruction par ligne
+HBLANK = 12,32 us
+
+
+Calcul précis cycles instructions par HBLANK
+
+0.00001232 / ((1/5.370.000)*15)
+0.00001232 / (15/5.370.000)
+0.00001232 * (5.370.000/15)
+0.00001232 * 5.370.000 / 15
+5.370.000 / (60*262*15)
+4.41
+
+Calcul précis cycles instructions par ligne
+
+(1/(60*262)) / ((1/5.370.000)*15)
+(1/(60*262)) / (15/5.370.000)
+(1/(60*262)) * (5.370.000/15)
+5.370.000 / (60*262*15)
+5.370.000 / (60*262*15)
+5.370.000 / 235.800
+53.700 / 2.358
+22,77
+
+Calcul précis de START_VBLCLK
+
+(1/(60*262))*240 / ((1/5.370.000)*15)
+(240/(60*262)) / (15/5.370.000)
+(240/(60*262)) * (5.370.000/15)
+240*5.370.000 / (60*262*15)
+4*5.370.000 / (262*15)
+21.480.000 / 3.930
+2.148.000 / 393
+5.465,64
+
+Calcul précis de END_VBLCLK
+
+((1/60) / ((1/5.370.000)*15)
+(1/60) / (15/5.370.000)
+(1/60) * (5.370.000/15)
+5.370.000 / (60*15)
+5.370.000 / 900
+53.700 / 9
+5.966,66
+
+JE DEVRAIS UTILISER UNE ROM O2 AVEC DU NTSC
+
+#define LINECNT 21 // Cycles instructions par ligne mais ça devrait être 22
+
+#define START_VBLCLK 5493 // Valeur commune à NTSC et PAL mais devrait être 5466
+#define END_VBLCLK 5964   // NTSC mais ça devrait être 5967
+// #define END_VBLCLK   7259 // PAL
+
+extern uint16_t vertical_clock;
+extern uint16_t interrupt_clock;
+extern uint16_t horizontal_clock;
+extern uint8_t machine_state;
+
+arduipac_8245.h
+
+extern uint8_t collision_table[];
+extern uint8_t intel8245_ram[];
+
+// Ces deux données sont déclarées dans deux headers !
+
+arduipac_8048.cpp
+
+uint8_t op_cycles;
+uint32_t master_counter;
+
+
+
+Dans la boucle principale de exec_8048():
+
+op_cycles k est mis à 1 au début et prend deux pendant la boucle principale dans le cas d instructions 
+qui nécessitent deux cycles d horloge.
+
+A la fin du cycle vertical_clock est augmenté de op_cycles (donc de 1 ou de 2).
+A la fin du cycle horizontal_clock est augmenté de op_cycles (donc de 1 ou de 2).
+
+vertical_clock contient le nombre de cycles mcu écoulés depuis le début de la trame vidéo.
+horizontal_clock contient le nombre de cycles mcu écoulés depuis le début de la ligne vidéo.
+
+master_counter sert à incrémenter itimer sous conditions:
+
+if (timer_on)
+{
+    master_counter += clk;
+    if (master_counter > 31)
+    {
+        master_counter -= 31;
+        itimer++;
+        if (itimer == 0x00)
+        {
+            timer_flag = 1;
+            timer_irq();
+        }
+    }
+}
+
+
+
+
+
+
+07/04/2024 Notes sur le fonctionnement des ports du 8048
+
+arduipac_vmachine.h
+
+uint8_t read_p2();
+void write_p1(uint8_t data);
+
+void ext_write(uint8_t data, uint8_t addr);
+uint8_t ext_read(uint8_t addr);
+
+uint8_t in_bus();
+uint8_t read_t1();
+
+
+
+arduipac_8048.h
+
+extern uint8_t p1, p2
+
+arduipac_8048.cpp
+
+uint8_t p1; // I/O Port #1
+uint8_t p2; // I/O Port #2
+
+Dans la boucle principale de exec_8048():
+
+Les trois op-code (OUTL BUS,A ; BUS #data ; ANL BUS,#data) ne font rien (nop).
+Par contre "IN A,BUS" provoque acc = in_bus().
+
+IN A,P1 -> acc = read_p1()
+IN A,P2 -> acc = p2
+
+
+
+
+
+
+
+arduipac_input.h
+
+void write_p1 (uint8_t data);
+uint8_t read_p2 ();
+uint8_t in_bus ();
+
+
+
+07/04/2024 Notes sur le fonctionnement des interuptions
+
+Y'a une embrouille de taille sur les Timer IRQ:
+
+Dans la version d'origine la variable pendirq ne vaut 1 que pour trois ROM particulières (Atlantis, Block Out et Wall Street).
+
+J'ai donc supprimé cette variable pour simplifier le code.END_VBLCLK
+
+De cette variable dépendait tirq_pend.
+
+Du coup celle-ci peut aussi être supprimée.
+
+Meme chose pour xirq_pend.
+
+
+
+
+
+
+
+Autres:
+
+Supprimer arduipac_graphics du projet
+
+
+

@@ -23,130 +23,107 @@
 #define COLLISION_SP1 0x02
 #define COLLISION_SP2 0x04
 #define COLLISION_SP3 0x08
-
 #define COLLISION_VGRID 0x10
 #define COLLISION_HGRID 0x20
 #define COLLISION_CHAR 0x80
 
-#undef DEBUG_STDERR
-#undef DEBUG_TFT
-#define DEBUG_SERIAL
-
-uint8_t intel8245_ram[256];
-uint8_t collision_table[256];
-
-long clip_low;
-long clip_high;
-
-// uint8_t bmp[BITMAP_WIDTH * BITMAP_HEIGHT];
-
-uint8_t bmp[1];
+uint8_t intel8245_ram[256];   // TODO Je peux réduire ceci à 132 octets: 0x00 - 0X7F et 0xA0 à 0xA3
+uint8_t collision_table[256]; // Va falloir trouver un moyen de remplacer ce tablean ENORME
 
 void draw_grid()
 {
-  uint32_t line_pnt, dot_pnt; // Pointeurs sur des points à afficher dans la bitmpap
-  uint8_t mask;               // Masque utilisé pour le décodage des bits de chaque octet
-  uint8_t data;               // Octets de la RAM vidéo
+  uint8_t mask; // Masque utilisé pour le décodage des bits de chaque octet
+  uint8_t data; // Octets de la RAM vidéo
   int x;
   int width;
   uint8_t color;
 
-  if (intel8245_ram[0xA0] & 0x40)
-  { // Bit 6 de 0xA0 controle l'affichage des points de la grille
-    for (int j = 0; j < 9; j++)
-    {                                          // j : balayage par lignes de 0 à 8
-      line_pnt = (j * 24 + 24) * BITMAP_WIDTH; // Les lignes sont séparées de 24 pixels. line_pnt pointe sur le début de la ligne concernée.
-      for (int i = 0; i < 9; i++)
-      {                                     // i : balayage par colonne de 0 à 8
-        dot_pnt = line_pnt + (i * 32) + 20; // dot_pnt pointe sur le point ciblé. Les points sont séparés de 32 pixels.
-        bmp[dot_pnt] = 1;
-        /* Points de 4*3 ?
-           mputvid (dot_pnt                   , 4, (color & 0x07) | ((color & 0x40) >> 3) | (color & 0x80 ? 0 : 0x08), COLLISION_HGRID);
-           mputvid (dot_pnt + BITMAP_WIDTH    , 4, (color & 0x07) | ((color & 0x40) >> 3) | (color & 0x80 ? 0 : 0x08), COLLISION_HGRID);
-           mputvid (dot_pnt + BITMAP_WIDTH * 2, 4, (color & 0x07) | ((color & 0x40) >> 3) | (color & 0x80 ? 0 : 0x08), COLLISION_HGRID);
-         */
-      }
-    }
-  }
-
-  // TODO optimisation future: aller de 1 à 9 (au lieu de 0 à 8) et éviter ainsi ((j*24)+24)*WIDTH pour avoir à la place j*24*WIDTH
-  //      optimisation future: je pense que deux boucles distinctes iraient mieux
-  //
-  mask = 0x01; // Tracé des 9 lignes horizontales.
-  for (uint8_t j = 0; j < 9; j++)
-  { // j : balayage des lignes 0 à 8
-    line_pnt = (j * 24 + 24) * BITMAP_WIDTH;
-    for (uint8_t i = 0; i < 9; i++)
-    { // i : balayage par colonnes de 0 à 8
-      dot_pnt = line_pnt + (i * 32) + 20;
-      data = intel8245_ram[0xC0 + i]; // 0xC0 - 0xC8 = Lignes horizontales, chaque octet représente une colonne
-      if (j == 8)
-      {
-        data = intel8245_ram[0xD0 + i]; // 0xD0 - 0xD8 = 9ième ligne horizontale, seul le bit 0 est utile
-        mask = 1;
-      }
-      if (data & mask)
-        for (uint8_t k = 0; k < 32; k++)
-          bmp[dot_pnt + k] = 1; // 32 ou 36 de large ?
-    }
-    mask <<= 1;
-  }
-
-  mask = 0x01; // Tracé des 10 lignes verticales
-  width = 4;
-  if (intel8245_ram[0xA0] & 0x80)
-    width = 32; // Bit 7 de 0xA0 contrôle la largeur des lignes verticales
-  for (int j = 0; j < 10; j++)
-  { // Cette fois il semble qu'on balaye par colonne d'abord
-    line_pnt = (j * 32);
-    mask = 0x01;
-    data = intel8245_ram[0xE0 + j]; // 0xE0 - 0xE9 = Lignes verticales, chaque octet représente une ligne
-    for (x = 0; x < 8; x++)
-    { // x serait un numéro de ligne !!! Va falloir réorganiser tout ça !!!
-      dot_pnt = line_pnt + (((x * 24) + 24) * BITMAP_WIDTH) + 20;
-      if (data & mask)
-      {
-        for (uint8_t i = 0; i < 24; i++)
-        {
+  /*
+    if (intel8245_ram[0xA0] & 0x40)
+    { // Bit 6 de 0xA0 controle l'affichage des points de la grille
+      for (int j = 0; j < 9; j++)
+      {                                          // j : balayage par lignes de 0 à 8
+        line_pnt = (j * 24 + 24) * BITMAP_WIDTH; // Les lignes sont séparées de 24 pixels. line_pnt pointe sur le début de la ligne concernée.
+        for (int i = 0; i < 9; i++)
+        {                                     // i : balayage par colonne de 0 à 8
+          dot_pnt = line_pnt + (i * 32) + 20; // dot_pnt pointe sur le point ciblé. Les points sont séparés de 32 pixels.
           bmp[dot_pnt] = 1;
-          /*
-             mputvid (dot_pnt, w, (color & 0x07) | ((color & 0x40) >> 3) | (color & 0x80 ? 0 : 8), COLLISION_VGRID);
-           */
-          dot_pnt += BITMAP_WIDTH;
+          // Points de 4*3 ?
         }
+      }
+    }
+
+    // TODO optimisation future: aller de 1 à 9 (au lieu de 0 à 8) et éviter ainsi ((j*24)+24)*WIDTH pour avoir à la place j*24*WIDTH
+    //      optimisation future: je pense que deux boucles distinctes iraient mieux
+    //
+    mask = 0x01; // Tracé des 9 lignes horizontales.
+    for (uint8_t j = 0; j < 9; j++)
+    { // j : balayage des lignes 0 à 8
+      line_pnt = (j * 24 + 24) * BITMAP_WIDTH;
+      for (uint8_t i = 0; i < 9; i++)
+      { // i : balayage par colonnes de 0 à 8
+        dot_pnt = line_pnt + (i * 32) + 20;
+        data = intel8245_ram[0xC0 + i]; // 0xC0 - 0xC8 = Lignes horizontales, chaque octet représente une colonne
+        if (j == 8)
+        {
+          data = intel8245_ram[0xD0 + i]; // 0xD0 - 0xD8 = 9ième ligne horizontale, seul le bit 0 est utile
+          mask = 1;
+        }
+        if (data & mask)
+          for (uint8_t k = 0; k < 32; k++)
+            bmp[dot_pnt + k] = 1; // 32 ou 36 de large ?
       }
       mask <<= 1;
     }
-  }
+
+    mask = 0x01; // Tracé des 10 lignes verticales
+    width = 4;
+    if (intel8245_ram[0xA0] & 0x80)
+      width = 32; // Bit 7 de 0xA0 contrôle la largeur des lignes verticales
+    for (int j = 0; j < 10; j++)
+    { // Cette fois il semble qu'on balaye par colonne d'abord
+      line_pnt = (j * 32);
+      mask = 0x01;
+      data = intel8245_ram[0xE0 + j]; // 0xE0 - 0xE9 = Lignes verticales, chaque octet représente une ligne
+      for (x = 0; x < 8; x++)
+      { // x serait un numéro de ligne !!! Va falloir réorganiser tout ça !!!
+        dot_pnt = line_pnt + (((x * 24) + 24) * BITMAP_WIDTH) + 20;
+        if (data & mask)
+        {
+          for (uint8_t i = 0; i < 24; i++)
+          {
+          }
+        }
+        mask <<= 1;
+      }
+    }
+  */
 }
 
 void show_12chars()
 {
-  uint8_t arduipac_x;
-  uint8_t arduipac_y;
-  uint16_t arduipac_car;
-  uint8_t arduipac_color;
+  uint8_t x;
+  uint8_t y;
+  uint16_t pattern;
+  uint8_t color;
 
   for (uint8_t i = 0; i < 12; i++)
   {
-    arduipac_x = intel8245_ram[0x10 + i * 0x04 + 0x01] & 0xFF;
-    arduipac_y = intel8245_ram[0x10 + i * 0x04 + 0x00] >> 1;
-    arduipac_car =
+    x = intel8245_ram[0x10 + i * 0x04 + 0x01];
+    y = intel8245_ram[0x10 + i * 0x04 + 0x00] >> 1;
+    pattern =
         intel8245_ram[0x10 + i * 0x04 + 0x03] & 0x01 | intel8245_ram[0x10 +
                                                                      i *
                                                                          0x04 +
                                                                      0x02] &
                                                            0xFF;
-    arduipac_color = (intel8245_ram[0x10 + i * 0x04 + 0x03] & 0x0E) >> 1;
-    // show_1char(arduipac_x, arduipac_y, arduipac_car, arduipac_color);
+    color = (intel8245_ram[0x10 + i * 0x04 + 0x03] & 0x0E) >> 1;
+    show_1char(x, y, pattern, color);
   }
 }
 
-void show_1char(uint8_t x, uint16_t y, uint8_t car, uint8_t color)
+void show_1char(uint8_t x, uint16_t y, uint8_t pattern, uint8_t color)
 {
-  uint32_t bmp_pnt;
-
-  // bmp_pnt = y * BITMAP_WIDTH * 2  +  ((x - 8) * 2)  + 20;
   // fprintf(stderr,"show1_char(): X = %d, Y = %d, indice dans cst = %d, couleur = %d\n", x, y, car, color);
 }
 
@@ -195,26 +172,27 @@ void show_1char(uint8_t x, uint16_t y, uint8_t car, uint8_t color)
 
 void show_4quads()
 {
-  // for (uint8_t i = 0x40; i < 0x80; i += 0x10) show_1quad(i);
+  for (uint8_t i = 0x40; i < 0x80; i += 0x10)
+    show_1quad(i);
   // for (uint8_t i = 0x40 ; i < 0x80; i++) fprintf(stderr, "0x%02X\t", intel8245_ram[i]);
   // fprintf(stderr, "\n");
 }
 
 void show_1quad(uint8_t quad_indx)
 {
-  uint8_t arduipac_x;
-  uint8_t arduipac_y;
-  uint16_t arduipac_car;
-  uint8_t arduipac_color;
+  uint8_t x;
+  uint8_t y;
+  uint16_t pattern;
+  uint8_t color;
 
-  arduipac_x = intel8245_ram[quad_indx + 0x01] & 0xFF;
-  arduipac_y = intel8245_ram[quad_indx + 0x00] >> 1;
-  arduipac_car =
+  x = intel8245_ram[quad_indx + 0x01];
+  y = intel8245_ram[quad_indx + 0x00] >> 1;
+  pattern =
       intel8245_ram[quad_indx + 0x03] & 0x01 | intel8245_ram[quad_indx +
                                                              0x02] &
                                                    0xFF;
-  arduipac_color = (intel8245_ram[quad_indx + 0x03] & 0x0E) >> 1;
-  show_1char(arduipac_x, arduipac_y, arduipac_car, arduipac_color);
+  color = (intel8245_ram[quad_indx + 0x03] & 0x0E) >> 1;
+  show_1char(x, y, pattern, color);
 
   arduipac_x = intel8245_ram[quad_indx + 0x05] & 0xFF;
   arduipac_y = intel8245_ram[quad_indx + 0x04] >> 1;
@@ -225,23 +203,7 @@ void show_1quad(uint8_t quad_indx)
   arduipac_color = (intel8245_ram[quad_indx + 0x0A] & 0x0E) >> 1;
   show_1char(arduipac_x, arduipac_y, arduipac_car, arduipac_color);
 
-  arduipac_x = intel8245_ram[quad_indx + 0x09] & 0xFF;
-  arduipac_y = intel8245_ram[quad_indx + 0x08] >> 1;
-  arduipac_car =
-      intel8245_ram[quad_indx + 0x0B] & 0x01 | intel8245_ram[quad_indx +
-                                                             0x0A] &
-                                                   0xFF;
-  arduipac_color = (intel8245_ram[quad_indx + 0x0B] & 0x0E) >> 1;
-  show_1char(arduipac_x, arduipac_y, arduipac_car, arduipac_color);
-
-  arduipac_x = intel8245_ram[quad_indx + 0x0D] & 0xFF;
-  arduipac_y = intel8245_ram[quad_indx + 0x0C] >> 1;
-  arduipac_car =
-      intel8245_ram[quad_indx + 0x0E] & 0x01 | intel8245_ram[quad_indx +
-                                                             0x0E] &
-                                                   0xFF;
-  arduipac_color = (intel8245_ram[quad_indx + 0x0F] & 0x0E) >> 1;
-  show_1char(arduipac_x, arduipac_y, arduipac_car, arduipac_color);
+  // Renouveller l'opération pour les trois autres caractères TODO
 }
 
 void show_4sprites()
@@ -254,13 +216,10 @@ void show_4sprites()
   uint8_t cl;
   uint8_t c;
 
-  unsigned int pnt;
-  unsigned int pnt2;
-
   c = 8; // TODO vérifier que c va être utilisé
   for (int i = 12; i >= 0; i -= 4)
   {
-    pnt2 = 0x80 + (i * 2);
+    // pnt2 = 0x80 + (i * 2);
 
     y = intel8245_ram[i];
     x = intel8245_ram[i + 1] - 8;
@@ -269,6 +228,7 @@ void show_4sprites()
     cl = ((t & 0x38) >> 3);
     cl = ((cl & 2) | ((cl & 1) << 2) | ((cl & 4) >> 2)) + 8; // Il faudrait peut-être écrire une fonction pour cela pour gagner de la mémoire ? TODO
 
+/*
     if ((x < 164) && (y > 0) && (y < 232))
     {
       pnt = y * BITMAP_WIDTH + (x * 2) + 20;
@@ -294,15 +254,16 @@ void show_4sprites()
                    */
                 }
               }
-              pnt += 4;
+              // pnt += 4;
               d1 >>= 1;
             }
-            pnt += BITMAP_WIDTH * 4 - 32;
+            // pnt += BITMAP_WIDTH * 4 - 32;
           }
         }
       }
       else
       {
+        /*
         if ((pnt + BITMAP_WIDTH * 16 >= clip_low) && (pnt <= clip_high))
         {
           for (uint8_t j = 0; j < 8; j++)
@@ -315,10 +276,6 @@ void show_4sprites()
               {
                 if ((x + b + sm < 160) && (y + j < 249))
                 {
-                  /*
-                     mputvid (sm + pnt               , 2, cl, c);
-                     mputvid (sm + pnt + BITMAP_WIDTH, 2, cl, c);
-                   */
                 }
               }
               pnt += 2;
@@ -327,15 +284,11 @@ void show_4sprites()
             pnt += BITMAP_WIDTH * 2 - 16;
           }
         }
+        */
       }
     }
     c >>= 1;
   }
-}
-
-void draw_region()
-{
-  draw_display(); // C'est là que tout se passe: on appelle draw_display() !!!! TODO
 }
 
 /*
@@ -385,43 +338,18 @@ void clear_collision()
 
 void draw_display()
 {
-
-  // for (int i = clip_low / BITMAP_WIDTH; i < clip_high / BITMAP_WIDTH; i++) memset (vscreen + i * BITMAP_WIDTH,  0x0E, BITMAP_WIDTH);
-
   if (intel8245_ram[0xA0] & 0x08)
     draw_grid();
-  show_12chars();
-  show_4quads();
-  show_4sprites();
+  if (intel8245_ram[0xA0] & 0x20)
+  {
+    show_12chars();
+    show_4quads();
+    show_4sprites();
+  }
 }
 
 void init_intel8245()
 {
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "Initializing intel8225_ram\n");
-#endif
-#ifdef DEBUG_SERIAL
-  Serial.println("Initializing intel8225_ram");
-#endif
-#ifdef DEBUG_TFT
-  text_print_string("Initializing intel8225_ram\n");
-  delay(TFT_DEBUG_DELAY);
-#endif
-
   for (uint8_t i = 0x00; i < 0xFF; i++)
     intel8245_ram[i] = 0x00;
-
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "Initializing bitmap\n");
-#endif
-#ifdef DEBUG_SERIAL
-  Serial.println("Initializing bitmap");
-#endif
-#ifdef DEBUG_TFT
-  text_print_string("Initializing bitmap\n");
-  delay(TFT_DEBUG_DELAY);
-#endif
-
-  // for (uint32_t i = 0; i < BITMAP_WIDTH * BITMAP_HEIGHT; i++)
-  //   bmp[i] = 0x00;
 }

@@ -18,7 +18,7 @@
 #include "arduipac_config.h"
 
 #undef DEBUG_STDERR
-#define DEBUG_TFT
+#undef DEBUG_TFT
 #undef DEBUG_SERIAL
 #define TFT_DEBUG_DELAY 0
 
@@ -46,13 +46,12 @@ uint8_t psw; // Program Status Word
 uint8_t cy;	 // Carry                                                                            (Values 0x00 / 0x01 : bit 7 of PSW)
 uint8_t ac;	 // Auxiliary Carry (for BCD operations)                                             (Values 0x00 / 0x40 : bit 6 of PSW)
 uint8_t f0;	 // Built-in Flag #1                                                                 (Values 0x00 / 0x20 : bit 5 of PSW)
+uint8_t f1;	 // Built-in Flag #2
 
 uint8_t bs;		 // Bank Select (select which of the two built-in Register Bank is currently in use) (Values 0x00 / 0x10 : bit 4 of PSW)
 uint8_t reg_pnt; // Register Pointer (Registers are part of the built-in RAM)
 
 uint8_t sp; // Stack Pointer                                                                    (Values 8 - 23 : saved as 3 bits in PSW bits 0 - 2)
-
-uint8_t f1; // Built-in Flag #2
 
 uint8_t p1; // I/O Port #1
 uint8_t p2; // I/O Port #2
@@ -60,10 +59,7 @@ uint8_t p2; // I/O Port #2
 uint8_t executing_isr; // Executing ISR
 
 uint8_t xirq_enabled; // External Interupt Enabled
-uint8_t xirq_pending; // External Interrupt Pending
-
 uint8_t tirq_enabled; // Timer Interupt Enabled
-uint8_t tirq_pending; // Timer Interrupt Pending
 
 uint8_t itimer;		// Internal Timer Value
 uint8_t timer_on;	// Timer is On
@@ -75,8 +71,14 @@ uint16_t pc; // Program Counter (12 bits = 0x0FFF)
 uint16_t a11;		 // Address 11th bit (control which 2kB ROM bank is in use) (values 0x000 / 0x800)
 uint16_t a11_backup; // Backup for Address 11th bit                             (values 0x000 / 0x800)
 
-uint32_t clk;
-uint32_t master_count;
+uint8_t op_cycles;
+
+uint16_t vertical_clock;
+uint8_t interrupt_clock;
+uint8_t horizontal_clock;
+
+uint16_t master_counter;
+
 uint32_t bigben;
 
 void init_intel8048()
@@ -103,10 +105,7 @@ void init_intel8048()
 	executing_isr = 0;
 
 	tirq_enabled = 0;
-	tirq_pending = 0;
-
 	xirq_enabled = 0;
-	xirq_pending = 0;
 
 #ifdef DEBUG_STDERR
 	fprintf(stderr, "Initializing intel8048_ram\n");
@@ -135,18 +134,17 @@ void ext_irq()
 	delay(TFT_DEBUG_DELAY);
 #endif
 
-	int_clk = 5;
+	interrupt_clock = 5;
 	if (xirq_enabled && !executing_isr)
 	{
 		executing_isr = 1;
-		xirq_pending = 0;
 		make_psw();
 		push(pc & 0xFF);
 		push(((pc & 0xF00) >> 8) | (psw & 0xF0));
 		pc = 0x003; // 0x003 = ISR vector
 		a11_backup = a11;
 		a11 = 0x000; // ISR are always located in ROM Bank 0
-		clk = 2;
+		op_cycles = 2;
 	}
 }
 
@@ -166,14 +164,13 @@ void timer_irq()
 	if (tirq_enabled && !executing_isr)
 	{
 		executing_isr = 2;
-		tirq_pending = 0;
 		make_psw();
 		push(pc & 0xFF);
 		push(((pc & 0xF00) >> 8) | (psw & 0xF0));
 		pc = 0x07; // 0x007 = Timer Interupt Service Routine Vector
 		a11_backup = a11;
 		a11 = 0x000; // ISR always located in ROM Bank 0
-		clk = 2;
+		op_cycles = 2;
 	}
 }
 
@@ -181,8 +178,8 @@ void exec_8048()
 {
 	uint8_t acc;   // Accumulator
 	uint8_t op;	   // Op-code
-	uint16_t addr; // Address
 	uint8_t data;  // Data
+	uint16_t addr; // Address
 	uint16_t temp; // Temporary value
 #ifdef DEBUG_STDERR
 	fprintf(stderr, "Entering exec_8048()\n");
@@ -197,7 +194,7 @@ void exec_8048()
 
 	for (;;)
 	{
-		clk = 1;
+		op_cycles = 1;
 
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
 		op = ROM(pc);
@@ -215,7 +212,7 @@ void exec_8048()
 #ifdef DEBUG_SERIAL
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
-/*		Serial.print("BS: ");
+		Serial.print("BS: ");
 		Serial.print(bs >> 4);
 		Serial.print(" SP: ");
 		Serial.print(sp, HEX);
@@ -239,7 +236,6 @@ void exec_8048()
 		Serial.print(intel8048_ram[reg_pnt + 6], HEX);
 		Serial.print(" R7: ");
 		Serial.println(intel8048_ram[reg_pnt + 7], HEX);
-*/
 		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
 		Serial.print(" PC: ");
@@ -255,7 +251,6 @@ void exec_8048()
 		text_tft.fillScreen(ST77XX_BLACK);
 
 		// Bank Select
-/*
 		text_tft.setCursor(0, 0);
 		text_print_string("BS ");
 		text_print_dec(bs >> 4);
@@ -301,7 +296,6 @@ void exec_8048()
 		text_print_hex(intel8048_ram[0x2A]);
 		text_print_string(" R7 ");
 		text_print_hex(intel8048_ram[0x2B]);
-*/
 
 		// Accumulateur
 		text_tft.setCursor(0, 48);
@@ -349,15 +343,14 @@ void exec_8048()
 		text_print_hex(intel8048_ram[8]);
 		text_tft.setCursor(232, 104);
 		text_print_hex(intel8048_ram[9]);
-*/
-/*
 		text_tft.setCursor(0, 64);
+		*/
 		text_print_string("SP ");
 		text_print_hex(sp);
-*/
-		// Clock
+
+		// Big Ben
 		text_tft.setCursor(0, 120);
-		text_print_string("Clock: ");
+		text_print_string("bigben ");
 		text_print_dec(bigben);
 
 		// Exécution
@@ -376,9 +369,8 @@ void exec_8048()
 		text_print_string(lookup[op].mnemonic);
 
 		delay(TFT_DEBUG_DELAY);
-		//for (int i = 0; i < 1; i++)
-		//	delay(TFT_DEBUG_DELAY);
 #endif
+
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
 		pc++;
 #else
@@ -424,7 +416,7 @@ void exec_8048()
 		case 0x88: /* BUS,#data */
 		case 0x98: /* ANL BUS,#data */
 			undef(op);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x27: /* CLR A */
 			acc = 0x00;
@@ -468,7 +460,7 @@ void exec_8048()
 			}
 			cy = (temp > 0xFF) ? 0x01 : 0x00;
 			acc = (temp & 0xFF);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xA3: /* MOVP A,@A */
 #ifdef DEBUG_STDERR
@@ -483,7 +475,7 @@ void exec_8048()
 #endif
 
 			acc = ROM((pc & 0xF00) | acc);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x47: /* SWAP A */
 			data = (acc & 0xF0) >> 4;
@@ -523,8 +515,7 @@ void exec_8048()
 			text_print_hex(pc);
 			delay(TFT_DEBUG_DELAY);
 #endif
-
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x05: /* EN I */
 			xirq_enabled = 1;
@@ -534,19 +525,22 @@ void exec_8048()
 			break;
 		case 0x08: /* INS A,BUS */
 			acc = in_bus();
-			clk = 2;
+			op_cycles = 2;
 			break;
-		case 0x09: /* IN A,Pp */
-		case 0x0A: /* IN A,Pp */
-			acc = (op == 0x09) ? p1 : read_p2();
-			clk = 2;
+		case 0x09: /* IN A,P1 */
+			acc = p1;
+			op_cycles = 2;
+			break;
+		case 0x0A: /* IN A,P2 */
+			acc = read_p2();
+			op_cycles = 2;
 			break;
 		case 0x0C: /* MOVD A,P4 */
 		case 0x0D: /* MOVD A,P5 */
 		case 0x0E: /* MOVD A,P6 */
 		case 0x0F: /* MOVD A,P7 */
 			// acc = read_pb (op - 0x0C);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x10: /* INC @Ri */
 		case 0x11: /* INC @Ri */
@@ -571,12 +565,11 @@ void exec_8048()
 			text_print_hex(data);
 			delay(TFT_DEBUG_DELAY);
 #endif
-
 			if (acc & (0x01 << ((op - 0x12) / 0x20)))
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x16: /* JTF */
 			data = ROM(pc);
@@ -590,13 +583,12 @@ void exec_8048()
 			text_print_hex(pc);
 			delay(TFT_DEBUG_DELAY);
 #endif
-
 			if (timer_flag)
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
 			timer_flag = 0;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x18: /* INC Rr */
 		case 0x19: /* INC Rr */
@@ -625,7 +617,7 @@ void exec_8048()
 			delay(TFT_DEBUG_DELAY);
 #endif
 			acc = ROM(pc++);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x53: /* ANL A,#data */
 #ifdef DEBUG_STDERR
@@ -639,16 +631,16 @@ void exec_8048()
 			delay(TFT_DEBUG_DELAY);
 #endif
 			acc &= ROM(pc++);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x26: /* JNT0 */
 			data = ROM(pc);
 			pc = (pc & 0xF00) | data;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x36: /* JT0 */
 			pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x28: /* XCH A,Rr */
 		case 0x29: /* XCH A,Rr */
@@ -673,7 +665,6 @@ void exec_8048()
 			break;
 		case 0x35: /* DIS TCNTI */
 			tirq_enabled = 0;
-			tirq_pending = 0;
 			break;
 		case 0x39: /* OUTL P1,A */
 		case 0x3A: /* OUTL P2,A */
@@ -681,14 +672,14 @@ void exec_8048()
 				write_p1(acc);
 			else
 				p2 = acc;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x3C: /* MOVD P4,A */
 		case 0x3D: /* MOVD P5,A */
 		case 0x3E: /* MOVD P6,A */
 		case 0x3F: /* MOVD P7,A */
 			// write_pb ((op - 0x3C), acc);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x40: /* ORL A,@Ri */
 		case 0x41: /* ORL A,@Ri */
@@ -716,7 +707,7 @@ void exec_8048()
 			delay(TFT_DEBUG_DELAY);
 #endif
 			acc |= ROM(pc++);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x45: /* STRT CNT */
 			count_on = 1;
@@ -762,7 +753,7 @@ void exec_8048()
 					pc++;
 				break;
 			}
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x57: /* DA A */
 			if (((acc & 0x0F) > 0x09) || ac)
@@ -816,7 +807,7 @@ void exec_8048()
 		case 0xE3: /* MOVP3 A,@A */
 			addr = 0x300 | acc;
 			acc = ROM(addr);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x60: /* ADD A,@Ri */
 		case 0x61: /* ADD A,@Ri */
@@ -899,7 +890,7 @@ void exec_8048()
 		case 0x80: /* MOVX A,@Ri */
 		case 0x81: /* MOVX A,@Ri */
 			acc = ext_read(intel8048_ram[reg_pnt + (op - 0x80)]);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x86: /* JNI address */
 			data = ROM(pc);
@@ -913,11 +904,11 @@ void exec_8048()
 			text_print_hex(data);
 			delay(TFT_DEBUG_DELAY);
 #endif
-			if (int_clk > 0)
+			if (interrupt_clock > 0)
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x89: /* ORL Pp,#data */
 		case 0x8A: /* ORL Pp,#data */
@@ -935,23 +926,23 @@ void exec_8048()
 				write_p1(p1 | ROM(pc++));
 			else
 				p2 |= ROM(pc++);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x8C: /* ORLD P4,A */
 		case 0x8D: /* ORLD P5,A */
 		case 0x8E: /* ORLD P6,A */
 		case 0x8F: /* ORLD P7,A */
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x90: /* MOVX @Ri,A */
 		case 0x91: /* MOVX @Ri,A */
 			ext_write(acc, intel8048_ram[reg_pnt + (op - 0x90)]);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x83: /* RET */
 			pc = ((pull() & 0x0F) << 8);
 			pc |= pull();
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x93: /* RETR */
 			data = pull();
@@ -964,7 +955,7 @@ void exec_8048()
 			pc |= pull();
 			executing_isr = 0;
 			a11 = a11_backup;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x97: /* CLR C */
 			cy = 0x00;
@@ -985,13 +976,13 @@ void exec_8048()
 				write_p1(p1 & ROM(pc++));
 			else
 				p2 &= ROM(pc++);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x9C: /* ANLD P4,A */
 		case 0x9D: /* ANLD P5,A */
 		case 0x9E: /* ANLD P6,A */
 		case 0x9F: /* ANLD P7,A */
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xA0: /* MOV @Ri,A */
 		case 0xA1: /* MOV @Ri,A */
@@ -1016,7 +1007,7 @@ void exec_8048()
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x95: /* CPL F0 */
 			f0 ^= 0x20;
@@ -1040,7 +1031,7 @@ void exec_8048()
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xB5: /* CPL F1 */
 			f1 ^= 0x01;
@@ -1071,12 +1062,12 @@ void exec_8048()
 			delay(TFT_DEBUG_DELAY);
 #endif
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xB3: /* JMPP @A */
 			addr = (pc & 0xF00) | acc;
 			pc = (pc & 0xF00) | ROM(addr);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xB8: /* MOV Rr,#data */
 		case 0xB9: /* MOV Rr,#data */
@@ -1097,7 +1088,7 @@ void exec_8048()
 			delay(TFT_DEBUG_DELAY);
 #endif
 			intel8048_ram[reg_pnt + (op - 0xB8)] = ROM(pc++);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xC5: /* SEL RB0 */
 		case 0xD5: /* SEL RB1 */
@@ -1120,7 +1111,7 @@ void exec_8048()
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0x96: /* JNZ address */
 			data = ROM(pc);
@@ -1138,7 +1129,7 @@ void exec_8048()
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xC7: /* MOV A,PSW */
 			make_psw();
@@ -1180,7 +1171,7 @@ void exec_8048()
 			delay(TFT_DEBUG_DELAY);
 #endif
 			acc ^= ROM(pc++);
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xE5: /* SEL MB0 */
 			a11 = 0x000;
@@ -1211,7 +1202,7 @@ void exec_8048()
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xE6: /* JNC address */
 			data = ROM(pc);
@@ -1230,7 +1221,7 @@ void exec_8048()
 			else
 				pc++;
 			break;
-			clk = 2;
+			op_cycles = 2;
 		case 0xE8: /* DJNZ Rr,address */
 		case 0xE9: /* DJNZ Rr,address */
 		case 0xEA: /* DJNZ Rr,address */
@@ -1241,7 +1232,6 @@ void exec_8048()
 		case 0xEF: /* DJNZ Rr,address */
 			intel8048_ram[reg_pnt + (op - 0xE8)]--;
 			data = ROM(pc);
-
 #ifdef DEBUG_STDERR
 			fprintf(stderr, " 0x%02X", data);
 #endif
@@ -1252,12 +1242,11 @@ void exec_8048()
 			text_print_hex(data);
 			delay(TFT_DEBUG_DELAY);
 #endif
-
 			if (intel8048_ram[reg_pnt + (op - 0xE8)] != 0)
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xF0: /* MOV A,@Ri */
 		case 0xF1: /* MOV A,@Ri */
@@ -1286,7 +1275,7 @@ void exec_8048()
 			text_print_hex(pc);
 			delay(TFT_DEBUG_DELAY);
 #endif
-			clk = 2;
+			op_cycles = 2;
 			break;
 		case 0xF8: /* MOV A,Rr */
 		case 0xF9: /* MOV A,Rr */
@@ -1305,76 +1294,70 @@ void exec_8048()
 #ifdef DEBUG_SERIAL
 		Serial.println();
 #endif
-
 		bigben++;
-		master_clk += clk;
+		horizontal_clock += op_cycles;
+		vertical_clock += op_cycles;
 
 #undef DEBUG_TFT
-
-/*
 #ifdef DEBUG_STDERR
-		fprintf(stderr, "master_clk == %d\n", master_clk);
+		fprintf(stderr, "bigben == %d\n", bigben);
+		fprintf(stderr, "horizontal_clock == %d\n", horizontal_clock);
+		fprintf(stderr, "vertical_clock == %d\n", vertical_clock);
+		fprintf(stderr, "machine_state == %d\n");
 #endif
 #ifdef DEBUG_SERIAL
-		Serial.print("master_clk == ");
-		Serial.println(master_clk);
+		Serial.print("bigben == ");
+		Serial.println(bigben);
+		Serial.print("horizontal_clock == ");
+		Serial.println(horizontal_clock);
+		Serial.print("vertical_clock == ");
+		Serial.println(vertical_clock);
+		Serial.print("machine_state == ");
+		Serial.println(machine_state);
 #endif
 #ifdef DEBUG_TFT
-		text_print_dec(master_clk);
-		text_print_string("\n");
+		text_tft.setCursor(0, 104);
+		text_print_string("bigben ");
+		text_print_dec(bigben);
+		text_print_string(" h_clock ");
+		text_print_dec(horizontal_clock);
+		text_tft.setCursor(0, 112);
+		text_print_string("v_clk ");
+		text_print_dec(vertical_clock);
+		text_print_string(" m_state ");
+		text_print_dec(machine_state);
+		;
 		delay(TFT_DEBUG_DELAY);
 #endif
-*/
 
-		horizontal_clock += clk;
-
-		if (int_clk > clk)
-			int_clk -= clk;
+		if (interrupt_clock >= op_cycles)
+			interrupt_clock -= op_cycles;
 		else
-			int_clk = 0;
+			interrupt_clock = 0;
 
-		if (xirq_pending)
-		{
-#ifdef DEBUG_STDERR
-			fprintf(stderr, "xirq_pending -> ext_irq()\n");
-#endif
-#ifdef DEBUG_SERIAL
-			Serial.println("xirq_pending -> ext_irq()");
-#endif
-#ifdef DEBUG_TFT
-			text_print_string("xirq_pending -> ext_irq()\n");
-			delay(TFT_DEBUG_DELAY);
-#endif
-			ext_irq();
-		}
-
-		if (tirq_pending)
-			timer_irq();
-
-		if (horizontal_clock > LINECNT - 1)
+		if (horizontal_clock >= LINECNT)
 		{
 			horizontal_clock -= LINECNT;
-			if (intel8245_ram[0xA0] & 0x01)
+			if (intel8245_ram[0xA0] & 0x01) // Une interuption est demandée pour chaque ligne
 				ext_irq();
-			if (count_on && mstate == 0)
+			if (count_on && machine_state == 0)
 			{
 				itimer++;
 				if (itimer == 0x00)
 				{
 					timer_flag = 1;
 					timer_irq();
-					draw_region(); // TODO: est-ce nécessaire ?
 				}
 			}
 		}
-		draw_display();
+		// draw_display(); // Je ne vais pas faire un draw_display() à chaque opcode !!! TODO
 
 		if (timer_on)
 		{
-			master_count += clk;
-			if (master_count > 31)
-			{ // TODO WTf ce 31 ? Ca divise la clock par 32...
-				master_count -= 31;
+			master_counter += op_cycles;
+			if (master_counter > 31)
+			{ // TODO WTf ce 31 ? Ca divise la clock par 31...
+				master_counter -= 31;
 				itimer++;
 				if (itimer == 0x00)
 				{
@@ -1384,55 +1367,16 @@ void exec_8048()
 			}
 		}
 
-#define DEBUG_TFT
-#ifdef DEBUG_STDERR
-		fprintf(stderr, "mstate == %d, master_clk == %d\n", mstate, master_clk);
-#endif
-#ifdef DEBUG_SERIAL
-		Serial.print("mstate == ");
-		Serial.print(mstate);
-		Serial.print(", master_clk == ");
-		Serial.println(master_clk);
-#endif
-#ifdef DEBUG_TFT
-		text_tft.setCursor(0,112);
-		text_print_string("mstate ");
-		text_print_dec(mstate);
-		text_print_string(" master_clk ");
-		text_print_dec(master_clk);
-		delay(TFT_DEBUG_DELAY);
-#endif
-
-		if (mstate == 0 && master_clk > START_VBLCLK)
+		if (machine_state == 0 && vertical_clock > START_VBLCLK)
 		{
-#ifdef DEBUG_STDERR
-			fprintf(stderr, "handle_vbl()\n");
-#endif
-#ifdef DEBUG_SERIAL
-			Serial.println("handle_vbl()");
-#endif
-#ifdef DEBUG_TFT
-			text_print_string("handle_vbl()\n");
-			delay(TFT_DEBUG_DELAY);
-#endif
-			handle_start_vbl();
+			draw_display);
+			ext_irq();		   // TODO: pourquoi une ext_irq ici ?
+			machine_state = 1; // On passe dans la phase de Vertical Blank
 		}
-		if (mstate == 1 && master_clk > END_VBLCLK)
+		if (machine_state == 1 && vertical_clock >= END_VBLCLK) // Pourquoi pas plutot >= au lieu de > ? TODO 
 		{
-#ifdef DEBUG_STDERR
-			fprintf(stderr, "handle_evbl()\n");
-#endif
-#ifdef DEBUG_SERIAL
-			Serial.println("handle_evbl()");
-#endif
-#ifdef DEBUG_TFT
-			text_print_string("handle_evbl()\n");
-			delay(TFT_DEBUG_DELAY);
-#endif
-			handle_end_vbl();
+			vertical_clock -= END_VBLCLK;
+			machine_state = 0; // On sort de la phase de Vertical Blank
 		}
-#ifdef DEBUG_SERIAL
-		Serial.println("\n");
-#endif
 	}
 }

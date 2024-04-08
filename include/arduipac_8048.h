@@ -1,6 +1,7 @@
 #ifndef ARDUIPAC_8048_H
 #define ARDUIPAC_8048_H
 
+extern uint8_t horizontal_clock;
 
 extern uint8_t p1;
 extern uint8_t p2;

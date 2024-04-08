@@ -10,106 +10,26 @@
 #include "arduipac_bios_rom.h"
 #include "arduipac_config.h"
 
-#define FPS 50
-
-#define DEBUG_SERIAL
-#undef DEBUG_TFT
-
 uint8_t x_latch, y_latch;
-uint32_t int_clk;
-uint32_t master_clk;
-uint32_t horizontal_clock;
-uint8_t mstate;
-
-uint8_t external_ram[256];
+uint8_t machine_state; // 0 during normal operation and 1 during Vertical Blank
+uint8_t external_ram[128];
 
 void init_vmachine()
 {
-
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "Entering init_vmachine()\n");
-#endif
-#ifdef DEBUG_SERIAL
-	Serial.println("Entering init_vmachine()");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("Entering init_vmachine()");
-	delay(TFT_DEBUG_DELAY);
-#endif
-
-	master_clk = 0;
+	vertical_clock = 0;
 	horizontal_clock = 0;
-	mstate = 0;
+	machine_state = 0;
 
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "Initializing external_ram[]\n");
-#endif
-#ifdef DEBUG_SERIAL
-	Serial.println("Initializing external_ram[]");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("Initializing external_ram[]");
-	delay(TFT_DEBUG_DELAY);
-#endif
-
-	for (uint8_t i = 0x00; i < 0xFF; i++)
+	for (uint8_t i = 0x00; i < 0x7F; i++)
 		external_ram[i] = 0x00;
 
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "Launching clear_collision()\n");
-#endif
-#ifdef DEBUG_SERIAL
-	Serial.println("Launching clear_collision()");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("Launching clear_collision()");
-	delay(TFT_DEBUG_DELAY);
-#endif
-
 	clear_collision();
-}
-
-void handle_start_vbl()
-{
-	draw_region();
-
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "handle_vbl() -> ext_irq()\n");
-#endif
-#ifdef DEBUG_SERIAL
-	Serial.println("handle_vbl() -> ext_irq()");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("handle_vbl() -> ext_irq()");
-	delay(TFT_DEBUG_DELAY);
-#endif
-
-	ext_irq();
-	mstate = 1;
-}
-
-void handle_end_vbl()
-{
-
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "Running handle_end_vbl()\n");
-#endif
-#ifdef DEBUG_SERIAL
-	Serial.println("Running handle_end_vbl()");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("Running handle_end_vbl()");
-	delay(TFT_DEBUG_DELAY);
-#endif
-
-	master_clk -= END_VBLCLK;
-	mstate = 0;
 }
 
 uint8_t
 read_t1()
 {
-	if (horizontal_clock > 16 || master_clk > START_VBLCLK)
+	if (horizontal_clock > 16 || vertical_clock > START_VBLCLK)
 		return 1; // TODO pourquoi ce 16 ?
 	else
 		return 0;
@@ -130,7 +50,7 @@ ext_read(uint8_t addr)
 		{
 		case 0xA1: // 8245 Status byte - Some other bits should normally be set
 			data = intel8245_ram[0xA0] & 0x02;
-			if (master_clk > START_VBLCLK)
+			if (vertical_clock > START_VBLCLK)
 				data |= 0x08;
 			if (horizontal_clock < (LINECNT - 7))
 				data = data | 0x01;
@@ -158,7 +78,7 @@ ext_read(uint8_t addr)
 		case 0xA4:
 			if ((intel8245_ram[0xA0] & 0x02))
 			{
-				y_latch = master_clk / 22;
+				y_latch = vertical_clock / 22;
 				if (y_latch > 241)
 					y_latch = 0xFF;
 			}
@@ -384,13 +304,16 @@ void ext_write(uint8_t data, uint8_t addr)
 
 			if (intel8245_ram[0xA0] & 0x02 && !data & 0x02)
 			{
-				y_latch = master_clk / 22;
+				y_latch = vertical_clock / 22;
 				x_latch = horizontal_clock * 12;
 				if (y_latch > 241)
 					y_latch = 0xFF;
 			}
-			if (master_clk <= START_VBLCLK && intel8245_ram[0xA0] != data)
-				draw_region();
+			/*
+			 * Comme je ne comprends pas pour l'instant je commente. TODO
+			if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data)
+				draw_display();
+			*/
 		}
 
 		else if (addr == 0xA1)
@@ -499,6 +422,6 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 		}
 		if (addr < 0x80)
-			external_ram[addr] = data; // TODO: J'ai bien l'impression que je dois considérer la RAM externe comme 128 et non 256 bits
+			external_ram[addr] = data;
 	}
 }

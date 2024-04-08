@@ -1,11 +1,6 @@
 #ifndef ARDUIPAC_8245_H
 #define ARDUIPAC_8245_H
 
-#include "arduipac_graphics.h"
-
-#define BITMAP_WIDTH  340
-#define BITMAP_HEIGHT 250
-
 #define DISPLAY_WIDTH  320
 #define DISPLAY_HEIGHT 240
 
@@ -16,7 +11,6 @@ extern uint8_t *col;
 
 void init_intel8245 ();
 void draw_display ();
-void finish_display ();
 
 static void draw_grid ();
 static void draw_char (uint8_t ypos, uint8_t xpos, uint8_t chr,
@@ -33,8 +27,6 @@ void show_4quads ();
 void show_1quad (uint8_t);
 void show_4sprites ();
 
-void draw_region ();
 void clear_collision ();
-void clear_screen (uint8_t *);
 
 #endif /* ARDUIPAC_8245_H */

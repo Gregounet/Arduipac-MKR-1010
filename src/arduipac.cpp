@@ -33,7 +33,7 @@ Adafruit_ST7789 graphic_tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GR
 
 void text_print_string(char *text)
 {
-   text_tft.print(text);
+  text_tft.print(text);
 }
 
 void text_print_dec(uint32_t number)
@@ -46,37 +46,30 @@ void text_print_hex(uint32_t number)
   text_tft.print(number, HEX);
 }
 
-void graphic_drawtext(char *text, uint16_t color)
+void graphic_drawtext(char *text)
 {
   graphic_tft.setCursor(0, 0);
-  graphic_tft.setTextColor(color);
-  graphic_tft.setTextWrap(true);
   graphic_tft.print(text);
 }
 
-#define ARDUIPAC_VERSION "Dual Screen++"
+#define ARDUIPAC_VERSION "This is the end"
 void setup()
 {
   Serial.begin(115200);
   delay(100);
 
   text_tft.initR(INITR_BLACKTAB);
-  delay(TFT_DEBUG_DELAY);
-
-  graphic_tft.init(240, 320);
-  delay(TFT_DEBUG_DELAY);
-
+  text_tft.setSPISpeed(1000000); // 1 MHZ, il smeble que l'on puisse aller jusqu'à 25, 40 voire 100 MHz
   text_tft.fillScreen(ST77XX_BLACK);
   text_tft.setRotation(1);
-  text_tft.setCursor(0, 0);
   text_tft.setTextColor(ST77XX_GREEN);
-  text_tft.setTextWrap(false);
+
   delay(TFT_DEBUG_DELAY);
 
   graphic_tft.fillScreen(ST77XX_BLACK);
-  text_tft.setCursor(0, 0);
-  text_tft.setTextColor(ST77XX_WHITE);
-  text_tft.setTextWrap(true);
+  graphic_tft.setSPISpeed(1000000); // 1 MHZ, il smeble que l'on puisse aller jusqu'à 25, 40 voire 100 MHz
+  graphic_tft.setRotation(1);
+  graphic_tft.setTextColor(ST77XX_WHITE);
   delay(TFT_DEBUG_DELAY);
 
 #define WELCOME_STRING "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION
@@ -92,8 +85,6 @@ void setup()
   graphic_drawtext(WELCOME_STRING, ST77XX_WHITE);
   delay(TFT_DEBUG_DELAY);
 #endif
-
-  // tft.setSPISpeed(40000000);
 
 #ifdef DEBUG_STDERR
   fprintf(stderr, "Entering main()\n");
@@ -163,6 +154,15 @@ void setup()
 
 void loop()
 {
-  Serial.println("Looping, really ?");
+#ifdef DEBUG_STDERR
+  fprintf(stderr, "loop()\n");
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.println("loop()");
+#endif
+#ifdef DEBUG_TFT
+  text_print_string("loop\n");
   delay(TFT_DEBUG_DELAY);
+#endif
+
 }
