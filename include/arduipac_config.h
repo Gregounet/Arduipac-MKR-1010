@@ -3,7 +3,7 @@
 
 #undef DEBUG_STDERR
 #undef DEBUG_TFT
-#define DEBUG_SERIAL
+#undef DEBUG_SERIAL
 
 #define TFT_DEBUG_DELAY 0
 #define STDERR_DEBUG_DELAY 100

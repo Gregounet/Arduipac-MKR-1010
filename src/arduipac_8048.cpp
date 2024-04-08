@@ -1296,11 +1296,11 @@ void exec_8048()
 		fprintf(stderr, "vertical_clock == %d\n", vertical_clock);
 		fprintf(stderr, "machine_state == %d\n");
 #endif
-//#define DEBUG_SERIAL
+#define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
 		Serial.print("bigben == ");
 		Serial.println(bigben);
-		/*
+/*		
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");

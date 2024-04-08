@@ -77,7 +77,7 @@ read_p2()
     {
       if (scan_input == 0)
       {
-#define DEBUG_SERIAL
+// #define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
         Serial.println("Lecture ligne 0 du clavier");
 #endif
