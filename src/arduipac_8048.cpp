@@ -17,11 +17,6 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-#undef DEBUG_STDERR
-#undef DEBUG_TFT
-#undef DEBUG_SERIAL
-#define TFT_DEBUG_DELAY 0
-
 #define push(d)                    \
 	{                              \
 		intel8048_ram[sp++] = (d); \
@@ -1295,23 +1290,27 @@ void exec_8048()
 		horizontal_clock += op_cycles;
 		vertical_clock += op_cycles;
 
-#undef DEBUG_TFT
 #ifdef DEBUG_STDERR
 		fprintf(stderr, "bigben == %d\n", bigben);
 		fprintf(stderr, "horizontal_clock == %d\n", horizontal_clock);
 		fprintf(stderr, "vertical_clock == %d\n", vertical_clock);
 		fprintf(stderr, "machine_state == %d\n");
 #endif
+//#define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
 		Serial.print("bigben == ");
 		Serial.println(bigben);
+		/*
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");
 		Serial.println(vertical_clock);
 		Serial.print("machine_state == ");
 		Serial.println(machine_state);
+*/
 #endif
+#undef DEBUG_SERIAL
+
 #ifdef DEBUG_TFT
 		text_tft.setCursor(0, 104);
 		text_print_string("bigben ");
@@ -1323,9 +1322,9 @@ void exec_8048()
 		text_print_dec(vertical_clock);
 		text_print_string(" m_state ");
 		text_print_dec(machine_state);
-		;
 		delay(TFT_DEBUG_DELAY);
 #endif
+#undef DEBUG_TFT
 
 		if (interrupt_clock >= op_cycles)
 			interrupt_clock -= op_cycles;

@@ -18,6 +18,8 @@
 #include "arduipac_cset.h"
 #include "arduipac_config.h"
 
+#define DEBUG_SERIAL
+
 #define COLLISION_SP0 0x01
 #define COLLISION_SP1 0x02
 #define COLLISION_SP2 0x04
@@ -106,6 +108,14 @@ void show_12chars()
   uint16_t pattern;
   uint8_t color;
 
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.println("show_12chars()");
+#endif
+#ifdef DEBUG_TFT
+#endif
+
   for (uint8_t i = 0; i < 12; i++)
   {
     x = intel8245_ram[0x10 + i * 0x04 + 0x01];
@@ -171,6 +181,13 @@ void show_1char(uint8_t x, uint16_t y, uint8_t pattern, uint8_t color)
 
 void show_4quads()
 {
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.println("show_4quads()");
+#endif
+#ifdef DEBUG_TFT
+#endif
   for (uint8_t i = 0x40; i < 0x80; i += 0x10)
     show_1quad(i);
   // for (uint8_t i = 0x40 ; i < 0x80; i++) fprintf(stderr, "0x%02X\t", intel8245_ram[i]);
@@ -183,6 +200,14 @@ void show_1quad(uint8_t quad_indx)
   uint8_t y;
   uint16_t pattern;
   uint8_t color;
+
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.println("show_1quad()");
+#endif
+#ifdef DEBUG_TFT
+#endif
 
   x = intel8245_ram[quad_indx + 0x01];
   y = intel8245_ram[quad_indx + 0x00] >> 1;
@@ -215,6 +240,13 @@ void show_4sprites()
   uint8_t cl;
   uint8_t c;
 
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.println("show_4sprites()");
+#endif
+#ifdef DEBUG_TFT
+#endif
   c = 8; // TODO vérifier que c va être utilisé
   for (int i = 12; i >= 0; i -= 4)
   {
@@ -317,6 +349,14 @@ void mputvid (uint32_t location, uint16_t len, uint8_t color, uint16_t c)
 
 void clear_collision()
 {
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.print(bigben);
+  Serial.println(" - clear_collision()");
+#endif
+#ifdef DEBUG_TFT
+#endif
   collision_table[0x01] = 0;
   collision_table[0x02] = 0;
   collision_table[0x04] = 0;
@@ -329,6 +369,14 @@ void clear_collision()
 
 void draw_display()
 {
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.print(bigben);
+  Serial.println(" - draw_display()");
+#endif
+#ifdef DEBUG_TFT
+#endif
   if (intel8245_ram[0xA0] & 0x08)
     draw_grid();
   if (intel8245_ram[0xA0] & 0x20)
@@ -341,6 +389,13 @@ void draw_display()
 
 void init_intel8245()
 {
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.println("init_intel8245()");
+#endif
+#ifdef DEBUG_TFT
+#endif
   for (uint8_t i = 0x00; i < 0xFF; i++)
     intel8245_ram[i] = 0x00;
 }

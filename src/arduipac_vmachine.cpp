@@ -15,8 +15,17 @@ uint8_t x_latch, y_latch;
 uint8_t machine_state; // 0 during normal operation and 1 during Vertical Blank
 uint8_t external_ram[128];
 
+#define DEBUG_SERIAL
+
 void init_vmachine()
 {
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+	Serial.println("init_vmachine()");
+#endif
+#ifdef DEBUG_TFT
+#endif
 	vertical_clock = 0;
 	horizontal_clock = 0;
 	machine_state = 0;
@@ -30,6 +39,13 @@ void init_vmachine()
 uint8_t
 read_t1()
 {
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+	Serial.println("read_t1()");
+#endif
+#ifdef DEBUG_TFT
+#endif
 	if (horizontal_clock > 16 || vertical_clock > START_VBLCLK)
 		return 1; // TODO pourquoi ce 16 ?
 	else
@@ -42,14 +58,36 @@ ext_read(uint8_t addr)
 	uint8_t data;
 	uint8_t si;
 	uint8_t mask;
-
-	// if (!(p1 & 0x48)) // TODO check
-	// TODO Je ne comprends pas la logique de ce test: il me semble 0x08 devrait suffir.
-	if (!(p1 & 0x08) && !(p1 & 0x40)) // 0x40 (active low) : Copy Mode Enable = write to 8245 RAM and read from external - RAM 0x08 (active low): Enable 8245
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+	Serial.print("ext_read(");
+	Serial.print(addr, HEX);
+	Serial.println(")");
+#endif
+#ifdef DEBUG_TFT
+#endif
+		// if (!(p1 & 0x48)) // TODO check
+		// TODO Je ne comprends pas la logique de ce test: il me semble 0x08 devrait suffire.
+		if (!(p1 & 0x08) && !(p1 & 0x40)) // 0x40 (active low) : Copy Mode Enable = write to 8245 RAM and read from external - RAM 0x08 (active low): Enable 8245
 	{
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+		Serial.println("VDC Access");
+#endif
+#ifdef DEBUG_TFT
+#endif
 		switch (addr)
 		{
 		case 0xA1: // 8245 Status byte - Some other bits should normally be set
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+			Serial.println("0xA0 Status Byte");
+#endif
+#ifdef DEBUG_TFT
+#endif
 			data = intel8245_ram[0xA0] & 0x02;
 			if (vertical_clock > START_VBLCLK)
 				data |= 0x08;
@@ -57,6 +95,13 @@ ext_read(uint8_t addr)
 				data = data | 0x01;
 			return data;
 		case 0xA2: // Collision byte
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+			Serial.println("0xA2 Collision Byte");
+#endif
+#ifdef DEBUG_TFT
+#endif
 			si = intel8245_ram[0xA2];
 			mask = 0x01;
 			data = 0;
@@ -77,6 +122,13 @@ ext_read(uint8_t addr)
 			clear_collision();
 			return data;
 		case 0xA4:
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+			Serial.println("0xA4 y_latch");
+#endif
+#ifdef DEBUG_TFT
+#endif
 			if ((intel8245_ram[0xA0] & 0x02))
 			{
 				y_latch = vertical_clock / 22;
@@ -85,27 +137,30 @@ ext_read(uint8_t addr)
 			}
 			return y_latch;
 		case 0xA5:
+		#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+			Serial.println("0xA5 ");
+#endif
+#ifdef DEBUG_TFT
+#endif
 			if ((intel8245_ram[0xA0] & 0x02))
 			{
-				x_latch = horizontal_clock * 12;
+				x_latch = horizontal_clock * 12; // TODO D'ou sort ce 2 ?
 			}
 			return x_latch;
 		default:
 			return intel8245_ram[addr];
 		}
 	}
-	else if (!(p1 & 0x10))
-		return external_ram[addr]; // p1 & 0x10 : hack lié à la cartouche MegaCart TODO: supprimer
+	else if (!(p1 & 0x10)) return external_ram[addr]; // p1 & 0x10 : hack lié à la cartouche MegaCart TODO: supprimer
 	return 0;
 }
 
 void ext_write(uint8_t data, uint8_t addr)
 {
-	uint16_t cecette;
-
 	if (!(p1 & 0x08))
 	{
-
 #ifdef DEBUG_STDERR
 		fprintf(stderr, "Accessing video_ram[0x%02X] <- 0x%02X\n", addr, data);
 #endif
