@@ -13,7 +13,7 @@
 #define R3 20
 #define R4 19
 #define C1 18
-#define C2 18
+#define C2 17
 #define C3 16
 
 const byte ROWS = 4; // rows
@@ -74,6 +74,7 @@ read_p2()
     {
       if (scan_input == 0)
       {
+#define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
         Serial.println("Lecture ligne 0 du clavier");
 #endif
@@ -82,23 +83,22 @@ read_p2()
         {
           keypadEvent e = customKeypad.read();
           if (e.bit.EVENT == KEY_JUST_PRESSED)
-            if (((char)e.bit.KEY) == '1')
-            {
-#define DEBUG_SERIAL
-#ifdef DEBUG_SERIAL
-              Serial.println("Touche 1 pressée");
-#endif
-              scan_output = 0x01;
-            }
-          if (((char)e.bit.KEY) == '2')
           {
-#ifdef DEBUG_SERIAL
-            Serial.println("Touche 2 pressée");
-#endif
-            scan_output = 0x02;
+            // Serial.print("Touche pressée");
+            // Serial.println((char)e.bit.KEY);
+
+            switch ((char)e.bit.KEY)
+              {
+              case '1':
+                scan_output = 0x01;
+                break;
+              case '2':
+                scan_output = 0x02;
+                break;
+              }
           }
-          // p2 &= 0x0F;
-          // p2 |= scan_output << 5;
+          p2 &= 0x0F;
+          p2 |= scan_output << 5;
         }
       }
     }

@@ -230,14 +230,14 @@ void exec_8048()
 		Serial.println(intel8048_ram[reg_pnt + 7], HEX);
 		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
+#endif
 		Serial.print(" PC: ");
 		Serial.print(pc, HEX);
 		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
 		Serial.print(" Op: ");
 		Serial.println(op, HEX);
 		Serial.print(lookup[op].mnemonic);
-		Serial.print(" ");
-#endif
+		Serial.println(" ");
 #ifdef DEBUG_TFT
 
 		text_tft.fillScreen(ST77XX_BLACK);
