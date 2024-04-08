@@ -18,7 +18,7 @@
 #include "arduipac_cset.h"
 #include "arduipac_config.h"
 
-#define DEBUG_SERIAL
+// #define DEBUG_SERIAL
 
 #define COLLISION_SP0 0x01
 #define COLLISION_SP1 0x02

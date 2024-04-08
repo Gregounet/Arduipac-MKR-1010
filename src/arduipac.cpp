@@ -14,6 +14,7 @@
 #include "arduipac_8048.h"
 #include "arduipac_8245.h"
 #include "arduipac_bios_rom.h"
+#include "arduipac_input.h"
 #include "arduipac_config.h"
 
 #define TEXT_TFT_CS 0
@@ -75,7 +76,7 @@ void setup()
 #ifdef DEBUG_STDERR
   fprintf(stderr, "%s\n", WELCOME_STRING);
 #endif
-#define DEBUG_SERIAL
+// #define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
   Serial.println(WELCOME_STRING);
 #endif
@@ -98,6 +99,8 @@ void setup()
   text_print_string("Entering main()\n");
   delay(TFT_DEBUG_DELAY);
 #endif
+
+  customKeypad.begin();
 
   // collision = NULL;
 

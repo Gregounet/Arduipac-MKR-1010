@@ -1,19 +1,37 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <Adafruit_Keypad.h>
 
 #include "arduipac.h"
 #include "arduipac_input.h"
 #include "arduipac_8048.h"
 #include "arduipac_config.h"
 
+#define R1 0
+#define R2 21
+#define R3 20
+#define R4 19
+#define C1 18
+#define C2 18
+#define C3 16
+
+const byte ROWS = 4; // rows
+const byte COLS = 3; // columns
+
+char keys[ROWS][COLS] = {
+    {'1', '2', '3'}, {'4', '5', '6'}, {'7', '8', '9'}, {'*', '0', '#'}};
+byte rowPins[ROWS] = {R1, R2, R3, R4};
+byte colPins[COLS] = {C1, C2, C3};
+
+Adafruit_Keypad customKeypad = Adafruit_Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
 void write_p1(uint8_t data)
 {
-
 #ifdef DEBUG_STDERR
   fprintf(stderr, "write_p1(0x%02X)\n", data);
 #endif
-#define DEBUG_SERIAL
+// #define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
   Serial.print(bigben);
   Serial.print(" - write_p1(0x");
@@ -21,7 +39,7 @@ void write_p1(uint8_t data)
   Serial.println(")");
 #endif
 #ifdef DEBUG_TFT
-      text_print_string("write_p1()");
+  text_print_string("write_p1()");
   delay(TFT_DEBUG_DELAY);
 #endif
 
@@ -31,20 +49,17 @@ void write_p1(uint8_t data)
 uint8_t
 read_p2()
 {
-  int i;
-  int scan_input;
-  int scan_output;
-  int keymap;
+  uint8_t scan_input;
+  uint8_t scan_output;
 
 #ifdef DEBUG_STDERR
   fprintf(stderr, "read_p2()\n");
 #endif
-
 #ifdef DEBUG_SERIAL
   Serial.print(bigben);
-  Serial.println(" - read_p2()");
+  Serial.print(" - read_p2() - valeur P2 == ");
+  Serial.println(p2, HEX);
 #endif
-
 #ifdef DEBUG_TFT
   text_print_string("read_p2()\n");
   delay(TFT_DEBUG_DELAY);
@@ -57,25 +72,39 @@ read_p2()
 
     if (scan_input < 0x06) // Seulement 5 lignes du clavier sont scannées
     {
-      for (i = 0x00; i < 0x08; i++)
+      if (scan_input == 0)
       {
-        // keymap = key_map[scan_input][i];
-        /*
-           if ((key[keymap] && ((!joykeystab[km]) || (key_shifts & KB_CAPSLOCK_FLAG))) || (key2[keymap])) scan_output = i ^ 0x07;
-         */
+#ifdef DEBUG_SERIAL
+        Serial.println("Lecture ligne 0 du clavier");
+#endif
+        customKeypad.tick();
+        if (customKeypad.available())
+        {
+          keypadEvent e = customKeypad.read();
+          if (e.bit.EVENT == KEY_JUST_PRESSED)
+            if (((char)e.bit.KEY) == '1')
+            {
+#define DEBUG_SERIAL
+#ifdef DEBUG_SERIAL
+              Serial.println("Touche 1 pressée");
+#endif
+              scan_output = 0x01;
+            }
+          if (((char)e.bit.KEY) == '2')
+          {
+#ifdef DEBUG_SERIAL
+            Serial.println("Touche 2 pressée");
+#endif
+            scan_output = 0x02;
+          }
+          // p2 &= 0x0F;
+          // p2 |= scan_output << 5;
+        }
       }
-    }
-    if (scan_output != 0xFF) // Au moins une touche est pressée
-    {
-      p2 &= 0x0F;
-      p2 |= scan_output << 5;
     }
     else
       p2 |= 0xF0;
   }
-  else
-    p2 |= 0xF0;
-
   return p2;
 }
 
