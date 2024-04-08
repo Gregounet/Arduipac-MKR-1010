@@ -15,8 +15,6 @@ uint8_t x_latch, y_latch;
 uint8_t machine_state; // 0 during normal operation and 1 during Vertical Blank
 uint8_t external_ram[128];
 
-// #define DEBUG_SERIAL
-
 void init_vmachine()
 {
 #ifdef DEBUG_STDERR

@@ -11,13 +11,13 @@
 
 // Test
 
-#define R1 0
-#define R2 21
-#define R3 20
-#define R4 19
-#define C1 18
-#define C2 17
-#define C3 16
+#define R1 21
+#define R2 20
+#define R3 19
+#define R4 18
+#define C1 17
+#define C2 16
+#define C3 15
 
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
@@ -34,7 +34,6 @@ void write_p1(uint8_t data)
 #ifdef DEBUG_STDERR
   fprintf(stderr, "write_p1(0x%02X)\n", data);
 #endif
-// #define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
   Serial.print(bigben);
   Serial.print(" - write_p1(0x");
@@ -77,17 +76,16 @@ read_p2()
     {
       if (scan_input == 0)
       {
-// #define DEBUG_SERIAL
-#ifdef DEBUG_SERIAL
-        Serial.println("Lecture ligne 0 du clavier");
-#endif
+        Serial.print(bigben) ;
+        Serial.println(" - Lecture ligne 0 du clavier");
         customKeypad.tick();
         if (customKeypad.available())
         {
           keypadEvent e = customKeypad.read();
           if (e.bit.EVENT == KEY_JUST_PRESSED)
           {
-            // Serial.print("Touche pressée");
+            Serial.print(bigben) ;
+            Serial.print(" - Touche pressée");
             // Serial.println((char)e.bit.KEY);
 
             switch ((char)e.bit.KEY)
@@ -103,6 +101,7 @@ read_p2()
           p2 &= 0x0F;
           p2 |= scan_output << 5;
         }
+        
       }
     }
     else

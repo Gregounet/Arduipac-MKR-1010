@@ -230,7 +230,6 @@ void exec_8048()
 		Serial.println(intel8048_ram[reg_pnt + 7], HEX);
 		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
-#endif
 		Serial.print(" PC: ");
 		Serial.print(pc, HEX);
 		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
@@ -238,8 +237,8 @@ void exec_8048()
 		Serial.println(op, HEX);
 		Serial.print(lookup[op].mnemonic);
 		Serial.println(" ");
+#endif
 #ifdef DEBUG_TFT
-
 		text_tft.fillScreen(ST77XX_BLACK);
 
 		// Bank Select
@@ -368,7 +367,34 @@ void exec_8048()
 #else
 		op = ROM(pc++);
 #endif
+		text_tft.fillScreen(ST77XX_BLACK);
+		
+		// Big Ben
+		text_tft.setCursor(0, 120);
+		text_print_string("bigben ");
+		text_print_dec(bigben);
 
+		// Exécution
+		text_tft.setCursor(0, 72);
+		text_print_string("PC ");
+		text_print_hex(pc);
+		if (pc < 0x400)
+			text_print_string(" (bios)");
+		else
+			text_print_string(" (cart)");
+		text_tft.setCursor(0, 80);
+		text_print_string("Op ");
+		text_print_hex(op);
+
+		text_tft.setCursor(0, 88);
+		text_print_string(lookup[op].mnemonic);
+
+		/*
+		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
+			Serial.print(" Op: ");
+			Serial.print(op, HEX);
+			Serial.println(lookup[op].mnemonic);
+		*/
 		switch (op)
 		{
 		case 0x00: /* NOP */
@@ -1296,18 +1322,15 @@ void exec_8048()
 		fprintf(stderr, "vertical_clock == %d\n", vertical_clock);
 		fprintf(stderr, "machine_state == %d\n");
 #endif
-#define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
 		Serial.print("bigben == ");
 		Serial.println(bigben);
-/*		
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");
 		Serial.println(vertical_clock);
 		Serial.print("machine_state == ");
 		Serial.println(machine_state);
-*/
 #endif
 #undef DEBUG_SERIAL
 
@@ -1369,7 +1392,7 @@ void exec_8048()
 			ext_irq();		   // TODO: pourquoi une ext_irq ici ?
 			machine_state = 1; // On passe dans la phase de Vertical Blank
 		}
-		if (machine_state == 1 && vertical_clock >= END_VBLCLK) // Pourquoi pas plutot >= au lieu de > ? TODO 
+		if (machine_state == 1 && vertical_clock >= END_VBLCLK) // Pourquoi pas plutot >= au lieu de > ? TODO
 		{
 			vertical_clock -= END_VBLCLK;
 			machine_state = 0; // On sort de la phase de Vertical Blank

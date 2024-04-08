@@ -18,8 +18,6 @@
 #include "arduipac_cset.h"
 #include "arduipac_config.h"
 
-// #define DEBUG_SERIAL
-
 #define COLLISION_SP0 0x01
 #define COLLISION_SP1 0x02
 #define COLLISION_SP2 0x04
@@ -29,7 +27,7 @@
 #define COLLISION_CHAR 0x80
 
 uint8_t intel8245_ram[256];   // TODO Je peux réduire ceci à 132 octets: 0x00 - 0X7F et 0xA0 à 0xA3
-uint8_t collision_table[256]; // Va falloir trouver un moyen de remplacer ce tablean ENORME
+uint8_t collision_table[256]; // Va falloir trouver un moyen de remplacer ce tableau ENORME
 
 void draw_grid()
 {

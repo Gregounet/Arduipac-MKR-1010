@@ -25,7 +25,7 @@
 #define GRAPHIC_TFT_RST -1
 #define GRAPHIC_TFT_DC 7
 
-// Adafruit_ST7735 text_tft = Adafruit_ST7735(TEXT_TFT_CS, TEXT_TFT_DC, TEXT_TFT_RST);
+Adafruit_ST7735 text_tft = Adafruit_ST7735(TEXT_TFT_CS, TEXT_TFT_DC, TEXT_TFT_RST);
 Adafruit_ST7789 graphic_tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GRAPHIC_TFT_RST);
 
 void text_print_string(char *text)
@@ -54,15 +54,15 @@ void graphic_drawtext(char *text)
 #define ARDUIPAC_VERSION "This is the end"
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(100);
-  /*
-    text_tft.initR(INITR_BLACKTAB);
-    text_tft.setSPISpeed(100000000);
-    text_tft.fillScreen(ST77XX_BLACK);
-    text_tft.setRotation(1);
-    text_tft.setTextColor(ST77XX_GREEN);
-  */
+
+  text_tft.initR(INITR_BLACKTAB);
+  text_tft.setSPISpeed(100000000);
+  text_tft.fillScreen(ST77XX_BLACK);
+  text_tft.setRotation(1);
+  text_tft.setTextColor(ST77XX_GREEN);
+
   delay(TFT_DEBUG_DELAY);
 
   graphic_tft.init(240, 320);
@@ -76,18 +76,18 @@ void setup()
 #ifdef DEBUG_STDERR
   fprintf(stderr, "%s\n", WELCOME_STRING);
 #endif
-// #define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
   Serial.println(WELCOME_STRING);
 #endif
-#undef DEBUG_SERIAL
 
+#define DEBUG_TFT
 #ifdef DEBUG_TFT
   text_print_string(WELCOME_STRING);
   delay(TFT_DEBUG_DELAY);
   graphic_drawtext(WELCOME_STRING);
   delay(TFT_DEBUG_DELAY);
 #endif
+#undef DEBUG_TFT
 
 #ifdef DEBUG_STDERR
   fprintf(stderr, "Entering main()\n");
