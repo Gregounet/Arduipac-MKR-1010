@@ -367,13 +367,15 @@ void exec_8048()
 #else
 		op = ROM(pc++);
 #endif
-		text_tft.fillScreen(ST77XX_BLACK);
-		
+		if ((bigben/100)*100 == bigben)
+		{
 		// Big Ben
+		text_tft.fillScreen(ST77XX_BLACK);
 		text_tft.setCursor(0, 120);
 		text_print_string("bigben ");
 		text_print_dec(bigben);
-
+		}
+/*
 		// Exécution
 		text_tft.setCursor(0, 72);
 		text_print_string("PC ");
@@ -388,7 +390,7 @@ void exec_8048()
 
 		text_tft.setCursor(0, 88);
 		text_print_string(lookup[op].mnemonic);
-
+*/
 		/*
 		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
 			Serial.print(" Op: ");

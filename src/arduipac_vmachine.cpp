@@ -150,43 +150,112 @@ ext_read(uint8_t addr)
 
 void ext_write(uint8_t data, uint8_t addr)
 {
-	if (!(p1 & 0x08))
+	/*
+	Serial.print("ext_write()");
+	Serial.print(data);
+	Serial.print(", ");
+	Serial.println(addr, HEX);
+	Serial.println(")");
+	*/
+
+	switch (p1 & 0x58)
 	{
-		if (addr >= 0xA0 && addr <= 0xA3)
+	case 0x08: // External RAM
+		if (addr < 0x80)
+			external_ram[addr] = data;
+		break;
+	case 0x10:			 // VDC RAM
+	case 0x40:			 // Copy Mode (read from External RAM and Write to VDC)
+		if (addr < 0x10) // Sprites positions and colors
 		{
+			/*
+			Serial.print("Accessing Sprites positions and colors [0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
+			*/
+			intel8245_ram[addr] = data;
+		}
+		else if (addr >= 0x10 && addr < 0x40) // Characters
+		{
+			Serial.print("Accessing Characters [0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
+			intel8245_ram[addr] = data;
+		}
+		else if (addr >= 0x40 && addr < 0x80) // Quads
+		{
+			Serial.print("Accessing Quads [0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
+			if ((addr & 0x02) == 0)
+			{
+				// TODO
+				/* addr = addr & 0x71;
+				if (!(addr & 0x01))
+					data &= 0xFE;
+				intel8245_ram[addr] = intel8245_ram[addr + 4] = intel8245_ram[addr + 8] = intel8245_ram[addr + 12] = data;*/
+			}
+			else
+			{
+				intel8245_ram[addr] = data;
+			}
+		}
+		else if (addr >= 0x80 && addr < 0x10) // Sprites Shapes
+		{
+			/*
+			Serial.print("Accessing Sprites Shapes [0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
+			*/
+			intel8245_ram[addr] = data;
+		}
+		else if (addr >= 0xA0 && addr <= 0xA3) // VDC Video Register
+		{
+			Serial.print("Accessing VDC Video Register[0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
 			if (addr == 0xA0)
 			{
-				if (intel8245_ram[0xA0] & 0x02 && !data & 0x02)
+				if ((intel8245_ram[0xA0] & 0x02) && !(data & 0x02))
 				{
 					y_latch = vertical_clock / 22;
 					x_latch = horizontal_clock * 12;
 					if (y_latch > 241)
 						y_latch = 0xFF;
 				}
-				/*
-				 * Comme je ne comprends pas pour l'instant je commente. TODO
-				if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data)
-					draw_display();
-				*/
 			}
-			else if (addr >= 0x40 && addr < 0x80 && addr & (0x02 == 0)) // 0x40 - 0x7F : les quatre Quads, addr & 0x02 == 0 -> les positions X et Y_start du caractère
-			{															// TODO comprendre ce code
-				addr = addr & 0x71;
-				if (!(addr & 0x01))
-					data &= 0xFE;
-				intel8245_ram[addr] = intel8245_ram[addr + 4] =
-					intel8245_ram[addr + 8] = intel8245_ram[addr + 12] = data;
-			}
-			if (addr >= 0xA7 && addr <= 0xAA)
-			{
-				intel8245_ram[addr] = data;
-			}
-			// else if (!(p1 & 0x50)) // TODO: vérifier cette condition - Il est probale que je vais pouvoir transformer ceci en & 0x40
-			else if (!(p1 & 0x10) && !(p1 & 0x40))
-			{
-			}
-			if (addr < 0x80)
-				external_ram[addr] = data;
+			intel8245_ram[addr] = data;
 		}
+		else if (addr >= 0xA7 && addr <= 0xAA) // VDC Sound Register
+		{
+			/*
+			Serial.print("Accessing VDC Sound Register[0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
+			*/
+			intel8245_ram[addr] = data;
+		}
+		else if (addr >= 0xC0 && addr <= 0xF0) // Grid
+		{
+			/*
+			Serial.print("Accessing Grid [0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
+			*/
+			intel8245_ram[addr] = data;
+		}
+		break;
 	}
+	/*
+	 * Comme je ne comprends pas pour l'instant je commente. TODO
+	if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data)
+		draw_display();
+	*/
 }

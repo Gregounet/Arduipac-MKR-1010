@@ -1,4 +1,5 @@
 {
     "C_Cpp.dimInactiveRegions": true,
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "cmake.sourceDirectory": "/home/gregoire/Documents/PlatformIO/Projects/Arduipac MKR 1010/.pio/libdeps/mkrwifi1010/Adafruit BusIO"
 }

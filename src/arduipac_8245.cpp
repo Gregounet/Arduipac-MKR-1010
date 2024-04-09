@@ -29,6 +29,8 @@
 uint8_t intel8245_ram[256];   // TODO Je peux réduire ceci à 132 octets: 0x00 - 0X7F et 0xA0 à 0xA3
 uint8_t collision_table[256]; // Va falloir trouver un moyen de remplacer ce tableau ENORME
 
+#define DEBUG_SERIAL
+
 void draw_grid()
 {
   uint8_t mask; // Masque utilisé pour le décodage des bits de chaque octet
@@ -99,12 +101,17 @@ void draw_grid()
   */
 }
 
+/*
+ * Chars
+ *
+ */
+
 void show_12chars()
 {
-  uint8_t x;
-  uint8_t y;
-  uint16_t pattern;
-  uint8_t color;
+  uint8_t char_x;
+  uint8_t char_y;
+  uint16_t char_offset;
+  uint8_t char_color;
 
 #ifdef DEBUG_STDERR
 #endif
@@ -116,66 +123,77 @@ void show_12chars()
 
   for (uint8_t i = 0; i < 12; i++)
   {
-    x = intel8245_ram[0x10 + i * 0x04 + 0x01];
-    y = intel8245_ram[0x10 + i * 0x04 + 0x00] >> 1;
-    pattern =
-        intel8245_ram[0x10 + i * 0x04 + 0x03] & 0x01 | intel8245_ram[0x10 +
-                                                                     i *
-                                                                         0x04 +
-                                                                     0x02] &
-                                                           0xFF;
-    color = (intel8245_ram[0x10 + i * 0x04 + 0x03] & 0x0E) >> 1;
-    show_1char(x, y, pattern, color);
+    char_x = intel8245_ram[0x10 + (i * 0x04) + 0x01];
+    char_y = intel8245_ram[0x10 + (i * 0x04) + 0x00];
+    char_offset = (((uint16_t)(intel8245_ram[0x10 + (i * 0x04) + 0x03]) & 0x01) << 8) | (intel8245_ram[0x10 + (i * 0x04) + 0x02]);
+    char_color = (intel8245_ram[0x10 + (i * 0x04) + 0x03] & 0x0E) >> 1;
+    show_1char(char_x, char_y, char_offset, char_color);
   }
 }
 
-void show_1char(uint8_t x, uint16_t y, uint8_t pattern, uint8_t color)
+void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
 {
-  // fprintf(stderr,"show1_char(): X = %d, Y = %d, indice dans cst = %d, couleur = %d\n", x, y, car, color);
+  int16_t cset_start_address = offset + (y >> 1);
+  if (cset_start_address > 512)
+    cset_start_address -= 512;
+
+  uint8_t cset_byte;
+
+#ifdef DEBUG_STDERR
+  fprintf(stderr, "show1_char(): X = %d, Y = %d, indice dans cst = %0x03x, couleur = %d\n", x, y, cset_start_offset, color);
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.print("show1_char() x = 0x");
+  Serial.print(x, HEX);
+  Serial.print(", y = 0x");
+  Serial.print(y, HEX);
+  Serial.print(", offset = 0x");
+  Serial.print(offset, HEX);
+  Serial.print(", indice dans cset = 0x");
+  Serial.print(cset_start_address, HEX);
+  Serial.print(", char number = 0x");
+  Serial.print(cset_start_address / 8, HEX);
+  Serial.print(", color = 0x");
+  Serial.println(color, HEX);
+#endif
+#ifdef DEBUG_TFT
+#endif
+  // for (uint8_t char_line = 0; (cset_byte = cset[char_line]) != 0x00; char_line++)
+  for (uint8_t char_line = 0; char_line < 8; char_line++)
+  {
+    cset_byte = cset[cset_start_address + char_line];
+    Serial.print("cset_byte[0x");
+    Serial.print(char_line, HEX);
+    Serial.print("] = 0x");
+    Serial.println(cset_byte, HEX);
+
+    for (int8_t char_col = 7; char_col >= 0; char_col--)
+    {
+      Serial.print("char_col = ");
+      Serial.println(char_col, HEX);
+      if ((cset_byte >> char_col) & 0x01)
+      {
+        Serial.print("drawPixel(");
+        Serial.print(x + (7 - char_col), HEX);
+        Serial.print(", ");
+        Serial.print(y + char_line, HEX);
+        Serial.print(", ");
+        Serial.print(color);
+        Serial.println(")");
+        delay(100);
+        graphic_tft.drawPixel(
+            (uint16_t)(x + (7 - char_col)),
+            (uint16_t)(y + char_line),
+            ST7735_GREEN);
+      }
+    }
+  }
 }
 
 /*
-  for (uint8_t i = 0x10; i < 0x40; i += 0x04) draw_char (intel8245_ram[i], intel8245_ram[i + 1], intel8245_ram[i + 2], intel8245_ram[i + 3]);
-  uint16_t c;  // Il s'agit d'un indice de base dans cset[]
-  uint8_t cl;
-  uint8_t d1;  // Ce serait un octet représentant 8 pixels qui proviendrait de cset[]
-  uint8_t y;
-  uint8_t n;
-  uint32_t pnt;
-  y = (ypos & 0xFE);
-  pnt = y * BITMAP_WIDTH  +  ((xpos - 8) * 2)  + 20;
-  ypos >>= 1;
-  n = 8 - (ypos % 0x08) - (chr % 0x08); // Donc n <= 8
-  if (n < 3) n = n + 7;                 // Donc 3 <= n <= 9 TODO Wtf ???
-
-  if ((pnt + BITMAP_WIDTH * 2 * n >= clip_low) && (pnt <= clip_high)) {
-      c = (uint16_t) chr + ypos;
-      if (col & 0x01) c += 256;
-      if (c > 511) c -= 512;
-
-      // Je penche pour des couleurs sur 3 bits (RGB) plus que pour des collisions
-      cl = ((col & 0x0E) >> 1);
-      cl = ((cl & 0x02) | ((cl & 0x01) << 2) | ((cl & 0x04) >> 2)) + 8;
-
-      if ((y > 0) && (y < 232) && (xpos < 157)) {                        // TODO Comme y est un uint8_t le test > 0 est inutile
-    for (uint8_t j = 0; j < n; j++) {                                  // On va donc looper entre 2 et 8 fois
-        d1 = CSET[c + j];
-        for (uint8_t b = 0; b < 8; b++) {                              // On parcourt les 8 bits (pixels) de chaque octet provenant de cset[]
-      if (d1 & 0x80) {
-          if ((xpos - 8 + b < 160) && (y + j < 240)) {       // x est exprimé sous la forme [0-159] et non [0-319]
-        mputvid (pnt               , 2, cl, COLLISION_CHAR);
-        mputvid (pnt + BITMAP_WIDTH, 2, cl, COLLISION_CHAR);
-      }
-        }
-      pnt += 2;
-      d1 <<= 1;
-    }
-        pnt += BITMAP_WIDTH * 2 - 16;
-      }
-  }
-    }
-}
-*/
+ * Chars
+ *
+ */
 
 void show_4quads()
 {
@@ -188,15 +206,13 @@ void show_4quads()
 #endif
   for (uint8_t i = 0x40; i < 0x80; i += 0x10)
     show_1quad(i);
-  // for (uint8_t i = 0x40 ; i < 0x80; i++) fprintf(stderr, "0x%02X\t", intel8245_ram[i]);
-  // fprintf(stderr, "\n");
 }
 
 void show_1quad(uint8_t quad_indx)
 {
   uint8_t x;
   uint8_t y;
-  uint16_t pattern;
+  uint16_t offset;
   uint8_t color;
 
 #ifdef DEBUG_STDERR
@@ -208,36 +224,32 @@ void show_1quad(uint8_t quad_indx)
 #endif
 
   x = intel8245_ram[quad_indx + 0x01];
-  y = intel8245_ram[quad_indx + 0x00] >> 1;
-  pattern =
-      intel8245_ram[quad_indx + 0x03] & 0x01 | intel8245_ram[quad_indx +
-                                                             0x02] &
-                                                   0xFF;
+  y = intel8245_ram[quad_indx + 0x00];
+  offset = (((uint16_t)(intel8245_ram[quad_indx + 0x03]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x02]);
   color = (intel8245_ram[quad_indx + 0x03] & 0x0E) >> 1;
-  show_1char(x, y, pattern, color);
+  show_1char(x, y, offset, color);
 
-  x = intel8245_ram[quad_indx + 0x05] & 0xFF;
-  y = intel8245_ram[quad_indx + 0x04] >> 1;
-  pattern =
-      intel8245_ram[quad_indx + 0x07] & 0x01 | intel8245_ram[quad_indx +
-                                                             0x06] &
-                                                   0xFF;
-  color = (intel8245_ram[quad_indx + 0x0A] & 0x0E) >> 1;
-  show_1char(x, y, pattern, color);
+  x = intel8245_ram[quad_indx + 0x05];
+  y = intel8245_ram[quad_indx + 0x04];
+  offset = (((uint16_t)(intel8245_ram[quad_indx + 0x07]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x01]);
+  color = (intel8245_ram[quad_indx + 0x07] & 0x0E) >> 1;
+  show_1char(x, y, offset, color);
 
-  // Renouveller l'opération pour les trois autres caractères TODO
+  x = intel8245_ram[quad_indx + 0x09];
+  y = intel8245_ram[quad_indx + 0x08];
+  offset = (((uint16_t)(intel8245_ram[quad_indx + 0x0B]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x0A]);
+  color = (intel8245_ram[quad_indx + 0x0B] & 0x0E) >> 1;
+  show_1char(x, y, offset, color);
+
+  x = intel8245_ram[quad_indx + 0x0D];
+  y = intel8245_ram[quad_indx + 0x0C];
+  offset = (((uint16_t)(intel8245_ram[quad_indx + 0x0F]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x0E]);
+  color = (intel8245_ram[quad_indx + 0x0F] & 0x0E) >> 1;
+  show_1char(x, y, offset, color);
 }
 
 void show_4sprites()
 {
-  int x;
-  int sm;
-  int t;
-  uint8_t d1;
-  uint8_t y;
-  uint8_t cl;
-  uint8_t c;
-
 #ifdef DEBUG_STDERR
 #endif
 #ifdef DEBUG_SERIAL
@@ -245,105 +257,7 @@ void show_4sprites()
 #endif
 #ifdef DEBUG_TFT
 #endif
-  c = 8; // TODO vérifier que c va être utilisé
-  for (int i = 12; i >= 0; i -= 4)
-  {
-    // pnt2 = 0x80 + (i * 2);
-
-    y = intel8245_ram[i];
-    x = intel8245_ram[i + 1] - 8;
-    t = intel8245_ram[i + 2];
-
-    cl = ((t & 0x38) >> 3);
-    cl = ((cl & 2) | ((cl & 1) << 2) | ((cl & 4) >> 2)) + 8; // Il faudrait peut-être écrire une fonction pour cela pour gagner de la mémoire ? TODO
-
-    /*
-        if ((x < 164) && (y > 0) && (y < 232))
-        {
-          pnt = y * BITMAP_WIDTH + (x * 2) + 20;
-          if (t & 4)
-          {
-            if ((pnt + BITMAP_WIDTH * 32 >= clip_low) && (pnt <= clip_high))
-            {
-              for (uint8_t j = 0; j < 8; j++)
-              {
-                sm = (((j % 2 == 0) && (((t >> 1) & 1) != (t & 1))) || ((j % 2 == 1) && (t & 1))) ? 1 : 0;
-                d1 = intel8245_ram[pnt2++];
-                for (uint8_t b = 0; b < 8; b++)
-                {
-                  if (d1 & 0x01)
-                  {
-                    if ((x + b + sm < 159) && (y + j < 247))
-                    {
-                                    }
-                  }
-                  // pnt += 4;
-                  d1 >>= 1;
-                }
-                // pnt += BITMAP_WIDTH * 4 - 32;
-              }
-            }
-          }
-          else
-          {
-            /*
-            if ((pnt + BITMAP_WIDTH * 16 >= clip_low) && (pnt <= clip_high))
-            {
-              for (uint8_t j = 0; j < 8; j++)
-              {
-                sm = (((j % 2 == 0) && (((t >> 1) & 1) != (t & 1))) || ((j % 2 == 1) && (t & 1))) ? 1 : 0;
-                d1 = intel8245_ram[pnt2++];
-                for (uint8_t b = 0; b < 8; b++)
-                {
-                  if (d1 & 0x01)
-                  {
-                    if ((x + b + sm < 160) && (y + j < 249))
-                    {
-                    }
-                  }
-                  pnt += 2;
-                  d1 >>= 1;
-                }
-                pnt += BITMAP_WIDTH * 2 - 16;
-              }
-            }
-            */
-  }
-  c >>= 1;
 }
-
-/*
-void mputvid (uint32_t location, uint16_t len, uint8_t color, uint16_t c)
-{
-  if (len >= sizeof (collision_table)) return;
-  if (c   >= sizeof (collision_table)) return;
-
-  if ((location > (uint32_t) clip_low) && (location < (uint32_t) clip_high)) {
-      if ((len & 0x03) == 0) { // TODO C'est quoi ce 0x03 ???
-    unsigned long dddd = (((unsigned long) color)) | ((((unsigned long) color)) << 8) | ((((unsigned long) color)) << 16) | ((((unsigned long) color)) << 24);
-    unsigned long cccc = (((unsigned long) color)) | ((((unsigned long) color)) << 8) | ((((unsigned long) color)) << 16) | ((((unsigned long) color)) << 24);
-    // TODO Mais c'est quoi tout ce bordel ???
-    // en fait dddd == cccc soit au total 8 octets identiques !
-    // regarder le code d'origine: j'ai fait de la merde ici TODO TODO TODO
-
-    for (uint16_t i = 0; i < (len >> 2); i++) {
-        //((unsigned long *) (vscreen + ad)) = dddd;
-        //cccc |= *((unsigned long *) (col + ad));
-        //*((unsigned long *) (col + ad)) = cccc;
-        collision_table[c] |= ((cccc | (cccc >> 8) | (cccc >> 16) | (cccc >> 24)) & 0xFF);
-        location += 4;
-      }
-  }
-      else {
-    for (uint16_t i = 0; i < len; i++) {
-        //vscreen[location] = color;
-        //col[ad] |= c;
-        //collision_table[c] |= collision[ad++];
-      }
-  }
-    }
-}
-*/
 
 void clear_collision()
 {
@@ -372,6 +286,8 @@ void draw_display()
 #ifdef DEBUG_SERIAL
   Serial.print(bigben);
   Serial.println(" - draw_display()");
+  Serial.print("intel8245_ram[0xA0] = ");
+  Serial.println(intel8245_ram[0xA0], HEX);
 #endif
 #ifdef DEBUG_TFT
 #endif

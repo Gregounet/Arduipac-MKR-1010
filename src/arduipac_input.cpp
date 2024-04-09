@@ -8,9 +8,6 @@
 #include "arduipac_8048.h"
 #include "arduipac_config.h"
 
-
-// Test
-
 #define R1 21
 #define R2 20
 #define R3 19
@@ -71,42 +68,44 @@ read_p2()
   {
     scan_input = (p2 & 0x07);
     scan_output = 0xFF;
-
-    if (scan_input < 0x06) // Seulement 5 lignes du clavier sont scannées
+    if (scan_input == 0)
     {
-      if (scan_input == 0)
+      Serial.print(bigben);
+      Serial.println(" - Lecture ligne 0 du clavier");
+      while (scan_output == 0xFF)
       {
-        Serial.print(bigben) ;
-        Serial.println(" - Lecture ligne 0 du clavier");
+        Serial.println("Attente d'un événement");
         customKeypad.tick();
-        if (customKeypad.available())
+        int nb_evenements = customKeypad.available();
+        for (int i = 0; i < nb_evenements; i++)
         {
+          Serial.println("Lecture d'un événement");
           keypadEvent e = customKeypad.read();
+          Serial.println("Caractère lu");
           if (e.bit.EVENT == KEY_JUST_PRESSED)
           {
-            Serial.print(bigben) ;
-            Serial.print(" - Touche pressée");
-            // Serial.println((char)e.bit.KEY);
-
+            Serial.println("Touche pressée");
             switch ((char)e.bit.KEY)
-              {
-              case '1':
-                scan_output = 0x01;
-                break;
-              case '2':
-                scan_output = 0x02;
-                break;
-              }
-          }
-          p2 &= 0x0F;
-          p2 |= scan_output << 5;
+            {
+            case '1':
+              Serial.println("Touche 1");
+              scan_output = 0x01;
+              break;
+            case '2':
+              Serial.println("Touche 2");
+              scan_output = 0x02;
+              break;
+            }
+          };
         }
-        
+        delay(1000);
       }
+      p2 &= 0x0F;
+      p2 |= scan_output << 5;
     }
-    else
-      p2 |= 0xF0;
   }
+  else
+    p2 |= 0xF0;
   return p2;
 }
 

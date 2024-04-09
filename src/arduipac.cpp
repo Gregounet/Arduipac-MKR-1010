@@ -54,7 +54,9 @@ void graphic_drawtext(char *text)
 #define ARDUIPAC_VERSION "This is the end"
 void setup()
 {
-  Serial.begin(9600);
+char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
+
+  Serial.begin(38400);
   delay(100);
 
   text_tft.initR(INITR_BLACKTAB);
@@ -72,19 +74,20 @@ void setup()
   graphic_tft.setTextColor(ST77XX_WHITE);
   delay(TFT_DEBUG_DELAY);
 
-#define WELCOME_STRING "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION
+  delay(3000) ;
+  
 #ifdef DEBUG_STDERR
-  fprintf(stderr, "%s\n", WELCOME_STRING);
+  fprintf(stderr, "%s\n", welcome_string);
 #endif
 #ifdef DEBUG_SERIAL
-  Serial.println(WELCOME_STRING);
+  Serial.println(welcome_string);
 #endif
 
 #define DEBUG_TFT
 #ifdef DEBUG_TFT
-  text_print_string(WELCOME_STRING);
+  text_print_string(welcome_string);
   delay(TFT_DEBUG_DELAY);
-  graphic_drawtext(WELCOME_STRING);
+  graphic_drawtext(welcome_string);
   delay(TFT_DEBUG_DELAY);
 #endif
 #undef DEBUG_TFT
