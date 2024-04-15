@@ -16,6 +16,7 @@
 #include "arduipac_8048.h"
 #include "arduipac_vmachine.h"
 #include "arduipac_cset.h"
+#include "arduipac_colors.h"
 #include "arduipac_config.h"
 
 #define COLLISION_SP0 0x01
@@ -161,7 +162,7 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
   // for (uint8_t char_line = 0; (cset_byte = cset[char_line]) != 0x00; char_line++)
   for (uint8_t char_line = 0; char_line < 8; char_line++)
   {
-    cset_byte = cset[cset_start_address + char_line];
+    cset_byte = CSET(cset_start_address + char_line);
     Serial.print("cset_byte[0x");
     Serial.print(char_line, HEX);
     Serial.print("] = 0x");
@@ -180,11 +181,10 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
         Serial.print(", ");
         Serial.print(color);
         Serial.println(")");
-        delay(100);
         graphic_tft.drawPixel(
             (uint16_t)(x + (7 - char_col)),
             (uint16_t)(y + char_line),
-            ST7735_GREEN);
+            colors[color]);
       }
     }
   }

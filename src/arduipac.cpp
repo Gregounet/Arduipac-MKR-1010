@@ -74,7 +74,7 @@ char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
   graphic_tft.setTextColor(ST77XX_WHITE);
   delay(TFT_DEBUG_DELAY);
 
-  delay(3000) ;
+  delay(2000) ;
   
 #ifdef DEBUG_STDERR
   fprintf(stderr, "%s\n", welcome_string);
