@@ -16,7 +16,7 @@
 #define C2 16
 #define C3 15
 
-#define DEBUG_KEYPAD
+#undef DEBUG_KEYPAD
 
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
