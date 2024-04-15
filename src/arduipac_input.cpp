@@ -17,7 +17,7 @@
 #define C3 15
 
 #define DEBUG_KEYPAD
-#define KEYPAD_DELAY 1000
+#define KEYPAD_DELAY 0
 
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
