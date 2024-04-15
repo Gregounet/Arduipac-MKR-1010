@@ -28,12 +28,12 @@
 #define COLLISION_CHAR 0x80
 
 #undef DEBUG_STDERR
-#define DEBUG_SERIAL
+#undef DEBUG_SERIAL
 #undef DEBUG_TFT
 
 #undef DEBUG_CHARS
-#define DEBUG_GRID
-#define DEBUG_SPRITES
+#undef DEBUG_GRID
+#undef DEBUG_SPRITES
 
 uint8_t intel8245_ram[256];
 uint8_t collision_table[256]; // TODO Va falloir trouver un moyen de remplacer ce tableau ENORME

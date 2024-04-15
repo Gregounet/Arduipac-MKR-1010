@@ -17,6 +17,8 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
+// #define DEBUG_SERIAL
+
 #define push(d)                    \
 	{                              \
 		intel8048_ram[sp++] = (d); \
@@ -236,7 +238,7 @@ void exec_8048()
 		Serial.print(" Op: ");
 		Serial.println(op, HEX);
 		Serial.print(lookup[op].mnemonic);
-		Serial.println(" ");
+		Serial.print(" ");
 #endif
 #ifdef DEBUG_TFT
 		text_tft.fillScreen(ST77XX_BLACK);
@@ -367,30 +369,30 @@ void exec_8048()
 #else
 		op = ROM(pc++);
 #endif
-		if ((bigben/100)*100 == bigben)
+		if ((bigben / 100) * 100 == bigben)
 		{
-		// Big Ben
-		text_tft.fillScreen(ST77XX_BLACK);
-		text_tft.setCursor(0, 120);
-		text_print_string("bigben ");
-		text_print_dec(bigben);
+			// Big Ben
+			text_tft.fillScreen(ST77XX_BLACK);
+			text_tft.setCursor(0, 120);
+			text_print_string("bigben ");
+			text_print_dec(bigben);
 		}
-/*
-		// Exécution
-		text_tft.setCursor(0, 72);
-		text_print_string("PC ");
-		text_print_hex(pc);
-		if (pc < 0x400)
-			text_print_string(" (bios)");
-		else
-			text_print_string(" (cart)");
-		text_tft.setCursor(0, 80);
-		text_print_string("Op ");
-		text_print_hex(op);
+		/*
+				// Exécution
+				text_tft.setCursor(0, 72);
+				text_print_string("PC ");
+				text_print_hex(pc);
+				if (pc < 0x400)
+					text_print_string(" (bios)");
+				else
+					text_print_string(" (cart)");
+				text_tft.setCursor(0, 80);
+				text_print_string("Op ");
+				text_print_hex(op);
 
-		text_tft.setCursor(0, 88);
-		text_print_string(lookup[op].mnemonic);
-*/
+				text_tft.setCursor(0, 88);
+				text_print_string(lookup[op].mnemonic);
+		*/
 		/*
 		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
 			Serial.print(" Op: ");
@@ -1325,14 +1327,17 @@ void exec_8048()
 		fprintf(stderr, "machine_state == %d\n");
 #endif
 #ifdef DEBUG_SERIAL
+		Serial.println();
 		Serial.print("bigben == ");
 		Serial.println(bigben);
+		/*
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");
 		Serial.println(vertical_clock);
 		Serial.print("machine_state == ");
 		Serial.println(machine_state);
+		*/
 #endif
 #undef DEBUG_SERIAL
 
