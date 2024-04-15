@@ -193,8 +193,8 @@ void ext_write(uint8_t data, uint8_t addr)
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
+			*/
 			intel8245_ram[addr] = data;
-		*/
 		}
 		else if (addr >= 0x40 && addr < 0x80) // Quads
 		{

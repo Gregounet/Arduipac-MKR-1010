@@ -16,7 +16,8 @@
 #define C2 16
 #define C3 15
 
-#define DEBUG_KEYPAD
+#undef DEBUG_SERIAL
+#undef DEBUG_KEYPAD
 #define KEYPAD_DELAY 0
 
 const byte ROWS = 4; // rows
@@ -200,7 +201,9 @@ read_p2()
 
   if (p2 == 0x10)
   {
+#ifdef DEBUG_KEYPAD
     Serial.println("Retour read_p2() forcé à 0x20");
+#endif
     return 0x20;
   }
 

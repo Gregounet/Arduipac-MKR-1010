@@ -28,15 +28,22 @@
 #define COLLISION_CHAR 0x80
 
 #undef DEBUG_STDERR
-#undef DEBUG_SERIAL
+#define DEBUG_SERIAL
 #undef DEBUG_TFT
 
-#undef DEBUG_CHARS
+#define DEBUG_CHARS
 #undef DEBUG_GRID
 #undef DEBUG_SPRITES
 
+#undef DEBUG_DETAIL
+
 uint8_t intel8245_ram[256];
 uint8_t collision_table[256]; // TODO Va falloir trouver un moyen de remplacer ce tableau ENORME
+
+/*
+ * draw_grid()
+ *
+ */
 
 void draw_grid()
 {
@@ -53,13 +60,13 @@ void draw_grid()
   // Bit 6 de 0xA0 controle l'affichage des points de la grille
   if (intel8245_ram[0xA0] & 0x40)
   {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
     Serial.println("draw_grid() - affichage des points");
 #endif
     // j : balayage par lignes de 0 à 8
     for (uint8_t j = 0; j < 9; j++)
     {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
       Serial.print("draw_grid() - affichage des points de la ligne ");
       Serial.println(j);
 #endif
@@ -87,7 +94,7 @@ void draw_grid()
   // j : balayage des lignes 0 à 8
   for (uint8_t j = 0; j < 9; j++)
   {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
     Serial.print("draw_grid() - affichage ligne ");
     Serial.println(j);
 #endif
@@ -112,7 +119,7 @@ void draw_grid()
 
   // Bit 7 de 0xA0 contrôle la largeur des colonnes
   width = (intel8245_ram[0xA0] & 0x80) ? 32 : 4;
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
   Serial.print("draw_grid() - largeur des colonnes : ");
   Serial.println(width);
 #endif
@@ -121,7 +128,7 @@ void draw_grid()
   mask = 0x01;
   for (uint8_t j = 0; j < 10; j++)
   {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
     Serial.print("draw_grid() - affichage de la colonne ");
     Serial.println(j);
 #endif
@@ -141,8 +148,14 @@ void draw_grid()
   }
 }
 
+
 /*
  * Major system
+ *
+ */
+
+/*
+ * show_12chars()
  *
  */
 
@@ -171,6 +184,11 @@ void show_12chars()
   }
 }
 
+
+/*
+ * show_1char()
+ */
+
 void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
 {
   int16_t cset_start_address = offset + (y >> 1);
@@ -196,13 +214,13 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
   Serial.print(", color = 0x");
   Serial.println(color, HEX);
 #endif
-#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
+#if defined(DEBUG_TFT) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
 #endif
   // for (uint8_t char_line = 0; (cset_byte = cset[char_line]) != 0x00; char_line++)
   for (uint8_t char_row = 0; char_row < 8; char_row++)
   {
     cset_byte = CSET(cset_start_address + char_row);
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
     Serial.print("cset_byte[0x");
     Serial.print(char_row, HEX);
     Serial.print("] = 0x");
@@ -211,13 +229,13 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
 
     for (int8_t char_column = 7; char_column >= 0; char_column--)
     {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
       Serial.print("char_column = ");
       Serial.println(char_column, HEX);
 #endif
       if ((cset_byte >> char_column) & 0x01)
       {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
         Serial.print("drawPixel(");
         Serial.print(x + (7 - char_column), HEX);
         Serial.print(", ");
@@ -233,7 +251,7 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
 }
 
 /*
- * Quads
+ * show_4quads()
  *
  */
 
@@ -249,6 +267,12 @@ void show_4quads()
   for (uint8_t i = 0x40; i < 0x80; i += 0x10)
     show_1quad(i);
 }
+
+
+/*
+ * show_1quad()
+ *
+ */
 
 void show_1quad(uint8_t quad_indx)
 {
@@ -294,6 +318,12 @@ void show_1quad(uint8_t quad_indx)
  * Minor system
  *
  */
+
+/*
+ * show_4sprites()
+ *
+ */
+
 void show_4sprites()
 {
   uint8_t sprite_control = 0x00;
@@ -320,7 +350,7 @@ void show_4sprites()
     sprite_y = intel8245_ram[sprite_control + 0x01];
     sprite_color = (intel8245_ram[sprite_control + 0x02] & 0x34) >> 3;
 
-#if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
     Serial.print("show_4sprites() - sprite numéro ");
     Serial.print(sprite_number);
     Serial.print(" , x = ");
@@ -333,7 +363,7 @@ void show_4sprites()
 
     for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
     {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
       Serial.print("show_4sprites() - affichage de la ligne ");
       Serial.println(sprite_row);
 #endif
