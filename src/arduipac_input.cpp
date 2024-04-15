@@ -17,12 +17,17 @@
 #define C3 15
 
 #define DEBUG_KEYPAD
+#define KEYPAD_DELAY 0
 
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
 
 char keys[ROWS][COLS] = {
-    {'1', '2', '3'}, {'4', '5', '6'}, {'7', '8', '9'}, {'*', '0', '#'}};
+    {'1', '2', '3'},
+    {'4', '5', '6'},
+    {'7', '8', '9'},
+    {'*', '0', '#'}};
+
 byte rowPins[ROWS] = {R1, R2, R3, R4};
 byte colPins[COLS] = {C1, C2, C3};
 
@@ -66,67 +71,141 @@ read_p2()
   delay(TFT_DEBUG_DELAY);
 #endif
 
-  if (!(p1 & 0x04)) // Lecture du clavier
+  if (!(p1 & 0x04))
+  // Lecture du clavier
   {
     scan_input = (p2 & 0x07);
-    scan_output = 0xFF;
-    if (scan_input == 0)
-    {
+    scan_output = 0x10; // Aucune touche pressée
+
 #ifdef DEBUG_KEYPAD
-      Serial.print(bigben);
-      Serial.println(" - Lecture ligne 0 du clavier");
+    Serial.print("Lecture ligne ");
+    Serial.print(scan_input);
+    Serial.println(" du clavier - attente d'un événement");
+    delay(KEYPAD_DELAY);
 #endif
-      while (scan_output == 0xFF)
+
+    customKeypad.tick();
+    int nb_evenements = customKeypad.available();
+
+#ifdef DEBUG_KEYPAD
+    Serial.print("nb_evenements == ");
+    Serial.println(nb_evenements);
+    delay(KEYPAD_DELAY);
+#endif
+
+    for (int i = 0; i < nb_evenements; i++)
+    {
+
+#ifdef DEBUG_KEYPAD
+      Serial.println("Lecture d'un événement");
+      delay(KEYPAD_DELAY);
+#endif
+      keypadEvent e = customKeypad.read();
+#ifdef DEBUG_KEYPAD
+      Serial.println("Evénement lu");
+      delay(KEYPAD_DELAY);
+#endif
+
+      if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
 #ifdef DEBUG_KEYPAD
-        Serial.println("Attente d'un événement");
+        Serial.print("Touche pressée: ");
+        Serial.println((char)e.bit.KEY);
+        delay(KEYPAD_DELAY);
 #endif
-        customKeypad.tick();
-        int nb_evenements = customKeypad.available();
-#ifdef DEBUG_KEYPAD
-        Serial.print("nb_evenements == ");
-        Serial.println(nb_evenements);
-#endif
-        for (int i = 0; i < nb_evenements; i++)
+        switch (scan_input)
         {
-#ifdef DEBUG_KEYPAD
-          Serial.println("Lecture d'un événement");
-#endif
-          keypadEvent e = customKeypad.read();
-#ifdef DEBUG_KEYPAD
-          Serial.println("Evénement lu");
-#endif
-          if (e.bit.EVENT == KEY_JUST_PRESSED)
+        case 0:
+          switch ((char)e.bit.KEY)
           {
-#ifdef DEBUG_KEYPAD
-            Serial.println("Touche pressée");
-#endif
-            switch ((char)e.bit.KEY)
-            {
-            case '1':
-#ifdef DEBUG_KEYPAD
-              Serial.println("Touche 1");
-#endif
-              scan_output = 0x01;
-              break;
-            case '2':
-#ifdef DEBUG_KEYPAD
-              Serial.println("Touche 2");
-#endif
-              scan_output = 0x02;
-              break;
-            }
-          };
+          case '0':
+            scan_output = 0x00;
+            break;
+          case '1':
+            scan_output = 0x20;
+            break;
+          case '2':
+            scan_output = 0x40;
+            break;
+          case '3':
+            scan_output = 0x60;
+            break;
+          case '4':
+            scan_output = 0x80;
+            break;
+          case '5':
+            scan_output = 0xA0;
+            break;
+          case '6':
+            scan_output = 0xC0;
+            break;
+          case '7':
+            scan_output = 0xE0;
+            break;
+          default:
+            break;
+          }
+        case 1:
+          switch ((char)e.bit.KEY)
+          {
+          case '8':
+            scan_output = 0x00;
+            break;
+          case '9':
+            scan_output = 0x20;
+            break;
+          default:
+            break;
+          }
+        case 5:
+          switch ((char)e.bit.KEY)
+          {
+          case '*':
+            scan_output = 0x80;
+            break;
+          case '#':
+            scan_output = 0xA0;
+            break;
+          default:
+            break;
+          }
+        default:
+          break;
         }
-        delay(1000);
       }
-      p2 &= 0x0F;
-      p2 |= scan_output << 5;
     }
+    p2 &= 0x0F;
+    p2 |= scan_output;
   }
   else
-    p2 |= 0xF0;
-  return p2;
+  // Pas lecture du clavier (donc du joystick ?)
+  {
+    // Joystick code TODO
+  }
+
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+  Serial.print("Retour read_p2() == 0x");
+  Serial.println(p2, HEX);
+#endif
+#ifdef DEBUG_TFT
+#endif
+
+#ifdef DEBUG_KEYPAD
+  Serial.print("Retour read_p2() == 0x");
+  Serial.println(p2, HEX);
+  delay(KEYPAD_DELAY);
+#endif
+
+  if (p2 == 0x10)
+  {
+    Serial.println("Retour read_p2() forcé à 0x20");
+    return 0x20;
+  }
+
+  else
+    return p2;
 }
 
 uint8_t

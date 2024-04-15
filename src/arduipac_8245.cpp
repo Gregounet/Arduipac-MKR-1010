@@ -28,88 +28,121 @@
 #define COLLISION_CHAR 0x80
 
 #undef DEBUG_STDERR
-#define DEBUG_SERIAL
+#undef DEBUG_SERIAL
 #undef DEBUG_TFT
 
 #undef DEBUG_CHARS
-#define DEBUG_GRID
-#define DEBUG_SPRITES
+#undef DEBUG_GRID
+#undef DEBUG_SPRITES
 
-uint8_t intel8245_ram[256];   // TODO Je peux réduire ceci à 132 octets: 0x00 - 0X7F et 0xA0 à 0xA3
-uint8_t collision_table[256]; // Va falloir trouver un moyen de remplacer ce tableau ENORME
+uint8_t intel8245_ram[256];
+uint8_t collision_table[256]; // TODO Va falloir trouver un moyen de remplacer ce tableau ENORME
 
 void draw_grid()
 {
-  uint8_t mask; // Masque utilisé pour le décodage des bits de chaque octet
-  uint8_t data; // Octets de la RAM vidéo
-  int x;
-  int width;
-  uint8_t color;
+  uint8_t mask;  // Masque utilisé pour le décodage des bits de chaque octet
+  uint8_t data;  // Octet provenant de la RAM VDC
+  uint8_t width; // Largeur d'une colonne
+  // uint8_t color;
 
-  /*
-    if (intel8245_ram[0xA0] & 0x40)
-    { // Bit 6 de 0xA0 controle l'affichage des points de la grille
-      for (int j = 0; j < 9; j++)
-      {                                          // j : balayage par lignes de 0 à 8
-        line_pnt = (j * 24 + 24) * BITMAP_WIDTH; // Les lignes sont séparées de 24 pixels. line_pnt pointe sur le début de la ligne concernée.
-        for (int i = 0; i < 9; i++)
-        {                                     // i : balayage par colonne de 0 à 8
-          dot_pnt = line_pnt + (i * 32) + 20; // dot_pnt pointe sur le point ciblé. Les points sont séparés de 32 pixels.
-          bmp[dot_pnt] = 1;
-          // Points de 4*3 ?
-        }
-      }
-    }
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+  Serial.print(bigben);
+  Serial.println(" - draw_grid()");
+#endif
 
-    // TODO optimisation future: aller de 1 à 9 (au lieu de 0 à 8) et éviter ainsi ((j*24)+24)*WIDTH pour avoir à la place j*24*WIDTH
-    //      optimisation future: je pense que deux boucles distinctes iraient mieux
-    //
-    mask = 0x01; // Tracé des 9 lignes horizontales.
+  // Bit 6 de 0xA0 controle l'affichage des points de la grille
+  if (intel8245_ram[0xA0] & 0x40)
+  {
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+    Serial.println("draw_grid() - affichage des points");
+#endif
+    // j : balayage par lignes de 0 à 8
     for (uint8_t j = 0; j < 9; j++)
-    { // j : balayage des lignes 0 à 8
-      line_pnt = (j * 24 + 24) * BITMAP_WIDTH;
+    {
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+      Serial.print("draw_grid() - affichage des points de la ligne ");
+      Serial.println(j);
+#endif
+      // i : balayage par colonne de 0 à 8
       for (uint8_t i = 0; i < 9; i++)
-      { // i : balayage par colonnes de 0 à 8
-        dot_pnt = line_pnt + (i * 32) + 20;
-        data = intel8245_ram[0xC0 + i]; // 0xC0 - 0xC8 = Lignes horizontales, chaque octet représente une colonne
-        if (j == 8)
+      {
+        // Les lignes sont séparées de 24 pixels
+        // Les colonnes sont séparés de 32 pixels.
+        for (uint8_t k = 0; k < 4; k++)
         {
-          data = intel8245_ram[0xD0 + i]; // 0xD0 - 0xD8 = 9ième ligne horizontale, seul le bit 0 est utile
-          mask = 1;
+          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 0, ST77XX_RED);
+          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 1, ST77XX_RED);
+          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 2, ST77XX_RED);
         }
-        if (data & mask)
-          for (uint8_t k = 0; k < 32; k++)
-            bmp[dot_pnt + k] = 1; // 32 ou 36 de large ?
       }
-      mask <<= 1;
     }
+  }
 
-    mask = 0x01; // Tracé des 10 lignes verticales
-    width = 4;
-    if (intel8245_ram[0xA0] & 0x80)
-      width = 32; // Bit 7 de 0xA0 contrôle la largeur des lignes verticales
-    for (int j = 0; j < 10; j++)
-    { // Cette fois il semble qu'on balaye par colonne d'abord
-      line_pnt = (j * 32);
-      mask = 0x01;
-      data = intel8245_ram[0xE0 + j]; // 0xE0 - 0xE9 = Lignes verticales, chaque octet représente une ligne
-      for (x = 0; x < 8; x++)
-      { // x serait un numéro de ligne !!! Va falloir réorganiser tout ça !!!
-        dot_pnt = line_pnt + (((x * 24) + 24) * BITMAP_WIDTH) + 20;
-        if (data & mask)
-        {
-          for (uint8_t i = 0; i < 24; i++)
-          {
-          }
-        }
-        mask <<= 1;
+  // TODO optimisation future: aller de 1 à 9 (au lieu de 0 à 8) et éviter ainsi ((j*24)+24)*WIDTH pour avoir à la place j*24*WIDTH
+  //      optimisation future: je pense que deux boucles distinctes iraient mieux
+  //
+
+  // Tracé des 9 lignes
+  mask = 0x01;
+  // j : balayage des lignes 0 à 8
+  for (uint8_t j = 0; j < 9; j++)
+  {
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+    Serial.print("draw_grid() - affichage ligne ");
+    Serial.println(j);
+#endif
+    // i : balayage par colonnes de 0 à 8
+    for (uint8_t i = 0; i < 9; i++)
+    {
+      // 0xC0 - 0xC8 = Lignes, chaque octet représente une colonne
+      data = intel8245_ram[0xC0 + i];
+      // 0xD0 - 0xD8 = 9ième ligne, seul le bit 0 est utilisé
+      if (j == 8)
+      {
+        data = intel8245_ram[0xD0 + i];
+        mask = 0x01;
       }
+      if (data & mask)
+        // 32 ou 36 de large ? Un seul pixel de haut ?
+        for (uint8_t k = 0; k < 32; k++)
+          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j, ST77XX_RED);
     }
-  */
+    mask <<= 1;
+  }
+
+  // Bit 7 de 0xA0 contrôle la largeur des colonnes
+  width = (intel8245_ram[0xA0] & 0x80) ? 32 : 4;
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+  Serial.print("draw_grid() - largeur des colonnes : ");
+  Serial.println(width);
+#endif
+
+  // Tracé des 10 colonnes verticales
+  mask = 0x01;
+  for (uint8_t j = 0; j < 10; j++)
+  {
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+    Serial.print("draw_grid() - affichage de la colonne ");
+    Serial.println(j);
+#endif
+    mask = 0x01;
+    // 0xE0 - 0xE9 = Colonnes, chaque octet représente une colonne
+    data = intel8245_ram[0xE0 + j];
+    for (uint8_t i = 0; i < 8; i++)
+      if (data & mask)
+      {
+        for (uint8_t x = 0; x < width; x++)
+        {
+          for (uint8_t y = 0; y < 24; y++)
+            graphic_tft.drawPixel(20 + 32 * i + x, 24 + 24 * j + y, ST77XX_RED);
+        }
+      }
+    mask <<= 1;
+  }
 }
 
 /*
- * Chars
+ * Major system
  *
  */
 
@@ -166,44 +199,41 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
   // for (uint8_t char_line = 0; (cset_byte = cset[char_line]) != 0x00; char_line++)
-  for (uint8_t char_line = 0; char_line < 8; char_line++)
+  for (uint8_t char_row = 0; char_row < 8; char_row++)
   {
-    cset_byte = CSET(cset_start_address + char_line);
+    cset_byte = CSET(cset_start_address + char_row);
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
     Serial.print("cset_byte[0x");
-    Serial.print(char_line, HEX);
+    Serial.print(char_row, HEX);
     Serial.print("] = 0x");
     Serial.println(cset_byte, HEX);
 #endif
 
-    for (int8_t char_col = 7; char_col >= 0; char_col--)
+    for (int8_t char_column = 7; char_column >= 0; char_column--)
     {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-      Serial.print("char_col = ");
-      Serial.println(char_col, HEX);
+      Serial.print("char_column = ");
+      Serial.println(char_column, HEX);
 #endif
-      if ((cset_byte >> char_col) & 0x01)
+      if ((cset_byte >> char_column) & 0x01)
       {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
         Serial.print("drawPixel(");
-        Serial.print(x + (7 - char_col), HEX);
+        Serial.print(x + (7 - char_column), HEX);
         Serial.print(", ");
-        Serial.print(y + char_line, HEX);
+        Serial.print(y + char_row, HEX);
         Serial.print(", ");
         Serial.print(color);
         Serial.println(")");
 #endif
-        graphic_tft.drawPixel(
-            (uint16_t)(x + (7 - char_col)),
-            (uint16_t)(y + char_line),
-            colors[color]);
+        graphic_tft.drawPixel(x + (7 - char_column), y + char_row, COLORS(color));
       }
     }
   }
 }
 
 /*
- * Chars
+ * Quads
  *
  */
 
@@ -260,28 +290,78 @@ void show_1quad(uint8_t quad_indx)
   show_1char(x, y, offset, color);
 }
 
+/*
+ * Minor system
+ *
+ */
 void show_4sprites()
 {
-#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
+  uint8_t sprite_control = 0x00;
+  uint8_t sprite_pattern = 0x80;
+
+  uint8_t sprite_data;
+  uint8_t sprite_x;
+  uint8_t sprite_y;
+  uint8_t sprite_color;
+
+#if defined(DEBUG_STDERR) && defined(DEBUG_SPRITES)
   fprintf(stderr, "show_4sprites()\n");
 #endif
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-  Serial.println("show_4sprites()");
+#if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
+  Serial.print(bigben);
+  Serial.println(" - show_4sprites()");
 #endif
-#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
+#if defined(DEBUG_TFT) && defined(DEBUG_SPRITES)
 #endif
+
+  for (uint8_t sprite_number = 0; sprite_number < 4; sprite_number++)
+  {
+    sprite_x = intel8245_ram[sprite_control + 0x00];
+    sprite_y = intel8245_ram[sprite_control + 0x01];
+    sprite_color = (intel8245_ram[sprite_control + 0x02] & 0x34) >> 3;
+
+#if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
+    Serial.print("show_4sprites() - sprite numéro ");
+    Serial.print(sprite_number);
+    Serial.print(" , x = ");
+    Serial.print(sprite_x);
+    Serial.print(" , y = ");
+    Serial.print(sprite_y);
+    Serial.print(" , color = ");
+    Serial.println(sprite_color);
+#endif
+
+    for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
+    {
+#if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
+      Serial.print("show_4sprites() - affichage de la ligne ");
+      Serial.println(sprite_row);
+#endif
+      sprite_data = intel8245_ram[sprite_pattern + sprite_row];
+      uint8_t mask = 0x80;
+
+      for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
+      {
+        if (sprite_data & mask)
+          graphic_tft.drawPixel(sprite_x + sprite_column, sprite_y + sprite_row, COLORS(sprite_color));
+        mask >>= 1;
+      }
+    }
+    sprite_control += 0x04;
+    sprite_pattern += 0x08;
+  }
 }
 
 void clear_collision()
 {
-#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
+#if defined(DEBUG_STDERR) && defined(DEBUG_SPRITES)
   fprintf(stderr, "clear_collision()\n");
 #endif
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
   Serial.print(bigben);
-  Serial.println("clear_collision()");
+  Serial.println(" - clear_collision()");
 #endif
-#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
+#if defined(DEBUG_TFT) && defined(DEBUG_SPRITES)
 #endif
   collision_table[0x01] = 0;
   collision_table[0x02] = 0;
@@ -289,7 +369,6 @@ void clear_collision()
   collision_table[0x08] = 0;
   collision_table[0x10] = 0;
   collision_table[0x20] = 0;
-  // collision_table[0x40] = 0;  // VPP
   collision_table[0x80] = 0;
 }
 
@@ -305,8 +384,14 @@ void draw_display()
 #endif
 #ifdef DEBUG_TFT
 #endif
+
+  graphic_tft.fillScreen(ST77XX_BLACK);
+
+  // bit 3 == enable grid
   if (intel8245_ram[0xA0] & 0x08)
     draw_grid();
+
+  // bit 5 = enable display
   if (intel8245_ram[0xA0] & 0x20)
   {
     show_12chars();
@@ -320,10 +405,12 @@ void init_intel8245()
 #ifdef DEBUG_STDERR
 #endif
 #ifdef DEBUG_SERIAL
-  Serial.println("init_intel8245()");
+  Serial.print(bigben);
+  Serial.println(" - init_intel8245()");
 #endif
 #ifdef DEBUG_TFT
 #endif
+
   for (uint8_t i = 0x00; i < 0xFF; i++)
     intel8245_ram[i] = 0x00;
 }

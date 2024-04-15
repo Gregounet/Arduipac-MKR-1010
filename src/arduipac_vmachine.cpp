@@ -188,18 +188,22 @@ void ext_write(uint8_t data, uint8_t addr)
 		}
 		else if (addr >= 0x10 && addr < 0x40) // Characters
 		{
+			/*
 			Serial.print("Accessing Characters [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
 			intel8245_ram[addr] = data;
+		*/
 		}
 		else if (addr >= 0x40 && addr < 0x80) // Quads
 		{
+			/*
 			Serial.print("Accessing Quads [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
+			*/
 			if ((addr & 0x02) == 0)
 			{
 				// TODO
@@ -225,10 +229,12 @@ void ext_write(uint8_t data, uint8_t addr)
 		}
 		else if (addr >= 0xA0 && addr <= 0xA3) // VDC Video Register
 		{
-			Serial.print("Accessing VDC Video Register[0x");
-			Serial.print(addr, HEX);
-			Serial.print("] <- 0x");
-			Serial.println(data, HEX);
+
+			/*			Serial.print("Accessing VDC Video Register[0x");
+						Serial.print(addr, HEX);
+						Serial.print("] <- 0x");
+						Serial.println(data, HEX);
+			*/
 			if (addr == 0xA0)
 			{
 				if ((intel8245_ram[0xA0] & 0x02) && !(data & 0x02))

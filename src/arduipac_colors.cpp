@@ -4,6 +4,7 @@
 #include "arduipac_colors.h"
 #include "arduipac_config.h"
 
+
 const uint16_t colors[8] PROGMEM = {
     ST77XX_CYAN,
     ST77XX_RED,
@@ -14,3 +15,18 @@ const uint16_t colors[8] PROGMEM = {
     ST77XX_YELLOW,
     ST77XX_WHITE
     };
+
+/* 
+// All blue
+const uint16_t colors[8] PROGMEM = {
+    ST77XX_BLUE,
+    ST77XX_BLUE,
+    ST77XX_BLUE,
+    ST77XX_BLUE,
+    ST77XX_BLUE,
+    ST77XX_BLUE,
+    ST77XX_BLUE,
+    ST77XX_BLUE
+    };
+    */
+
