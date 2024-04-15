@@ -57,7 +57,7 @@ void draw_grid()
   Serial.print(bigben);
   Serial.println(" - draw_grid()");
 #endif
-  
+
   grid_color_index = intel8245_ram[0xA3] & 0x07;
   grid_color = COLORS(grid_color_index);
 
@@ -251,7 +251,9 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t char_color_index)
         Serial.print(char_color);
         Serial.println(")");
 #endif
-        graphic_tft.drawPixel(x + (7 - char_column), y + char_row, char_color);
+        // graphic_tft.drawPixel(x + (7 - char_column), y + char_row, char_color);
+        graphic_tft.drawPixel(2 * (x + (7 - char_column)) + 0, y + char_row, char_color);
+        graphic_tft.drawPixel(2 * (x + (7 - char_column)) + 1, y + char_row, char_color);
       }
     }
   }

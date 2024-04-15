@@ -204,6 +204,7 @@ read_p2()
 #ifdef DEBUG_KEYPAD
     Serial.println("Retour read_p2() forcé à 0x20");
 #endif
+    delay(200) ;
     return 0x20;
   }
 
