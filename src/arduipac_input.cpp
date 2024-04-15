@@ -16,6 +16,8 @@
 #define C2 16
 #define C3 15
 
+#define DEBUG_KEYPAD
+
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
 
@@ -70,29 +72,47 @@ read_p2()
     scan_output = 0xFF;
     if (scan_input == 0)
     {
+#ifdef DEBUG_KEYPAD
       Serial.print(bigben);
       Serial.println(" - Lecture ligne 0 du clavier");
+#endif
       while (scan_output == 0xFF)
       {
+#ifdef DEBUG_KEYPAD
         Serial.println("Attente d'un événement");
+#endif
         customKeypad.tick();
         int nb_evenements = customKeypad.available();
+#ifdef DEBUG_KEYPAD
+        Serial.print("nb_evenements == ");
+        Serial.println(nb_evenements);
+#endif
         for (int i = 0; i < nb_evenements; i++)
         {
+#ifdef DEBUG_KEYPAD
           Serial.println("Lecture d'un événement");
+#endif
           keypadEvent e = customKeypad.read();
-          Serial.println("Caractère lu");
+#ifdef DEBUG_KEYPAD
+          Serial.println("Evénement lu");
+#endif
           if (e.bit.EVENT == KEY_JUST_PRESSED)
           {
+#ifdef DEBUG_KEYPAD
             Serial.println("Touche pressée");
+#endif
             switch ((char)e.bit.KEY)
             {
             case '1':
+#ifdef DEBUG_KEYPAD
               Serial.println("Touche 1");
+#endif
               scan_output = 0x01;
               break;
             case '2':
+#ifdef DEBUG_KEYPAD
               Serial.println("Touche 2");
+#endif
               scan_output = 0x02;
               break;
             }

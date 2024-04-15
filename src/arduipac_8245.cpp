@@ -263,6 +263,7 @@ void show_1quad(uint8_t quad_indx)
 void show_4sprites()
 {
 #if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
+  fprintf(stderr, "show_4sprites()\n");
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.println("show_4sprites()");
@@ -274,10 +275,11 @@ void show_4sprites()
 void clear_collision()
 {
 #if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
+  fprintf(stderr, "clear_collision()\n");
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.print(bigben);
-  Serial.println(" - clear_collision()");
+  Serial.println("clear_collision()");
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
@@ -287,7 +289,7 @@ void clear_collision()
   collision_table[0x08] = 0;
   collision_table[0x10] = 0;
   collision_table[0x20] = 0;
-  collision_table[0x40] = 0;
+  // collision_table[0x40] = 0;  // VPP
   collision_table[0x80] = 0;
 }
 

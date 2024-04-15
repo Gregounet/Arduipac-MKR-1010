@@ -54,50 +54,60 @@ uint8_t
 ext_read(uint8_t addr)
 {
 	uint8_t data;
-	uint8_t si;
+	uint8_t scan_input;
 	uint8_t mask;
+#ifdef DEBUG_STDERR
+	fprint(stderr, "ext_read(0x%03X)\n", addr);
+#endif
 #ifdef DEBUG_SERIAL
 	Serial.print("ext_read(");
 	Serial.print(addr, HEX);
 	Serial.println(")");
 #endif
-	// if (!(p1 & 0x48)) // TODO check
-	// TODO Je ne comprends pas la logique de ce test: il me semble 0x08 devrait suffire.
-	if (!(p1 & 0x08) && !(p1 & 0x40)) // 0x40 (active low) : Copy Mode Enable = write to 8245 RAM and read from external - RAM 0x08 (active low): Enable 8245
+#ifdef DEBUG_TFT
+#endif
+	if ((p1 & 0x58) == 0x10) // Read from VDC RAM
 	{
+#ifdef DEBUG_STDERR
+		fprint(stderr, "VDC Ram access\n", addr);
+#endif
 #ifdef DEBUG_SERIAL
-		Serial.println("VDC Access");
+		Serial.println("VDC RAM Access");
+#endif
+#ifdef DEBUG_TFT
 #endif
 		switch (addr)
 		{
 		case 0xA1: // 8245 Status byte - Some other bits should normally be set
 #ifdef DEBUG_STDERR
+			fprint(stderr, "VDC 0xA0 Status Register\n", addr);
 #endif
 #ifdef DEBUG_SERIAL
-			Serial.println("0xA0 Status Byte");
+			Serial.println("VDC 0xA0 Status Register");
 #endif
 #ifdef DEBUG_TFT
 #endif
 			data = intel8245_ram[0xA0] & 0x02;
 			if (vertical_clock > START_VBLCLK)
 				data |= 0x08;
-			if (horizontal_clock < (LINECNT - 7))
+			if (horizontal_clock < (LINECNT - 7)) // TODO Why 7 here ?
 				data = data | 0x01;
 			return data;
 		case 0xA2: // Collision byte
 #ifdef DEBUG_STDERR
+			fprint(stderr, "VDC 0xA0 0xA2 Register\n", addr);
 #endif
 #ifdef DEBUG_SERIAL
-			Serial.println("0xA2 Collision Byte");
+			Serial.println("VDC 0xA2 Collision Register");
 #endif
 #ifdef DEBUG_TFT
 #endif
-			si = intel8245_ram[0xA2];
+			scan_input = intel8245_ram[0xA2];
 			mask = 0x01;
-			data = 0;
-			for (uint8_t i = 0; i < 8; i++) // TODO - optimiser ce code
+			data = 0x00;
+			for (uint8_t i = 0; i < 8; i++)
 			{
-				if (si & mask)
+				if (scan_input & mask)
 				{
 					data |= collision_table[0x01] & mask;
 					data |= collision_table[0x02] & mask;
