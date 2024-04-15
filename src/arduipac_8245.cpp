@@ -27,10 +27,16 @@
 #define COLLISION_HGRID 0x20
 #define COLLISION_CHAR 0x80
 
+#undef DEBUG_STDERR
+#define DEBUG_SERIAL
+#undef DEBUG_TFT
+
+#undef DEBUG_CHARS
+#define DEBUG_GRID
+#define DEBUG_SPRITES
+
 uint8_t intel8245_ram[256];   // TODO Je peux réduire ceci à 132 octets: 0x00 - 0X7F et 0xA0 à 0xA3
 uint8_t collision_table[256]; // Va falloir trouver un moyen de remplacer ce tableau ENORME
-
-#define DEBUG_SERIAL
 
 void draw_grid()
 {
@@ -114,12 +120,12 @@ void show_12chars()
   uint16_t char_offset;
   uint8_t char_color;
 
-#ifdef DEBUG_STDERR
+#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
 #endif
-#ifdef DEBUG_SERIAL
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.println("show_12chars()");
 #endif
-#ifdef DEBUG_TFT
+#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
 
   for (uint8_t i = 0; i < 12; i++)
@@ -140,10 +146,10 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
 
   uint8_t cset_byte;
 
-#ifdef DEBUG_STDERR
+#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
   fprintf(stderr, "show1_char(): X = %d, Y = %d, indice dans cst = %0x03x, couleur = %d\n", x, y, cset_start_offset, color);
 #endif
-#ifdef DEBUG_SERIAL
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.print("show1_char() x = 0x");
   Serial.print(x, HEX);
   Serial.print(", y = 0x");
@@ -157,23 +163,28 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
   Serial.print(", color = 0x");
   Serial.println(color, HEX);
 #endif
-#ifdef DEBUG_TFT
+#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
   // for (uint8_t char_line = 0; (cset_byte = cset[char_line]) != 0x00; char_line++)
   for (uint8_t char_line = 0; char_line < 8; char_line++)
   {
     cset_byte = CSET(cset_start_address + char_line);
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
     Serial.print("cset_byte[0x");
     Serial.print(char_line, HEX);
     Serial.print("] = 0x");
     Serial.println(cset_byte, HEX);
+#endif
 
     for (int8_t char_col = 7; char_col >= 0; char_col--)
     {
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
       Serial.print("char_col = ");
       Serial.println(char_col, HEX);
+#endif
       if ((cset_byte >> char_col) & 0x01)
       {
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
         Serial.print("drawPixel(");
         Serial.print(x + (7 - char_col), HEX);
         Serial.print(", ");
@@ -181,6 +192,7 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
         Serial.print(", ");
         Serial.print(color);
         Serial.println(")");
+#endif
         graphic_tft.drawPixel(
             (uint16_t)(x + (7 - char_col)),
             (uint16_t)(y + char_line),
@@ -197,12 +209,12 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
 
 void show_4quads()
 {
-#ifdef DEBUG_STDERR
+#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
 #endif
-#ifdef DEBUG_SERIAL
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.println("show_4quads()");
 #endif
-#ifdef DEBUG_TFT
+#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
   for (uint8_t i = 0x40; i < 0x80; i += 0x10)
     show_1quad(i);
@@ -215,12 +227,12 @@ void show_1quad(uint8_t quad_indx)
   uint16_t offset;
   uint8_t color;
 
-#ifdef DEBUG_STDERR
+#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
 #endif
-#ifdef DEBUG_SERIAL
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.println("show_1quad()");
 #endif
-#ifdef DEBUG_TFT
+#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
 
   x = intel8245_ram[quad_indx + 0x01];
@@ -250,26 +262,26 @@ void show_1quad(uint8_t quad_indx)
 
 void show_4sprites()
 {
-#ifdef DEBUG_STDERR
+#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
   fprintf(stderr, "show_4sprites()\n");
 #endif
-#ifdef DEBUG_SERIAL
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.println("show_4sprites()");
 #endif
-#ifdef DEBUG_TFT
+#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
 }
 
 void clear_collision()
 {
-#ifdef DEBUG_STDERR
+#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
   fprintf(stderr, "clear_collision()\n");
 #endif
-#ifdef DEBUG_SERIAL
+#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.print(bigben);
   Serial.println("clear_collision()");
 #endif
-#ifdef DEBUG_TFT
+#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
   collision_table[0x01] = 0;
   collision_table[0x02] = 0;
