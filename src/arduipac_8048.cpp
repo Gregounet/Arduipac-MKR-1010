@@ -369,6 +369,7 @@ void exec_8048()
 #else
 		op = ROM(pc++);
 #endif
+#ifdef DEBUG_TFT
 		if ((bigben / 100) * 100 == bigben)
 		{
 			// Big Ben
@@ -377,6 +378,7 @@ void exec_8048()
 			text_print_string("bigben ");
 			text_print_dec(bigben);
 		}
+#endif
 		/*
 				// Exécution
 				text_tft.setCursor(0, 72);

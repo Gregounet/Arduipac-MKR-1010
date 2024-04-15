@@ -16,17 +16,29 @@ const uint16_t colors[8] PROGMEM = {
     ST77XX_WHITE
     };
 
-/* 
-// All blue
+// All white
+/*
 const uint16_t colors[8] PROGMEM = {
-    ST77XX_BLUE,
-    ST77XX_BLUE,
-    ST77XX_BLUE,
-    ST77XX_BLUE,
-    ST77XX_BLUE,
-    ST77XX_BLUE,
-    ST77XX_BLUE,
-    ST77XX_BLUE
+    ST77XX_WHITE,
+    ST77XX_WHITE,
+    ST77XX_WHITE,
+    ST77XX_WHITE,
+    ST77XX_WHITE,
+    ST77XX_WHITE,
+    ST77XX_WHITE,
+    ST77XX_WHITE
     };
-    */
+*/
 
+// All red
+/*
+const uint16_t colors[8] PROGMEM = {
+    ST77XX_RED,
+    ST77XX_RED,
+    ST77XX_RED,
+    ST77XX_RED,
+    ST77XX_RED,
+    ST77XX_RED,
+    ST77XX_RED,
+    ST77XX_RED};
+    */

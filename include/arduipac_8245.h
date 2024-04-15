@@ -13,7 +13,7 @@ void init_intel8245 ();
 void draw_display ();
 
 void show_12chars ();
-void show_1char (uint8_t x, uint8_t y, uint16_t offset, uint8_t color);
+void show_1char (uint8_t x, uint8_t y, uint16_t offset, uint8_t color_index);
 void show_4quads ();
 void show_1quad (uint8_t);
 void show_4sprites ();

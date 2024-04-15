@@ -28,10 +28,10 @@
 #define COLLISION_CHAR 0x80
 
 #undef DEBUG_STDERR
-#define DEBUG_SERIAL
+#undef DEBUG_SERIAL
 #undef DEBUG_TFT
 
-#define DEBUG_CHARS
+#undef DEBUG_CHARS
 #undef DEBUG_GRID
 #undef DEBUG_SPRITES
 
@@ -50,12 +50,16 @@ void draw_grid()
   uint8_t mask;  // Masque utilisé pour le décodage des bits de chaque octet
   uint8_t data;  // Octet provenant de la RAM VDC
   uint8_t width; // Largeur d'une colonne
-  // uint8_t color;
+  uint16_t grid_color;
+  uint8_t grid_color_index;
 
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
   Serial.print(bigben);
   Serial.println(" - draw_grid()");
 #endif
+  
+  grid_color_index = intel8245_ram[0xA3] & 0x07;
+  grid_color = COLORS(grid_color_index);
 
   // Bit 6 de 0xA0 controle l'affichage des points de la grille
   if (intel8245_ram[0xA0] & 0x40)
@@ -77,9 +81,9 @@ void draw_grid()
         // Les colonnes sont séparés de 32 pixels.
         for (uint8_t k = 0; k < 4; k++)
         {
-          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 0, ST77XX_RED);
-          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 1, ST77XX_RED);
-          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 2, ST77XX_RED);
+          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 0, grid_color);
+          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 1, grid_color);
+          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 2, grid_color);
         }
       }
     }
@@ -112,7 +116,7 @@ void draw_grid()
       if (data & mask)
         // 32 ou 36 de large ? Un seul pixel de haut ?
         for (uint8_t k = 0; k < 32; k++)
-          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j, ST77XX_RED);
+          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j, grid_color);
     }
     mask <<= 1;
   }
@@ -141,13 +145,12 @@ void draw_grid()
         for (uint8_t x = 0; x < width; x++)
         {
           for (uint8_t y = 0; y < 24; y++)
-            graphic_tft.drawPixel(20 + 32 * i + x, 24 + 24 * j + y, ST77XX_RED);
+            graphic_tft.drawPixel(20 + 32 * i + x, 24 + 24 * j + y, grid_color);
         }
       }
     mask <<= 1;
   }
 }
-
 
 /*
  * Major system
@@ -164,7 +167,7 @@ void show_12chars()
   uint8_t char_x;
   uint8_t char_y;
   uint16_t char_offset;
-  uint8_t char_color;
+  uint8_t char_color_index;
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
 #endif
@@ -179,18 +182,21 @@ void show_12chars()
     char_x = intel8245_ram[0x10 + (i * 0x04) + 0x01];
     char_y = intel8245_ram[0x10 + (i * 0x04) + 0x00];
     char_offset = (((uint16_t)(intel8245_ram[0x10 + (i * 0x04) + 0x03]) & 0x01) << 8) | (intel8245_ram[0x10 + (i * 0x04) + 0x02]);
-    char_color = (intel8245_ram[0x10 + (i * 0x04) + 0x03] & 0x0E) >> 1;
-    show_1char(char_x, char_y, char_offset, char_color);
+    char_color_index = (intel8245_ram[0x10 + (i * 0x04) + 0x03] & 0x0E) >> 1;
+    show_1char(char_x, char_y, char_offset, char_color_index);
   }
 }
-
 
 /*
  * show_1char()
  */
 
-void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
+void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t char_color_index)
 {
+  // uint16_t char_color = colors[char_color_index];
+  uint16_t char_color = COLORS(char_color_index);
+  // uint16_t char_color = ST77XX_RED;
+
   int16_t cset_start_address = offset + (y >> 1);
   if (cset_start_address > 512)
     cset_start_address -= 512;
@@ -198,7 +204,7 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
   uint8_t cset_byte;
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
-  fprintf(stderr, "show1_char(): X = %d, Y = %d, indice dans cst = %0x03x, couleur = %d\n", x, y, cset_start_offset, color);
+  fprintf(stderr, "show1_char(): X = %d, Y = %d, indice dans cst = %0x03x, couleur = %d\n", x, y, cset_start_offset, char_color);
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
   Serial.print("show1_char() x = 0x");
@@ -212,10 +218,11 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
   Serial.print(", char number = 0x");
   Serial.print(cset_start_address / 8, HEX);
   Serial.print(", color = 0x");
-  Serial.println(color, HEX);
+  Serial.println(char_color, HEX);
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
 #endif
+
   // for (uint8_t char_line = 0; (cset_byte = cset[char_line]) != 0x00; char_line++)
   for (uint8_t char_row = 0; char_row < 8; char_row++)
   {
@@ -241,10 +248,10 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t color)
         Serial.print(", ");
         Serial.print(y + char_row, HEX);
         Serial.print(", ");
-        Serial.print(color);
+        Serial.print(char_color);
         Serial.println(")");
 #endif
-        graphic_tft.drawPixel(x + (7 - char_column), y + char_row, COLORS(color));
+        graphic_tft.drawPixel(x + (7 - char_column), y + char_row, char_color);
       }
     }
   }
@@ -268,7 +275,6 @@ void show_4quads()
     show_1quad(i);
 }
 
-
 /*
  * show_1quad()
  *
@@ -279,7 +285,7 @@ void show_1quad(uint8_t quad_indx)
   uint8_t x;
   uint8_t y;
   uint16_t offset;
-  uint8_t color;
+  uint8_t color_index;
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
 #endif
@@ -292,26 +298,26 @@ void show_1quad(uint8_t quad_indx)
   x = intel8245_ram[quad_indx + 0x01];
   y = intel8245_ram[quad_indx + 0x00];
   offset = (((uint16_t)(intel8245_ram[quad_indx + 0x03]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x02]);
-  color = (intel8245_ram[quad_indx + 0x03] & 0x0E) >> 1;
-  show_1char(x, y, offset, color);
+  color_index = (intel8245_ram[quad_indx + 0x03] & 0x0E) >> 1;
+  show_1char(x, y, offset, color_index);
 
   x = intel8245_ram[quad_indx + 0x05];
   y = intel8245_ram[quad_indx + 0x04];
   offset = (((uint16_t)(intel8245_ram[quad_indx + 0x07]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x01]);
-  color = (intel8245_ram[quad_indx + 0x07] & 0x0E) >> 1;
-  show_1char(x, y, offset, color);
+  color_index = (intel8245_ram[quad_indx + 0x07] & 0x0E) >> 1;
+  show_1char(x, y, offset, color_index);
 
   x = intel8245_ram[quad_indx + 0x09];
   y = intel8245_ram[quad_indx + 0x08];
   offset = (((uint16_t)(intel8245_ram[quad_indx + 0x0B]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x0A]);
-  color = (intel8245_ram[quad_indx + 0x0B] & 0x0E) >> 1;
-  show_1char(x, y, offset, color);
+  color_index = (intel8245_ram[quad_indx + 0x0B] & 0x0E) >> 1;
+  show_1char(x, y, offset, color_index);
 
   x = intel8245_ram[quad_indx + 0x0D];
   y = intel8245_ram[quad_indx + 0x0C];
   offset = (((uint16_t)(intel8245_ram[quad_indx + 0x0F]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x0E]);
-  color = (intel8245_ram[quad_indx + 0x0F] & 0x0E) >> 1;
-  show_1char(x, y, offset, color);
+  color_index = (intel8245_ram[quad_indx + 0x0F] & 0x0E) >> 1;
+  show_1char(x, y, offset, color_index);
 }
 
 /*
@@ -332,7 +338,8 @@ void show_4sprites()
   uint8_t sprite_data;
   uint8_t sprite_x;
   uint8_t sprite_y;
-  uint8_t sprite_color;
+  uint8_t sprite_color_index;
+  uint16_t sprite_color;
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_SPRITES)
   fprintf(stderr, "show_4sprites()\n");
@@ -348,7 +355,8 @@ void show_4sprites()
   {
     sprite_x = intel8245_ram[sprite_control + 0x00];
     sprite_y = intel8245_ram[sprite_control + 0x01];
-    sprite_color = (intel8245_ram[sprite_control + 0x02] & 0x34) >> 3;
+    sprite_color_index = (intel8245_ram[sprite_control + 0x02] & 0x34) >> 3;
+    sprite_color = COLORS(sprite_color_index);
 
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
     Serial.print("show_4sprites() - sprite numéro ");
@@ -373,7 +381,7 @@ void show_4sprites()
       for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
       {
         if (sprite_data & mask)
-          graphic_tft.drawPixel(sprite_x + sprite_column, sprite_y + sprite_row, COLORS(sprite_color));
+          graphic_tft.drawPixel(sprite_x + sprite_column, sprite_y + sprite_row, sprite_color);
         mask >>= 1;
       }
     }
@@ -381,6 +389,11 @@ void show_4sprites()
     sprite_pattern += 0x08;
   }
 }
+
+/*
+ * clear_collision()
+ *
+ */
 
 void clear_collision()
 {
@@ -401,6 +414,12 @@ void clear_collision()
   collision_table[0x20] = 0;
   collision_table[0x80] = 0;
 }
+
+/*
+ *
+ * draw_display()
+ *
+ */
 
 void draw_display()
 {
@@ -429,6 +448,11 @@ void draw_display()
     show_4sprites();
   }
 }
+
+/*
+ *
+ * init_intel8245()
+ */
 
 void init_intel8245()
 {

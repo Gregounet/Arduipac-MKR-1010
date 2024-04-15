@@ -25,9 +25,13 @@
 #define GRAPHIC_TFT_RST -1
 #define GRAPHIC_TFT_DC 7
 
+#ifdef DEBUG_TFT
 Adafruit_ST7735 text_tft = Adafruit_ST7735(TEXT_TFT_CS, TEXT_TFT_DC, TEXT_TFT_RST);
+#endif
+
 Adafruit_ST7789 graphic_tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GRAPHIC_TFT_RST);
 
+#ifdef DEBUG_TFT
 void text_print_string(char *text)
 {
   text_tft.print(text);
@@ -42,6 +46,7 @@ void text_print_hex(uint32_t number)
 {
   text_tft.print(number, HEX);
 }
+#endif
 
 void graphic_drawtext(char *text)
 {
@@ -51,7 +56,7 @@ void graphic_drawtext(char *text)
   graphic_tft.print(text);
 }
 
-#define ARDUIPAC_VERSION "This is the end"
+#define ARDUIPAC_VERSION "Long way to the top"
 void setup()
 {
 char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
@@ -59,22 +64,24 @@ char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
   Serial.begin(38400);
   delay(100);
 
+#ifdef DEBUG_TFT
   text_tft.initR(INITR_BLACKTAB);
   text_tft.setSPISpeed(100000000);
   text_tft.fillScreen(ST77XX_BLACK);
   text_tft.setRotation(1);
   text_tft.setTextColor(ST77XX_GREEN);
+#endif
 
-  delay(TFT_DEBUG_DELAY);
+  // delay(TFT_DEBUG_DELAY);
 
   graphic_tft.init(240, 320);
   graphic_tft.fillScreen(ST77XX_BLACK);
   graphic_tft.setSPISpeed(100000000);
   graphic_tft.setRotation(1);
   graphic_tft.setTextColor(ST77XX_WHITE);
-  delay(TFT_DEBUG_DELAY);
+  // delay(TFT_DEBUG_DELAY);
 
-  delay(2000) ;
+  // delay(2000) ;
   
 #ifdef DEBUG_STDERR
   fprintf(stderr, "%s\n", welcome_string);
@@ -83,7 +90,7 @@ char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
   Serial.println(welcome_string);
 #endif
 
-#define DEBUG_TFT
+#undef DEBUG_TFT
 #ifdef DEBUG_TFT
   text_print_string(welcome_string);
   delay(TFT_DEBUG_DELAY);
