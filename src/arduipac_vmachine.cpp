@@ -262,7 +262,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				intel8245_ram[addr] = data;
 			}
 		}
-		else if (addr < 0x10 || addr >= 0x80) // Sprites Shapes
+		else if (addr < 0x10 || (addr >= 0x80 && addr < 0xA0)) // Sprites Shapes
 		{
 #ifdef DEBUG_SERIAL
 			Serial.print("Accessing Sprites Shapes [0x");
@@ -275,11 +275,12 @@ void ext_write(uint8_t data, uint8_t addr)
 		else if (addr >= 0xA0 && addr <= 0xA3) // VDC Video Registers
 		{
 
-			/*			Serial.print("Accessing VDC Video Register[0x");
-						Serial.print(addr, HEX);
-						Serial.print("] <- 0x");
-						Serial.println(data, HEX);
-			*/
+#ifdef DEBUG_SERIAL
+			Serial.print("Accessing VDC Video Register[0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
+#endif
 			if (addr == 0xA0)
 			{
 				if ((intel8245_ram[0xA0] & 0x02) && !(data & 0x02))
@@ -294,22 +295,26 @@ void ext_write(uint8_t data, uint8_t addr)
 		}
 		else if (addr >= 0xA7 && addr <= 0xAA) // VDC Sound Register
 		{
-			/*
+#ifdef DEBUG_SERIAL
 			Serial.print("Accessing VDC Sound Register[0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-			*/
+#endif
 			intel8245_ram[addr] = data;
 		}
-		else if (addr >= 0xC0 && addr <= 0xF0) // Grid
+		else if (addr >= 0xC0 && addr <= 0xE9) // Grid
 		{
-			/*
+#ifdef DEBUG_SERIAL
+#endif
 			Serial.print("Accessing Grid [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-			*/
+			// TODO: retirer ce hack horrible !
+			if (addr == 0xE1 || addr == 0xE7)
+				data = 0x40;
+
 			intel8245_ram[addr] = data;
 		}
 		break;

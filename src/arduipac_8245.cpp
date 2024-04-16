@@ -98,7 +98,6 @@ void draw_grid()
   //
 
   // Tracé des 9 lignes
-  mask = 0x01;
   // j : balayage des lignes 0 à 8
   for (uint8_t j = 0; j < 9; j++)
   {
@@ -106,6 +105,7 @@ void draw_grid()
     Serial.print("draw_grid() - affichage ligne ");
     Serial.println(j);
 #endif
+    mask = 0x01;
     // i : balayage par colonnes de 0 à 8
     for (uint8_t i = 0; i < 9; i++)
     {
@@ -121,8 +121,8 @@ void draw_grid()
         // 32 ou 36 de large ? Un seul pixel de haut ?
         for (uint8_t k = 0; k < 32; k++)
           graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j, grid_color);
+      mask <<= 1;
     }
-    mask <<= 1;
   }
 
   // Bit 7 de 0xA0 contrôle la largeur des colonnes
@@ -134,29 +134,38 @@ void draw_grid()
 
   // Tracé des 10 colonnes verticales
   mask = 0x01;
-  for (uint8_t j = 0; j < 10; j++)
+  for (uint8_t x = 0; x < 10; x++)
   {
+    // 0xE0 - 0xE9 = Colonnes, chaque octet représente une colonne et chaque bit un segment
+    data = intel8245_ram[0xE0 + x];
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
     Serial.print("draw_grid() - affichage de la colonne ");
-    Serial.println(j);
+    Serial.print(x);
+    Serial.print(", octet == ");
+    Serial.println(data);
 #endif
     mask = 0x01;
-    // 0xE0 - 0xE9 = Colonnes, chaque octet représente une colonne
-    data = intel8245_ram[0xE0 + j];
-    for (uint8_t i = 0; i < 8; i++)
+    for (uint8_t y = 0; y < 8; y++)
+    {
+#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
+      Serial.print("mask == ");
+      Serial.println(mask);
+#endif
       if (data & mask)
       {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
         Serial.print("draw_grid() - affichage d'un segment ");
-        Serial.println(i);
+        Serial.println(x);
 #endif
-        for (uint8_t x = 0; x < width; x++)
+
+        for (uint8_t xx = 0; xx < width; xx++)
         {
-          for (uint8_t y = 0; y < 24; y++)
-            graphic_tft.drawPixel(20 + 32 * i + x, 24 + 24 * j + y, grid_color);
+          for (uint8_t yy = 0; yy < 24; yy++)
+            graphic_tft.drawPixel(20 + 32 * x + xx, 24 + 24 * y + yy, grid_color);
         }
       }
-    mask <<= 1;
+      mask <<= 1;
+    }
   }
 }
 
@@ -235,7 +244,7 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t char_color_index)
   for (uint8_t char_row = 0;
        ((cset_byte = CSET(cset_start_address + char_row)) != 0x00) || (char_row < 3);
        char_row++)
- for (uint8_t char_row = 0; char_row < 8; char_row++)
+  // for (uint8_t char_row = 0; char_row < 8; char_row++)
   {
     // cset_byte = CSET(cset_start_address + char_row);
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
