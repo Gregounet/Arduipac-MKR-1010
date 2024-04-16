@@ -158,76 +158,121 @@ ext_read(uint8_t addr)
 	return 0;
 }
 
+/*
+ *
+ * ext_write()
+ */
+
 void ext_write(uint8_t data, uint8_t addr)
 {
-	/*
+#ifdef DEBUG_SERIAL
 	Serial.print("ext_write()");
 	Serial.print(data);
 	Serial.print(", ");
 	Serial.println(addr, HEX);
 	Serial.println(")");
-	*/
+#endif
 
 	switch (p1 & 0x58)
 	{
 	case 0x08: // External RAM
+	{
 		if (addr < 0x80)
 			external_ram[addr] = data;
 		break;
-	case 0x10:			 // VDC RAM
-	case 0x40:			 // Copy Mode (read from External RAM and Write to VDC)
+	}
+	case 0x10: // VDC RAM
+	case 0x40: // Copy Mode (read from External RAM and Write to VDC)
+	{
 		if (addr < 0x10) // Sprites positions and colors
 		{
-			/*
+#ifdef DEBUG_SERIAL
 			Serial.print("Accessing Sprites positions and colors [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-			*/
+#endif
 			intel8245_ram[addr] = data;
 		}
 		else if (addr >= 0x10 && addr < 0x40) // Characters
 		{
-			/*
+#ifdef DEBUG_SERIAL
 			Serial.print("Accessing Characters [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-			*/
+#endif
 			intel8245_ram[addr] = data;
 		}
 		else if (addr >= 0x40 && addr < 0x80) // Quads
 		{
-			/*
+#ifdef DEBUG_SERIAL
 			Serial.print("Accessing Quads [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-			*/
-			if ((addr & 0x02) == 0)
+#endif
+			if ((addr & 0x02) == 0) // Il s'agit donc des positions X et Y des caractères du Quad
 			{
-				// TODO
-				/* addr = addr & 0x71;
-				if (!(addr & 0x01))
-					data &= 0xFE;
-				intel8245_ram[addr] = intel8245_ram[addr + 4] = intel8245_ram[addr + 8] = intel8245_ram[addr + 12] = data;*/
+#ifdef DEBUG_SERIAL
+				Serial.println("Positions X ou Y");
+#endif
+				if ((addr & 0x0C) == 0x00) // Il s'agit du premier caractère du Quad, donc celui qui va déterminer l'emplacement des autres
+				{
+#ifdef DEBUG_SERIAL
+					Serial.println("Premier caractère");
+#endif
+					if ((addr & 0x01) == 0x00) // Il s'agit donc de la position Y du caractère
+					{
+#ifdef DEBUG_SERIAL
+						Serial.println("Position Y");
+#endif
+						data &= 0xFE;		// qui sera donc nécessairement paire
+						addr = addr & 0x70; // Adresse de base du groupe de caractères
+						intel8245_ram[addr] = data;
+						intel8245_ram[addr + 0x04] = data;
+						intel8245_ram[addr + 0x08] = data;
+						intel8245_ram[addr + 0x0C] = data;
+					}
+					else // Il s'agit donc de la position X du caractère
+					{
+#ifdef DEBUG_SERIAL
+						Serial.println("Position X");
+#endif
+						addr = addr & 0x70; // Adresse de base du groupe de caractères
+						intel8245_ram[addr + 0x01] = data + 0;
+						intel8245_ram[addr + 0x05] = data + 0x10;
+						intel8245_ram[addr + 0x09] = data + 0X20;
+						intel8245_ram[addr + 0x0D] = data + 0x30;
+					}
+				}
+				else
+				{
+					intel8245_ram[addr] = data;
+#ifdef DEBUG_SERIAL
+					Serial.println("Pas le dernier caractère");
+#endif
+				}
 			}
-			else
+			else // Il s'agit donc du caractère et de sa couleur
 			{
+#ifdef DEBUG_SERIAL
+				Serial.println("Index dans CSET ou couleur");
+#endif
 				intel8245_ram[addr] = data;
 			}
 		}
-		else if (addr >= 0x80 && addr < 0x10) // Sprites Shapes
+		else if (addr < 0x10 || addr >= 0x80) // Sprites Shapes
 		{
-			/*
+#ifdef DEBUG_SERIAL
 			Serial.print("Accessing Sprites Shapes [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-			*/
+#endif
 			intel8245_ram[addr] = data;
 		}
-		else if (addr >= 0xA0 && addr <= 0xA3) // VDC Video Register
+		else if (addr >= 0xA0 && addr <= 0xA3) // VDC Video Registers
 		{
 
 			/*			Serial.print("Accessing VDC Video Register[0x");
@@ -269,9 +314,9 @@ void ext_write(uint8_t data, uint8_t addr)
 		}
 		break;
 	}
+	}
 	/*
 	 * Comme je ne comprends pas pour l'instant je commente. TODO
-	if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data)
-		draw_display();
+	if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data) draw_display();
 	*/
 }
