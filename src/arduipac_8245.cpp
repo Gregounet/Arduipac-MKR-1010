@@ -317,7 +317,7 @@ void show_1quad(uint8_t quad_indx)
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
 
-  delay(1000);
+  // delay(1000);
 
   x = intel8245_ram[quad_indx + 0x01];
   y = intel8245_ram[quad_indx + 0x00];
@@ -388,49 +388,71 @@ void show_4sprites()
   uint8_t sprite_y;
   uint8_t sprite_color_index;
   uint16_t sprite_color;
+  uint8_t sprite_size;
+  uint8_t sprite_even_shift;
+  uint8_t sprite_full_shift;
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_SPRITES)
   fprintf(stderr, "show_4sprites()\n");
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
+#endif
   Serial.print(bigben);
   Serial.println(" - show_4sprites()");
-#endif
 #if defined(DEBUG_TFT) && defined(DEBUG_SPRITES)
 #endif
 
   for (uint8_t sprite_number = 0; sprite_number < 4; sprite_number++)
   {
-    sprite_x = intel8245_ram[sprite_control + 0x00];
-    sprite_y = intel8245_ram[sprite_control + 0x01];
+    sprite_y = intel8245_ram[sprite_control + 0x00];
+    sprite_x = intel8245_ram[sprite_control + 0x01];
     sprite_color_index = (intel8245_ram[sprite_control + 0x02] & 0x34) >> 3;
     sprite_color = CHAR_COLORS(sprite_color_index);
 
+    sprite_size = intel8245_ram[sprite_control + 0x02] & 0x04 >> 2;
+    sprite_even_shift = intel8245_ram[sprite_control + 0x02] & 0x02 >> 1;
+    sprite_full_shift = intel8245_ram[sprite_control + 0x02] & 0x01;
+
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
+#endif
     Serial.print("show_4sprites() - sprite numéro ");
     Serial.print(sprite_number);
     Serial.print(" , x = ");
     Serial.print(sprite_x);
     Serial.print(" , y = ");
     Serial.print(sprite_y);
-    Serial.print(" , color = ");
-    Serial.println(sprite_color);
-#endif
+    Serial.print(" , color_index = ");
+    Serial.print(sprite_color_index);
+    Serial.print(" , size = ");
+    Serial.print(sprite_size);
+    Serial.print(" , even_shift = ");
+    Serial.print(sprite_even_shift);
+    Serial.print(" , full_shift = ");
+    Serial.println(sprite_full_shift);
 
     for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
     {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
+#endif
       Serial.print("show_4sprites() - affichage de la ligne ");
       Serial.println(sprite_row);
-#endif
-      sprite_data = intel8245_ram[sprite_pattern + sprite_row];
-      uint8_t mask = 0x80;
 
-      for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
+      sprite_data = intel8245_ram[sprite_pattern + sprite_row];
+      uint8_t mask = 0x01;
+      if (sprite_number == 0 || sprite_number == 1)
       {
-        if (sprite_data & mask)
-          graphic_tft.drawPixel(sprite_x + sprite_column, sprite_y + sprite_row, sprite_color);
-        mask >>= 1;
+        for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
+        {
+          if (sprite_data & mask)
+          {
+            graphic_tft.drawPixel(20 + 50 * sprite_number + sprite_column * 2, 20 + sprite_row * 2, ST7735_ORANGE);
+            graphic_tft.drawPixel(20 + 50 * sprite_number + sprite_column * 2 + 1, 20 + sprite_row * 2, ST7735_ORANGE);
+            graphic_tft.drawPixel(20 + 50 * sprite_number + sprite_column * 2, 20 + sprite_row * 2 + 1, ST7735_ORANGE);
+            graphic_tft.drawPixel(20 + 50 * sprite_number + sprite_column * 2 + 1, 20 + sprite_row * 2 + 1, ST7735_ORANGE);
+          }
+
+          mask <<= 1;
+        }
       }
     }
     sprite_control += 0x04;
@@ -494,16 +516,20 @@ void draw_display()
   graphic_tft.fillScreen(bg_color);
 
   // bit 3 == enable grid
+  /*
   if (intel8245_ram[0xA0] & 0x08)
     draw_grid();
-
+  */
   // bit 5 = enable display
   if (intel8245_ram[0xA0] & 0x20)
   {
-    show_12chars();
-    show_4quads();
+    /*
+      show_12chars();
+      show_4quads();
+    */
     show_4sprites();
   }
+  delay(3000);
 }
 
 /*

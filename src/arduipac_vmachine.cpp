@@ -306,11 +306,11 @@ void ext_write(uint8_t data, uint8_t addr)
 		else if (addr >= 0xC0 && addr <= 0xE9) // Grid
 		{
 #ifdef DEBUG_SERIAL
-#endif
 			Serial.print("Accessing Grid [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
+#endif
 			// TODO: retirer ce hack horrible !
 			if (addr == 0xE1 || addr == 0xE7)
 				data = 0x40;
