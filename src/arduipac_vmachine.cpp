@@ -166,33 +166,25 @@ ext_read(uint8_t addr)
 void ext_write(uint8_t data, uint8_t addr)
 {
 #ifdef DEBUG_SERIAL
-	if (addr == 0x3B)
+#endif
+	if (addr == 0xA0)
 	{
-		Serial.print("ext_write(");
-		Serial.print(data);
-		Serial.print(", ");
+		Serial.print("ext_write(0x");
+		Serial.print(data, HEX);
+		Serial.print(", 0x");
 		Serial.print(addr, HEX);
 		Serial.print(") - p1 == ");
 		Serial.println(p1, HEX);
 		// delay(5000);
 	}
-#endif
 
 	switch (p1 & 0x58)
 	{
 	case 0x08: // External RAM
 	{
 		if (addr < 0x80)
-		{
+
 			external_ram[addr] = data;
-			/*
-			if (addr == 0x3B)
-			{
-				Serial.println("########################################");
-				delay(10000);
-			}
-			*/
-		}
 		break;
 	}
 	case 0x10: // VDC RAM

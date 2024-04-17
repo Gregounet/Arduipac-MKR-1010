@@ -28,12 +28,12 @@
 #define COLLISION_CHAR 0x80
 
 #undef DEBUG_STDERR
-#undef DEBUG_SERIAL
+#define DEBUG_SERIAL
 #undef DEBUG_TFT
 
-#undef DEBUG_CHARS
-#undef DEBUG_GRID
-#undef DEBUG_SPRITES
+#define DEBUG_CHARS
+#define DEBUG_GRID
+#define DEBUG_SPRITES
 
 #undef DEBUG_DETAIL
 
@@ -177,7 +177,6 @@ void show_1char(uint8_t x, uint8_t y, uint8_t offset, uint8_t char_color_index)
   fprintf(stderr, "show1_char(): x = %d, y = %d, indice dans cset = %0x03x, index couleur = %d\n", x, y, cset_start_offset, char_color_index);
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-#endif
   Serial.print("show1_char() x = ");
   Serial.print(x);
   Serial.print(", y = ");
@@ -190,7 +189,7 @@ void show_1char(uint8_t x, uint8_t y, uint8_t offset, uint8_t char_color_index)
   Serial.print(cset_start_address / 8, HEX);
   Serial.print(", color_index = 0x");
   Serial.println(char_color_index, HEX);
-
+#endif
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
 #endif
 
@@ -416,7 +415,7 @@ void draw_display()
 #ifdef DEBUG_SERIAL
   Serial.print(bigben);
   Serial.println(" - draw_display()");
-  Serial.print("intel8245_ram[0xA0] = ");
+  Serial.print("Registre 0xA0 == 0x");
   Serial.println(intel8245_ram[0xA0], HEX);
 #endif
 #ifdef DEBUG_TFT
@@ -431,6 +430,9 @@ void draw_display()
   else
     bg_color = DARK_COLORS(bg_color_index);
 
+  Serial.print("bg_color_index == ");
+  Serial.println(bg_color_index);
+
   graphic_tft.fillScreen(bg_color);
 
   // bit 3 == enable grid
@@ -444,7 +446,6 @@ void draw_display()
     show_4quads();
     show_4sprites();
   }
-  // delay(1000);
 }
 
 /*
