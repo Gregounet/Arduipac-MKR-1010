@@ -316,7 +316,6 @@ void show_4sprites()
     sprite_full_shift = intel8245_ram[sprite_control + 0x02] & 0x01;
 
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
-#endif
     Serial.print("show_4sprites() - sprite numéro ");
     Serial.print(sprite_number);
     Serial.print(" , x = ");
@@ -331,7 +330,7 @@ void show_4sprites()
     Serial.print(sprite_even_shift);
     Serial.print(" , full_shift = ");
     Serial.println(sprite_full_shift);
-
+#endif
     for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
     {
       sprite_data = intel8245_ram[sprite_pattern + sprite_row];
@@ -356,19 +355,15 @@ void show_4sprites()
           if (sprite_data & mask)
           {
             graphic_tft.fillRect(20 + sprite_x + sprite_column * 2, sprite_y + sprite_row * 2, 2, 2, ST77XX_BLACK);
-            Serial.print("I");
+            // Serial.print("I");
           }
           else
           {
             graphic_tft.fillRect(20 + sprite_x + sprite_column * 2, sprite_y + sprite_row * 2, 2, 2, ST77XX_WHITE);
-            Serial.print(" ");
+            // Serial.print(" ");
           }
           mask <<= 1;
         }
-      }
-      // if (sprite_number == 0 || sprite_number == 1)
-      {
-        Serial.println();
       }
     }
     sprite_control += 0x04;

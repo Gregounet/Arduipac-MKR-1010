@@ -15,6 +15,8 @@ uint8_t x_latch, y_latch;
 uint8_t machine_state; // 0 during normal operation and 1 during Vertical Blank
 uint8_t external_ram[128];
 
+#undef DEBUG_SERIAL
+
 void init_vmachine()
 {
 #ifdef DEBUG_STDERR
@@ -130,7 +132,7 @@ ext_read(uint8_t addr)
 #ifdef DEBUG_TFT
 #endif
 			if ((intel8245_ram[0xA0] & 0x02))
-			{
+			{ // Le bit 1 de VRAM[0xA0] vaut 1 donc y_latch suit le beam
 				y_latch = vertical_clock / 22;
 				if (y_latch > 241) // TODO ça fait un écran de 242 de large et j'aurais voulu 240
 					y_latch = 0xFF;
@@ -140,12 +142,12 @@ ext_read(uint8_t addr)
 #ifdef DEBUG_STDERR
 #endif
 #ifdef DEBUG_SERIAL
-			Serial.println("0xA5 ");
+			Serial.println("0xA5 x_latch");
 #endif
 #ifdef DEBUG_TFT
 #endif
 			if ((intel8245_ram[0xA0] & 0x02))
-			{
+			{									 // Le bit 1 de VRAM[0xA0] vaut 1 donc x_latch suit le beam
 				x_latch = horizontal_clock * 12; // TODO D'ou sort ce 2 ?
 			}
 			return x_latch;
@@ -154,7 +156,23 @@ ext_read(uint8_t addr)
 		}
 	}
 	else if (!(p1 & 0x10))
-		return external_ram[addr]; // p1 & 0x10 : hack lié à la cartouche MegaCart TODO: supprimer
+	{
+#ifdef DEBUG_STDERR
+#endif
+#ifdef DEBUG_SERIAL
+#endif
+		if (addr >= 0x3A && addr <= 0x3B)
+		{
+			Serial.print(bigben);
+			Serial.print(" - ext_read() - external_ram[0x");
+			Serial.print(addr, HEX);
+			Serial.print("] -> 0x");
+			Serial.println(external_ram[addr], HEX);
+		}
+#ifdef DEBUG_TFT
+#endif
+		return external_ram[addr];
+	}
 	return 0;
 }
 
@@ -168,7 +186,8 @@ void ext_write(uint8_t data, uint8_t addr)
 #ifdef DEBUG_SERIAL
 	if (addr == 0xA0)
 	{
-		Serial.print("ext_write(0x");
+		Serial.print(bigben);
+		Serial.print(" - ext_write(0x");
 		Serial.print(data, HEX);
 		Serial.print(", 0x");
 		Serial.print(addr, HEX);
@@ -182,8 +201,20 @@ void ext_write(uint8_t data, uint8_t addr)
 	case 0x08: // External RAM
 	{
 		if (addr < 0x80)
-
+		{
+#ifdef DEBUG_SERIAL
+#endif
+			if (addr >= 0x3A && addr <= 0x3B)
+			{
+				Serial.print(bigben);
+				Serial.print(" - ext_write() - external_ram[0x");
+				Serial.print(addr, HEX);
+				Serial.print("] <- 0x");
+				Serial.print(data, HEX);
+				Serial.println("   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+			}
 			external_ram[addr] = data;
+		}
 		break;
 	}
 	case 0x10: // VDC RAM
@@ -290,7 +321,7 @@ void ext_write(uint8_t data, uint8_t addr)
 			if (addr == 0xA0)
 			{
 				if ((intel8245_ram[0xA0] & 0x02) && !(data & 0x02))
-				{
+				{ // Le bit 1 de la VRAM était à 1 et est passé à 0 donc x_latch et y_latch suivent le beam
 					y_latch = vertical_clock / 22;
 					x_latch = horizontal_clock * 12;
 					if (y_latch > 241)

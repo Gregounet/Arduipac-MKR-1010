@@ -17,7 +17,7 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-#undef DEBUG_SERIAL
+#define DEBUG_SERIAL
 
 #define push(d)                    \
 	{                              \
@@ -206,14 +206,14 @@ void exec_8048()
 #ifdef DEBUG_SERIAL
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
-		Serial.print("BS: ");
-		Serial.print(bs >> 4);
-		Serial.print(" SP: ");
-		Serial.print(sp, HEX);
-		Serial.print(" REGPNT: ");
-		Serial.print(reg_pnt, HEX);
-		Serial.print(" Cy: ");
-		Serial.println(cy);
+		// Serial.print("BS: ");
+		// Serial.print(bs >> 4);
+		// Serial.print(" SP: ");
+		// Serial.print(sp, HEX);
+		// Serial.print(" REGPNT: ");
+		// Serial.print(reg_pnt, HEX);
+		// Serial.print(" Cy: ");
+		// Serial.println(cy);
 		Serial.print("R0: ");
 		Serial.print(intel8048_ram[reg_pnt], HEX);
 		Serial.print(" R1: ");
@@ -229,7 +229,9 @@ void exec_8048()
 		Serial.print(" R6: ");
 		Serial.print(intel8048_ram[reg_pnt + 6], HEX);
 		Serial.print(" R7: ");
-		Serial.println(intel8048_ram[reg_pnt + 7], HEX);
+		Serial.print(intel8048_ram[reg_pnt + 7], HEX);
+		Serial.print(" P1: ");
+		Serial.println(p1, HEX);
 		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
 		Serial.print(" PC: ");
@@ -1317,7 +1319,6 @@ void exec_8048()
 #endif
 #ifdef DEBUG_SERIAL
 		Serial.println();
-		delay(0);
 #endif
 		bigben++;
 		horizontal_clock += op_cycles;
@@ -1331,16 +1332,18 @@ void exec_8048()
 #endif
 #ifdef DEBUG_SERIAL
 		Serial.println();
-		Serial.print("bigben == ");
-		Serial.println(bigben);
-		/*
-		Serial.print("horizontal_clock == ");
-		Serial.println(horizontal_clock);
-		Serial.print("vertical_clock == ");
-		Serial.println(vertical_clock);
-		Serial.print("machine_state == ");
-		Serial.println(machine_state);
-		*/
+		if (bigben > 36900 && bigben < 37000)
+			delay(1000);
+			// Serial.print("bigben == ");
+			// Serial.println(bigben);
+			/*
+			Serial.print("horizontal_clock == ");
+			Serial.println(horizontal_clock);
+			Serial.print("vertical_clock == ");
+			Serial.println(vertical_clock);
+			Serial.print("machine_state == ");
+			Serial.println(machine_state);
+			*/
 #endif
 #undef DEBUG_SERIAL
 
