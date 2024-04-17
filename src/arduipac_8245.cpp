@@ -83,12 +83,7 @@ void draw_grid()
       {
         // Les lignes sont séparées de 24 pixels
         // Les colonnes sont séparés de 32 pixels.
-        for (uint8_t k = 0; k < 4; k++)
-        {
-          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 0, grid_color);
-          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 1, grid_color);
-          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j + 2, grid_color);
-        }
+        graphic_tft.fillRect(20 + 32 * i, 24 + 24 * j, 4, 3, grid_color);
       }
     }
   }
@@ -118,9 +113,7 @@ void draw_grid()
         mask = 0x01;
       }
       if (data & mask)
-        // 32 ou 36 de large ? Un seul pixel de haut ?
-        for (uint8_t k = 0; k < 32; k++)
-          graphic_tft.drawPixel(20 + 32 * i + k, 24 + 24 * j, grid_color);
+        graphic_tft.fillRect(20 + 32 * i, 24 + 24 * j, 36, 3, grid_color);
       mask <<= 1;
     }
   }
@@ -133,7 +126,6 @@ void draw_grid()
 #endif
 
   // Tracé des 10 colonnes verticales
-  mask = 0x01;
   for (uint8_t x = 0; x < 10; x++)
   {
     // 0xE0 - 0xE9 = Colonnes, chaque octet représente une colonne et chaque bit un segment
@@ -157,12 +149,7 @@ void draw_grid()
         Serial.print("draw_grid() - affichage d'un segment ");
         Serial.println(x);
 #endif
-
-        for (uint8_t xx = 0; xx < width; xx++)
-        {
-          for (uint8_t yy = 0; yy < 24; yy++)
-            graphic_tft.drawPixel(20 + 32 * x + xx, 24 + 24 * y + yy, grid_color);
-        }
+        graphic_tft.fillRect(20 + 32 * x, 24 + 24 * y, width, 24, grid_color);
       }
       mask <<= 1;
     }
@@ -175,78 +162,41 @@ void draw_grid()
  */
 
 /*
- * show_12chars()
- *
- */
-
-void show_12chars()
-{
-  uint8_t char_x;
-  uint8_t char_y;
-  uint16_t char_offset;
-  uint8_t char_color_index;
-
-#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
-#endif
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-  Serial.println("show_12chars()");
-#endif
-#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
-#endif
-
-  for (uint8_t i = 0; i < 12; i++)
-  {
-    char_x = intel8245_ram[0x10 + (i * 0x04) + 0x01];
-    char_y = intel8245_ram[0x10 + (i * 0x04) + 0x00];
-    char_offset = (((uint16_t)(intel8245_ram[0x10 + (i * 0x04) + 0x03]) & 0x01) << 8) | (intel8245_ram[0x10 + (i * 0x04) + 0x02]);
-    char_color_index = (intel8245_ram[0x10 + (i * 0x04) + 0x03] & 0x0E) >> 1;
-    show_1char(char_x, char_y, char_offset, char_color_index);
-  }
-}
-
-/*
  * show_1char()
  */
 
-void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t char_color_index)
+void show_1char(uint8_t x, uint8_t y, uint8_t offset, uint8_t char_color_index)
 {
-  uint16_t char_color = CHAR_COLORS(char_color_index);
+  uint16_t char_color = CHAR_COLORS((char_color_index & 0x07) >> 1);
+  uint16_t cset_start_address = ((uint16_t)((char_color_index & 1) << 8) + (uint16_t)offset + (uint16_t)(y >> 1)) % 512;
+  uint8_t number_of_rows = ((cset_start_address / 8 + 1) * 8) - cset_start_address;
 
-  int16_t cset_start_address = offset + (y >> 1);
-  if (cset_start_address > 512)
-    cset_start_address -= 512;
-
-  uint8_t cset_byte;
+  y &= 0xFE; // TODO pas clair ce Y...
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
-  fprintf(stderr, "show1_char(): X = %d, Y = %d, indice dans cst = %0x03x, couleur = %d\n", x, y, cset_start_offset, char_color);
+  fprintf(stderr, "show1_char(): x = %d, y = %d, indice dans cset = %0x03x, index couleur = %d\n", x, y, cset_start_offset, char_color_index);
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-  Serial.print("show1_char() x = 0x");
-  Serial.print(x, HEX);
-  Serial.print(", y = 0x");
-  Serial.print(y, HEX);
+#endif
+  Serial.print("show1_char() x = ");
+  Serial.print(x);
+  Serial.print(", y = ");
+  Serial.print(y);
   Serial.print(", offset = 0x");
   Serial.print(offset, HEX);
   Serial.print(", indice dans cset = 0x");
   Serial.print(cset_start_address, HEX);
   Serial.print(", char number = 0x");
   Serial.print(cset_start_address / 8, HEX);
-  Serial.print(", color = 0x");
-  Serial.println(char_color, HEX);
-#endif
+  Serial.print(", color_index = 0x");
+  Serial.println(char_color_index, HEX);
+
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
 #endif
 
-  // TODO
-  // Cette correction affiche correctement les soldats de seconde ligne jaunes mais du coup les scores (???) disparaissent !
-
-  for (uint8_t char_row = 0;
-       ((cset_byte = CSET(cset_start_address + char_row)) != 0x00) || (char_row < 3);
-       char_row++)
-  // for (uint8_t char_row = 0; char_row < 8; char_row++)
+  for (uint8_t char_row = 0; char_row < number_of_rows; char_row++)
   {
-    // cset_byte = CSET(cset_start_address + char_row);
+    uint8_t cset_byte = CSET(cset_start_address + char_row);
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
     Serial.print("cset_byte[0x");
     Serial.print(char_row, HEX);
@@ -254,13 +204,14 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t char_color_index)
     Serial.println(cset_byte, HEX);
 #endif
 
-    for (int8_t char_column = 7; char_column >= 0; char_column--)
+    uint8_t mask = 0x80;
+    for (int8_t char_column = 0; char_column < 8; char_column++)
     {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
       Serial.print("char_column = ");
       Serial.println(char_column, HEX);
 #endif
-      if ((cset_byte >> char_column) & 0x01)
+      if (cset_byte & mask)
       {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
         Serial.print("drawPixel(");
@@ -271,10 +222,9 @@ void show_1char(uint8_t x, uint8_t y, uint16_t offset, uint8_t char_color_index)
         Serial.print(char_color);
         Serial.println(")");
 #endif
-        // graphic_tft.drawPixel(x + (7 - char_column), y + char_row, char_color);
-        graphic_tft.drawPixel(2 * (x + (7 - char_column)) + 0, y + char_row, char_color);
-        graphic_tft.drawPixel(2 * (x + (7 - char_column)) + 1, y + char_row, char_color);
+        graphic_tft.fillRect(20 + 2 * (x + char_column - 8), y + char_row * 2, 2, 2, char_color);
       }
+      mask >>= 1;
     }
   }
 }
@@ -293,79 +243,31 @@ void show_4quads()
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
-  for (uint8_t i = 0x40; i < 0x80; i += 0x10)
-    show_1quad(i);
+  for (uint8_t quad_indx = 0x40; quad_indx < 0x80; quad_indx += 0x10)
+  {
+    show_1char(intel8245_ram[quad_indx + 1], intel8245_ram[quad_indx + 0], intel8245_ram[quad_indx + 2], intel8245_ram[quad_indx + 3]);
+    show_1char(intel8245_ram[quad_indx + 5], intel8245_ram[quad_indx + 4], intel8245_ram[quad_indx + 6], intel8245_ram[quad_indx + 7]);
+    show_1char(intel8245_ram[quad_indx + 9], intel8245_ram[quad_indx + 8], intel8245_ram[quad_indx + 10], intel8245_ram[quad_indx + 11]);
+    show_1char(intel8245_ram[quad_indx + 13], intel8245_ram[quad_indx + 12], intel8245_ram[quad_indx + 14], intel8245_ram[quad_indx + 15]);
+  }
 }
 
 /*
- * show_1quad()
+ * show_12chars()
  *
  */
 
-void show_1quad(uint8_t quad_indx)
+void show_12chars()
 {
-  uint8_t x;
-  uint8_t y;
-  uint16_t offset;
-  uint8_t color_index;
-
 #if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-  Serial.println("show_1quad()");
+  Serial.println("show_12chars()");
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
-
-  // delay(1000);
-
-  x = intel8245_ram[quad_indx + 0x01];
-  y = intel8245_ram[quad_indx + 0x00];
-  offset = (((uint16_t)(intel8245_ram[quad_indx + 0x03]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x02]);
-  color_index = (intel8245_ram[quad_indx + 0x03] & 0x0E) >> 1;
-#ifdef DEBUG_SERIAL
-  Serial.print("show_1quad() - caractère 0 - x = ");
-  Serial.print(x);
-  Serial.print(", y = ");
-  Serial.println(y);
-#endif
-  show_1char(x, y, offset, color_index);
-
-  x = intel8245_ram[quad_indx + 0x05];
-  y = intel8245_ram[quad_indx + 0x04];
-  offset = (((uint16_t)(intel8245_ram[quad_indx + 0x07]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x06]);
-  color_index = (intel8245_ram[quad_indx + 0x07] & 0x0E) >> 1;
-#ifdef DEBUG_SERIAL
-  Serial.print("show_1quad() - caractère 1 - x = ");
-  Serial.print(x);
-  Serial.print(", y = ");
-  Serial.println(y);
-#endif
-  show_1char(x, y, offset, color_index);
-
-  x = intel8245_ram[quad_indx + 0x09];
-  y = intel8245_ram[quad_indx + 0x08];
-  offset = (((uint16_t)(intel8245_ram[quad_indx + 0x0B]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x0A]);
-  color_index = (intel8245_ram[quad_indx + 0x0B] & 0x0E) >> 1;
-#ifdef DEBUG_SERIAL
-  Serial.print("show_1quad() - caractère 2 - x = ");
-  Serial.print(x);
-  Serial.print(", y = ");
-  Serial.println(y);
-#endif
-  show_1char(x, y, offset, color_index);
-
-  x = intel8245_ram[quad_indx + 0x0D];
-  y = intel8245_ram[quad_indx + 0x0C];
-  offset = (((uint16_t)(intel8245_ram[quad_indx + 0x0F]) & 0x01) << 8) | (intel8245_ram[quad_indx + 0x0E]);
-  color_index = (intel8245_ram[quad_indx + 0x0F] & 0x0E) >> 1;
-#ifdef DEBUG_SERIAL
-  Serial.print("show_1quad() - caractère 3 - x = ");
-  Serial.print(x);
-  Serial.print(", y = ");
-  Serial.println(y);
-#endif
-  show_1char(x, y, offset, color_index);
+  for (uint8_t i = 0; i < 12; i++)
+    show_1char(intel8245_ram[0x10 + i * 4 + 1], intel8245_ram[0x10 + i * 4], intel8245_ram[0x10 + i * 4 + 2], intel8245_ram[0x10 + i * 4 + 3]);
 }
 
 /*
@@ -384,7 +286,7 @@ void show_4sprites()
   uint8_t sprite_pattern = 0x80;
 
   uint8_t sprite_data;
-  uint8_t sprite_x;
+  uint16_t sprite_x;
   uint8_t sprite_y;
   uint8_t sprite_color_index;
   uint16_t sprite_color;
@@ -396,17 +298,18 @@ void show_4sprites()
   fprintf(stderr, "show_4sprites()\n");
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
-#endif
   Serial.print(bigben);
   Serial.println(" - show_4sprites()");
+#endif
 #if defined(DEBUG_TFT) && defined(DEBUG_SPRITES)
 #endif
 
   for (uint8_t sprite_number = 0; sprite_number < 4; sprite_number++)
   {
-    sprite_y = intel8245_ram[sprite_control + 0x00];
-    sprite_x = intel8245_ram[sprite_control + 0x01];
-    sprite_color_index = (intel8245_ram[sprite_control + 0x02] & 0x34) >> 3;
+    sprite_y = intel8245_ram[sprite_control];
+    sprite_x = intel8245_ram[sprite_control + 1] - 8;
+    sprite_x *= 2;
+    sprite_color_index = (intel8245_ram[sprite_control + 2] & 0x38) >> 3;
     sprite_color = CHAR_COLORS(sprite_color_index);
 
     sprite_size = intel8245_ram[sprite_control + 0x02] & 0x04 >> 2;
@@ -432,32 +335,47 @@ void show_4sprites()
 
     for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
     {
+      sprite_data = intel8245_ram[sprite_pattern + sprite_row];
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
 #endif
-      Serial.print("show_4sprites() - affichage de la ligne ");
-      Serial.println(sprite_row);
-
-      sprite_data = intel8245_ram[sprite_pattern + sprite_row];
-      uint8_t mask = 0x01;
       if (sprite_number == 0 || sprite_number == 1)
       {
-        for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
+        /*
+        Serial.print("show_4sprites() - affichage de la ligne ");
+        Serial.print(sprite_row);
+        Serial.print(" - data : 0x");
+        Serial.println(sprite_data, HEX);
+        */
+      }
+
+      uint8_t mask = 0x01;
+
+      for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
+      {
+        // if (sprite_number == 0 || sprite_number == 1)
         {
           if (sprite_data & mask)
           {
-            graphic_tft.drawPixel(20 + 50 * sprite_number + sprite_column * 2, 20 + sprite_row * 2, ST7735_ORANGE);
-            graphic_tft.drawPixel(20 + 50 * sprite_number + sprite_column * 2 + 1, 20 + sprite_row * 2, ST7735_ORANGE);
-            graphic_tft.drawPixel(20 + 50 * sprite_number + sprite_column * 2, 20 + sprite_row * 2 + 1, ST7735_ORANGE);
-            graphic_tft.drawPixel(20 + 50 * sprite_number + sprite_column * 2 + 1, 20 + sprite_row * 2 + 1, ST7735_ORANGE);
+            graphic_tft.fillRect(20 + sprite_x + sprite_column * 2, sprite_y + sprite_row * 2, 2, 2, ST77XX_BLACK);
+            Serial.print("I");
           }
-
+          else
+          {
+            graphic_tft.fillRect(20 + sprite_x + sprite_column * 2, sprite_y + sprite_row * 2, 2, 2, ST77XX_WHITE);
+            Serial.print(" ");
+          }
           mask <<= 1;
         }
+      }
+      // if (sprite_number == 0 || sprite_number == 1)
+      {
+        Serial.println();
       }
     }
     sprite_control += 0x04;
     sprite_pattern += 0x08;
   }
+  // delay(2000);
 }
 
 /*
@@ -516,20 +434,17 @@ void draw_display()
   graphic_tft.fillScreen(bg_color);
 
   // bit 3 == enable grid
-  /*
   if (intel8245_ram[0xA0] & 0x08)
     draw_grid();
-  */
+
   // bit 5 = enable display
   if (intel8245_ram[0xA0] & 0x20)
   {
-    /*
-      show_12chars();
-      show_4quads();
-    */
+    show_12chars();
+    show_4quads();
     show_4sprites();
   }
-  delay(3000);
+  // delay(1000);
 }
 
 /*
@@ -547,7 +462,6 @@ void init_intel8245()
 #endif
 #ifdef DEBUG_TFT
 #endif
-
   for (uint8_t i = 0x00; i < 0xFF; i++)
     intel8245_ram[i] = 0x00;
 }

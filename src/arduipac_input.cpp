@@ -8,13 +8,21 @@
 #include "arduipac_8048.h"
 #include "arduipac_config.h"
 
-#define R1 21
-#define R2 20
-#define R3 19
-#define R4 18
-#define C1 17
-#define C2 16
-#define C3 15
+#define KEYBOARD_R1 21
+#define KEYBOARD_R2 20
+#define KEYBOARD_R3 19
+#define KEYBOARD_R4 18
+#define KEYBOARD_C1 17
+#define KEYBOARD_C2 16
+#define KEYBOARD_C3 15
+
+#define JOYSTICK_R1 5
+#define JOYSTICK_R2 4
+#define JOYSTICK_R3 3
+#define JOYSTICK_R4 2
+#define JOYSTICK_C1 10
+#define JOYSTICK_C2 11
+#define JOYSTICK_C3 12
 
 #undef DEBUG_SERIAL
 #undef DEBUG_KEYPAD
@@ -23,16 +31,27 @@
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
 
-char keys[ROWS][COLS] = {
+char keyboard_keys[ROWS][COLS] = {
     {'1', '2', '3'},
     {'4', '5', '6'},
     {'7', '8', '9'},
     {'*', '0', '#'}};
 
-byte rowPins[ROWS] = {R1, R2, R3, R4};
-byte colPins[COLS] = {C1, C2, C3};
+char joystick_keys[ROWS][COLS] = {
+    {'1', '2', '3'},
+    {'4', '5', '6'},
+    {'7', '8', '9'},
+    {'*', '0', '#'}};
 
-Adafruit_Keypad customKeypad = Adafruit_Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+byte keyboard_rowPins[ROWS] = {KEYBOARD_R1, KEYBOARD_R2, KEYBOARD_R3, KEYBOARD_R4};
+byte keyboard_colPins[COLS] = {KEYBOARD_C1, KEYBOARD_C2, KEYBOARD_C3};
+
+byte joystick_rowPins[ROWS] = {JOYSTICK_R1, JOYSTICK_R2, JOYSTICK_R3, JOYSTICK_R4};
+byte joystick_colPins[COLS] = {JOYSTICK_C1, JOYSTICK_C2, JOYSTICK_C3};
+
+Adafruit_Keypad arduipac_keyboard = Adafruit_Keypad(makeKeymap(keyboard_keys), keyboard_rowPins, keyboard_colPins, ROWS, COLS);
+
+Adafruit_Keypad arduipac_joystick = Adafruit_Keypad(makeKeymap(joystick_keys), joystick_rowPins, joystick_colPins, ROWS, COLS);
 
 void write_p1(uint8_t data)
 {
@@ -85,8 +104,8 @@ read_p2()
     delay(KEYPAD_DELAY);
 #endif
 
-    customKeypad.tick();
-    int nb_evenements = customKeypad.available();
+    arduipac_keyboard.tick();
+    int nb_evenements = arduipac_keyboard.available();
 
 #ifdef DEBUG_KEYPAD
     Serial.print("nb_evenements == ");
@@ -101,7 +120,7 @@ read_p2()
       Serial.println("Lecture d'un événement");
       delay(KEYPAD_DELAY);
 #endif
-      keypadEvent e = customKeypad.read();
+      keypadEvent e = arduipac_keyboard.read();
 #ifdef DEBUG_KEYPAD
       Serial.println("Evénement lu");
       delay(KEYPAD_DELAY);
@@ -204,7 +223,7 @@ read_p2()
 #ifdef DEBUG_KEYPAD
     Serial.println("Retour read_p2() forcé à 0x20");
 #endif
-    //delay(100) ;
+    // delay(100) ;
     return 0x20;
   }
 

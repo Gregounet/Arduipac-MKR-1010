@@ -166,11 +166,16 @@ ext_read(uint8_t addr)
 void ext_write(uint8_t data, uint8_t addr)
 {
 #ifdef DEBUG_SERIAL
-	Serial.print("ext_write()");
-	Serial.print(data);
-	Serial.print(", ");
-	Serial.println(addr, HEX);
-	Serial.println(")");
+	if (addr == 0x3B)
+	{
+		Serial.print("ext_write(");
+		Serial.print(data);
+		Serial.print(", ");
+		Serial.print(addr, HEX);
+		Serial.print(") - p1 == ");
+		Serial.println(p1, HEX);
+		// delay(5000);
+	}
 #endif
 
 	switch (p1 & 0x58)
@@ -178,7 +183,16 @@ void ext_write(uint8_t data, uint8_t addr)
 	case 0x08: // External RAM
 	{
 		if (addr < 0x80)
+		{
 			external_ram[addr] = data;
+			/*
+			if (addr == 0x3B)
+			{
+				Serial.println("########################################");
+				delay(10000);
+			}
+			*/
+		}
 		break;
 	}
 	case 0x10: // VDC RAM
@@ -265,11 +279,13 @@ void ext_write(uint8_t data, uint8_t addr)
 		else if (addr < 0x10 || (addr >= 0x80 && addr < 0xA0)) // Sprites Shapes
 		{
 #ifdef DEBUG_SERIAL
-			Serial.print("Accessing Sprites Shapes [0x");
+#endif
+			Serial.print(bigben);
+			Serial.print("- Accessing Sprites Shapes [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-#endif
+
 			intel8245_ram[addr] = data;
 		}
 		else if (addr >= 0xA0 && addr <= 0xA3) // VDC Video Registers
@@ -311,10 +327,6 @@ void ext_write(uint8_t data, uint8_t addr)
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
 #endif
-			// TODO: retirer ce hack horrible !
-			if (addr == 0xE1 || addr == 0xE7)
-				data = 0x40;
-
 			intel8245_ram[addr] = data;
 		}
 		break;

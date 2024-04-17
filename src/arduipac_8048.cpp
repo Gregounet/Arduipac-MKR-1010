@@ -17,7 +17,7 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-// #define DEBUG_SERIAL
+#undef DEBUG_SERIAL
 
 #define push(d)                    \
 	{                              \
@@ -1317,6 +1317,7 @@ void exec_8048()
 #endif
 #ifdef DEBUG_SERIAL
 		Serial.println();
+		delay(0);
 #endif
 		bigben++;
 		horizontal_clock += op_cycles;

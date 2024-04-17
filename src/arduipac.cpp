@@ -110,7 +110,7 @@ char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
   delay(TFT_DEBUG_DELAY);
 #endif
 
-  customKeypad.begin();
+  arduipac_keyboard.begin();
 
   // collision = NULL;
 
