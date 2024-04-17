@@ -166,7 +166,6 @@ ext_read(uint8_t addr)
 void ext_write(uint8_t data, uint8_t addr)
 {
 #ifdef DEBUG_SERIAL
-#endif
 	if (addr == 0xA0)
 	{
 		Serial.print("ext_write(0x");
@@ -177,7 +176,7 @@ void ext_write(uint8_t data, uint8_t addr)
 		Serial.println(p1, HEX);
 		// delay(5000);
 	}
-
+#endif
 	switch (p1 & 0x58)
 	{
 	case 0x08: // External RAM
@@ -271,13 +270,12 @@ void ext_write(uint8_t data, uint8_t addr)
 		else if (addr < 0x10 || (addr >= 0x80 && addr < 0xA0)) // Sprites Shapes
 		{
 #ifdef DEBUG_SERIAL
-#endif
 			Serial.print(bigben);
 			Serial.print("- Accessing Sprites Shapes [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-
+#endif
 			intel8245_ram[addr] = data;
 		}
 		else if (addr >= 0xA0 && addr <= 0xA3) // VDC Video Registers

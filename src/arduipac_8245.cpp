@@ -28,12 +28,12 @@
 #define COLLISION_CHAR 0x80
 
 #undef DEBUG_STDERR
-#define DEBUG_SERIAL
+#undef DEBUG_SERIAL
 #undef DEBUG_TFT
 
-#define DEBUG_CHARS
-#define DEBUG_GRID
-#define DEBUG_SPRITES
+#undef DEBUG_CHARS
+#undef DEBUG_GRID
+#undef DEBUG_SPRITES
 
 #undef DEBUG_DETAIL
 
@@ -429,9 +429,6 @@ void draw_display()
     bg_color = LIGHT_COLORS(bg_color_index);
   else
     bg_color = DARK_COLORS(bg_color_index);
-
-  Serial.print("bg_color_index == ");
-  Serial.println(bg_color_index);
 
   graphic_tft.fillScreen(bg_color);
 
