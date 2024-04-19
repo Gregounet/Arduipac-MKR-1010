@@ -17,7 +17,7 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-#define DEBUG_SERIAL
+#undef DEBUG_SERIAL
 
 #define push(d)                    \
 	{                              \

@@ -160,7 +160,6 @@ ext_read(uint8_t addr)
 #ifdef DEBUG_STDERR
 #endif
 #ifdef DEBUG_SERIAL
-#endif
 		if (addr >= 0x3A && addr <= 0x3B)
 		{
 			Serial.print(bigben);
@@ -169,6 +168,7 @@ ext_read(uint8_t addr)
 			Serial.print("] -> 0x");
 			Serial.println(external_ram[addr], HEX);
 		}
+#endif
 #ifdef DEBUG_TFT
 #endif
 		return external_ram[addr];
@@ -203,7 +203,6 @@ void ext_write(uint8_t data, uint8_t addr)
 		if (addr < 0x80)
 		{
 #ifdef DEBUG_SERIAL
-#endif
 			if (addr >= 0x3A && addr <= 0x3B)
 			{
 				Serial.print(bigben);
@@ -211,8 +210,8 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.print(addr, HEX);
 				Serial.print("] <- 0x");
 				Serial.print(data, HEX);
-				Serial.println("   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 			}
+#endif
 			external_ram[addr] = data;
 		}
 		break;
