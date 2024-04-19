@@ -17,8 +17,8 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-#define DEBUG_SERIAL
-#define DEBUG_DELAY 5
+// #define DEBUG_SERIAL
+#define DEBUG_DELAY 0
 
 #define push(d)                    \
 	{                              \
@@ -209,6 +209,13 @@ void exec_8048()
 				intel8048_ram[reg_pnt + 7], acc, pc,
 				(pc < 0x400) ? "bios" : "cart", op, lookup[op].mnemonic);
 #endif
+		Serial.print("Big Ben: ");
+		Serial.println(bigben);
+		Serial.print(" PC: 0x");
+		Serial.print(pc, HEX);
+		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
+		Serial.print(" Op: 0x");
+		Serial.println(op, HEX);
 #ifdef DEBUG_SERIAL
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
@@ -541,23 +548,9 @@ void exec_8048()
 		case 0xA4: /* JMP */
 		case 0xC4: /* JMP */
 		case 0xE4: /* JMP */
-#ifdef DEBUG_SERIAL
-			Serial.println();
-			Serial.print("ROM[PC] == 0x");
-			Serial.println(ROM(pc), HEX);
-			Serial.print("Avant: PC == 0x");
-			Serial.println(pc, HEX);
-#endif
 			pc = ROM(pc) | a11;
-#ifdef DEBUG_SERIAL
-			Serial.print("Après: PC == 0x");
-			Serial.println(pc, HEX);
-#endif
 			pc |= ((uint16_t)(op & 0xE0)) << 3;
-#ifdef DEBUG_SERIAL
-			Serial.print("Finalement: PC == 0x");
-			Serial.println(pc, HEX);
-#endif
+			op_cycles = 2;
 #ifdef DEBUG_STDERR
 			fprintf(stderr, " 0x%03X", pc);
 #endif
@@ -568,7 +561,6 @@ void exec_8048()
 			text_print_hex(pc);
 			delay(TFT_DEBUG_DELAY);
 #endif
-			op_cycles = 2;
 			break;
 		case 0x05: /* EN I */
 			xirq_enabled = 1;
@@ -1360,23 +1352,26 @@ void exec_8048()
 #ifdef DEBUG_SERIAL
 		Serial.println();
 		delay(DEBUG_DELAY);
-		if (bigben > 36900 && bigben < 37000)
+		if (bigben > 3035)
+			delay(2000);
+		if (bigben > 3040)
+			delay(10000);
 
-		// Serial.print("bigben == ");
-		// Serial.println(bigben);
-		/*
-		Serial.print("horizontal_clock == ");
-		Serial.println(horizontal_clock);
-		Serial.print("vertical_clock == ");
-		Serial.println(vertical_clock);
-		Serial.print("machine_state == ");
-		Serial.println(machine_state);
-		*/
+			// Serial.print("bigben == ");
+			// Serial.println(bigben);
+			/*
+			Serial.print("horizontal_clock == ");
+			Serial.println(horizontal_clock);
+			Serial.print("vertical_clock == ");
+			Serial.println(vertical_clock);
+			Serial.print("machine_state == ");
+			Serial.println(machine_state);
+			*/
 #endif
 #undef DEBUG_SERIAL
 
 #ifdef DEBUG_TFT
-			text_tft.setCursor(0, 104);
+		text_tft.setCursor(0, 104);
 		text_print_string("bigben ");
 		text_print_dec(bigben);
 		text_print_string(" h_clock ");

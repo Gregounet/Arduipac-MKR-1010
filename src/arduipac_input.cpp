@@ -7,9 +7,10 @@
 #include "arduipac_8048.h"
 #include "arduipac_config.h"
 
-#undef DEBUG_SERIAL
-#undef DEBUG_KEYBOARD
-#define DEBUG_JOYSTICK
+// #undef DEBUG_SERIAL
+// #undef DEBUG_KEYBOARD
+#define DEBUG_KEYBOARD
+// #define DEBUG_JOYSTICK
 
 // TODO: déplacer dans arduipac.c ou bien arduipac_8048.c ou encore arduipac_vmachine.C ce code
 // Il n'est pas spécifique aux inputs puisqu'il gère aussi la sélection de la banque de ROMS
@@ -31,21 +32,26 @@ void write_p1(uint8_t data)
 #endif
 
   p1 = data;
-  rom_bank_select = (p1 & 0x01) ? 0x0000 : 0x1000;
+  rom_bank_select = (p1 & 0x01) ? 0x1000 : 0x0000;
+
+#ifdef DEBUG_SERIAL
+  Serial.print("rom_bank_select == 0x");
+  Serial.println(rom_bank_select, HEX);
+#endif
 }
 
 uint8_t
 read_p2() // 4x3 Keypad used as a keyboard
 {
   uint8_t scan_input;
-  uint8_t scan_output;
+  uint8_t scan_output = 0x01; // Aucune touche pressée
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_KEYBOARD)
   fprintf(stderr, "read_p2()\n");
 #endif
-#if defined(DEBUG_SERIAL) && defined(DEBUG_KEYBOARD)
+#if defined(DEBUG_SERIAL) || defined(DEBUG_KEYBOARD)
   Serial.print(bigben);
-  Serial.print(" - read_p2() - valeur P2 == ");
+  Serial.print(" - read_p2() - valeur P2 == 0x");
   Serial.println(p2, HEX);
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_KEYBOARD)
@@ -57,7 +63,11 @@ read_p2() // 4x3 Keypad used as a keyboard
   // Lecture du clavier
   {
     scan_input = (p2 & 0x07);
-    scan_output = 0x01; // Aucune touche pressée
+
+#if defined(DEBUG_SERIAL) || defined(DEBUG_KEYBOARD)
+    Serial.print("scan_input == ");
+    Serial.println(scan_input);
+#endif
 
     uint8_t keyboard[12];
 
@@ -85,7 +95,7 @@ read_p2() // 4x3 Keypad used as a keyboard
     digitalWrite(KEYBOARD_C3, HIGH);
     keyboard[2] = (uint8_t)digitalRead(KEYBOARD_R1);
     keyboard[5] = (uint8_t)digitalRead(KEYBOARD_R2);
-    keyboard[8 ] = (uint8_t)digitalRead(KEYBOARD_R3);
+    keyboard[8] = (uint8_t)digitalRead(KEYBOARD_R3);
     keyboard[11] = (uint8_t)digitalRead(KEYBOARD_R4);
     digitalWrite(KEYBOARD_C3, LOW);
 
@@ -130,7 +140,9 @@ read_p2() // 4x3 Keypad used as a keyboard
 #if defined(DEBUG_STDERR) && defined(DEBUG_KEYBOARD)
   fprintf(stderr, "Retour read_p2() == 0x%02X\n", p2);
 #endif
-#if defined(DEBUG_SERIAL) && defined(DEBUG_KEYBOARD)
+#if defined(DEBUG_SERIAL) || defined(DEBUG_KEYBOARD)
+  Serial.print("scan_output == ");
+  Serial.println(scan_output);
   Serial.print("Retour read_p2() == 0x");
   Serial.println(p2, HEX);
 #endif
@@ -152,7 +164,7 @@ in_bus() // 4x3 Keypad used as a joystick
 #if defined(DEBUG_STDERR) && defined(DEBUG_JOYSTICK)
   fprintf(stderr, "in_bus()\n");
 #endif
-#if defined(DEBUG_SERIAL) || defined(DEBUG_JOYSTICK)
+#if defined(DEBUG_SERIAL) && defined(DEBUG_JOYSTICK)
   Serial.print(bigben);
   Serial.print(" - in_bus() - P1 == 0x");
   Serial.print(p1, HEX);

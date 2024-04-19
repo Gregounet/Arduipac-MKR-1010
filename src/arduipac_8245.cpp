@@ -28,7 +28,7 @@
 #define COLLISION_CHAR 0x80
 
 #undef DEBUG_STDERR
-#undef DEBUG_SERIAL
+// #undef DEBUG_SERIAL
 #undef DEBUG_TFT
 
 #undef DEBUG_CHARS
@@ -261,12 +261,14 @@ void show_12chars()
 #if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-  Serial.println("show_12chars()");
+  Serial.print(bigben);
+  Serial.println(" - show_12chars()");
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
 #endif
   for (uint8_t i = 0; i < 12; i++)
     show_1char(intel8245_ram[0x10 + i * 4 + 1], intel8245_ram[0x10 + i * 4], intel8245_ram[0x10 + i * 4 + 2], intel8245_ram[0x10 + i * 4 + 3]);
+  delay(5000);
 }
 
 /*
@@ -335,12 +337,12 @@ void show_4sprites()
     {
       sprite_data = intel8245_ram[sprite_pattern + sprite_row];
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
-        /*
-        Serial.print("show_4sprites() - affichage de la ligne ");
-        Serial.print(sprite_row);
-        Serial.print(" - data : 0x");
-        Serial.println(sprite_data, HEX);
-        */
+      /*
+      Serial.print("show_4sprites() - affichage de la ligne ");
+      Serial.print(sprite_row);
+      Serial.print(" - data : 0x");
+      Serial.println(sprite_data, HEX);
+      */
 #endif
 
       uint8_t mask = 0x01;
