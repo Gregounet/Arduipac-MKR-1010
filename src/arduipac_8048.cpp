@@ -17,8 +17,8 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-// #define DEBUG_SERIAL
-#define DEBUG_DELAY 0
+#define DEBUG_SERIAL
+#define DEBUG_DELAY 2000
 
 #define push(d)                    \
 	{                              \
@@ -212,14 +212,14 @@ void exec_8048()
 #ifdef DEBUG_SERIAL
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
-		// Serial.print("BS: ");
-		// Serial.print(bs >> 4);
-		// Serial.print(" SP: ");
-		// Serial.print(sp, HEX);
-		// Serial.print(" REGPNT: ");
-		// Serial.print(reg_pnt, HEX);
-		// Serial.print(" Cy: ");
-		// Serial.println(cy);
+		Serial.print("BS: ");
+		Serial.print(bs >> 4);
+		Serial.print(" SP: ");
+		Serial.print(sp, HEX);
+		Serial.print(" REGPNT: ");
+		Serial.print(reg_pnt, HEX);
+		Serial.print(" Cy: ");
+		Serial.println(cy);
 		Serial.print("R0: ");
 		Serial.print(intel8048_ram[reg_pnt], HEX);
 		Serial.print(" R1: ");
