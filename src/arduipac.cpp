@@ -56,13 +56,9 @@ void graphic_drawtext(char *text)
   graphic_tft.print(text);
 }
 
-#define ARDUIPAC_VERSION "Long way to the top"
 void setup()
 {
-char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
-
   Serial.begin(38400);
-  delay(100);
 
 #ifdef DEBUG_TFT
   text_tft.initR(INITR_BLACKTAB);
@@ -80,8 +76,6 @@ char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
   graphic_tft.setRotation(1);
   graphic_tft.setTextColor(ST77XX_WHITE);
   // delay(TFT_DEBUG_DELAY);
-
-  // delay(2000) ;
   
 #ifdef DEBUG_STDERR
   fprintf(stderr, "%s\n", welcome_string);

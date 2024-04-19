@@ -18,7 +18,7 @@
 #include "arduipac_config.h"
 
 #define DEBUG_SERIAL
-#define DEBUG_DELAY 2000
+#define DEBUG_DELAY 0
 
 #define push(d)                    \
 	{                              \
@@ -87,7 +87,9 @@ void init_intel8048()
 	rom_bank_select = 0x0000;
 
 	sp = 0x08;
-	p1 = 0xFF;
+	// p1 = 0xFF; Ca a fonctionné un moment comme ça pourtant ! TOTO: comprendre comment ça a pu fonctionner !
+	p1 = 00;
+
 	p2 = 0xFF;
 	reg_pnt = 0x00;
 	bs = 0x00;
@@ -184,7 +186,7 @@ void exec_8048()
 	fprintf(stderr, "Entering exec_8048()\n");
 #endif
 #ifdef DEBUG_SERIAL
-	delay(5000);
+	//delay(1000);
 	Serial.println("Entering exec_8048()");
 #endif
 #ifdef DEBUG_TFT
@@ -210,6 +212,7 @@ void exec_8048()
 				(pc < 0x400) ? "bios" : "cart", op, lookup[op].mnemonic);
 #endif
 #ifdef DEBUG_SERIAL
+		Serial.println();
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
 		Serial.print("BS: ");
@@ -953,12 +956,8 @@ void exec_8048()
 #ifdef DEBUG_STDERR
 			fprintf(stderr, " 0x%02X", ROM(pc));
 #endif
-#ifdef DEBUG_SERIAL
-			Serial.print(ROM(pc), HEX);
-#endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (op == 0x89)
 				write_p1(p1 | ROM(pc++));
@@ -1343,23 +1342,17 @@ void exec_8048()
 		fprintf(stderr, "machine_state == %d\n");
 #endif
 #ifdef DEBUG_SERIAL
-		Serial.println();
 		delay(DEBUG_DELAY);
-		if (bigben > 3035)
-			delay(2000);
-		if (bigben > 3040)
-			delay(10000);
-
-			// Serial.print("bigben == ");
-			// Serial.println(bigben);
-			/*
-			Serial.print("horizontal_clock == ");
-			Serial.println(horizontal_clock);
-			Serial.print("vertical_clock == ");
-			Serial.println(vertical_clock);
-			Serial.print("machine_state == ");
-			Serial.println(machine_state);
-			*/
+		// Serial.print("bigben == ");
+		// Serial.println(bigben);
+		/*
+		Serial.print("horizontal_clock == ");
+		Serial.println(horizontal_clock);
+		Serial.print("vertical_clock == ");
+		Serial.println(vertical_clock);
+		Serial.print("machine_state == ");
+		Serial.println(machine_state);
+		*/
 #endif
 #undef DEBUG_SERIAL
 

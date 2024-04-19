@@ -268,7 +268,7 @@ void show_12chars()
 #endif
   for (uint8_t i = 0; i < 12; i++)
     show_1char(intel8245_ram[0x10 + i * 4 + 1], intel8245_ram[0x10 + i * 4], intel8245_ram[0x10 + i * 4 + 2], intel8245_ram[0x10 + i * 4 + 3]);
-  delay(5000);
+  //delay(5000);
 }
 
 /*
