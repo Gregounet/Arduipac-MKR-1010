@@ -17,7 +17,8 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-#undef DEBUG_SERIAL
+#define DEBUG_SERIAL
+#define DEBUG_DELAY 5
 
 #define push(d)                    \
 	{                              \
@@ -68,6 +69,8 @@ uint16_t pc; // Program Counter (12 bits = 0x0FFF)
 uint16_t a11;		 // Address 11th bit (control which 2kB ROM bank is in use) (values 0x000 / 0x800)
 uint16_t a11_backup; // Backup for Address 11th bit                             (values 0x000 / 0x800)
 
+uint16_t rom_bank_select;
+
 uint8_t op_cycles;
 uint8_t interrupt_clock;
 
@@ -80,6 +83,8 @@ void init_intel8048()
 	pc = 0x000;
 	a11 = 0x000;
 	a11_backup = 0x000;
+
+	rom_bank_select = 0x0000;
 
 	sp = 0x08;
 	p1 = 0xFF;
@@ -170,15 +175,16 @@ void timer_irq()
 
 void exec_8048()
 {
-	uint8_t acc;   // Accumulator
-	uint8_t op;	   // Op-code
-	uint8_t data;  // Data
-	uint16_t addr; // Address
-	uint16_t temp; // Temporary value
+	uint8_t acc = 0; // Accumulator
+	uint8_t op;		 // Op-code
+	uint8_t data;	 // Data
+	uint16_t addr;	 // Address
+	uint16_t temp;	 // Temporary value
 #ifdef DEBUG_STDERR
 	fprintf(stderr, "Entering exec_8048()\n");
 #endif
 #ifdef DEBUG_SERIAL
+	delay(5000);
 	Serial.println("Entering exec_8048()");
 #endif
 #ifdef DEBUG_TFT
@@ -231,13 +237,19 @@ void exec_8048()
 		Serial.print(" R7: ");
 		Serial.print(intel8048_ram[reg_pnt + 7], HEX);
 		Serial.print(" P1: ");
-		Serial.println(p1, HEX);
+		Serial.print(p1, HEX);
+		Serial.print(" P2: ");
+		Serial.print(p2, HEX);
+		Serial.print(" A11: ");
+		Serial.print(a11, HEX);
+		Serial.print(" rom_bank_select : ");
+		Serial.println(rom_bank_select, HEX);
 		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
-		Serial.print(" PC: ");
+		Serial.print(" PC: 0x");
 		Serial.print(pc, HEX);
 		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
-		Serial.print(" Op: ");
+		Serial.print(" Op: 0x");
 		Serial.println(op, HEX);
 		Serial.print(lookup[op].mnemonic);
 		Serial.print(" ");
@@ -529,8 +541,23 @@ void exec_8048()
 		case 0xA4: /* JMP */
 		case 0xC4: /* JMP */
 		case 0xE4: /* JMP */
+#ifdef DEBUG_SERIAL
+			Serial.println();
+			Serial.print("ROM[PC] == 0x");
+			Serial.println(ROM(pc), HEX);
+			Serial.print("Avant: PC == 0x");
+			Serial.println(pc, HEX);
+#endif
 			pc = ROM(pc) | a11;
+#ifdef DEBUG_SERIAL
+			Serial.print("Après: PC == 0x");
+			Serial.println(pc, HEX);
+#endif
 			pc |= ((uint16_t)(op & 0xE0)) << 3;
+#ifdef DEBUG_SERIAL
+			Serial.print("Finalement: PC == 0x");
+			Serial.println(pc, HEX);
+#endif
 #ifdef DEBUG_STDERR
 			fprintf(stderr, " 0x%03X", pc);
 #endif
@@ -1332,23 +1359,24 @@ void exec_8048()
 #endif
 #ifdef DEBUG_SERIAL
 		Serial.println();
+		delay(DEBUG_DELAY);
 		if (bigben > 36900 && bigben < 37000)
-			delay(1000);
-			// Serial.print("bigben == ");
-			// Serial.println(bigben);
-			/*
-			Serial.print("horizontal_clock == ");
-			Serial.println(horizontal_clock);
-			Serial.print("vertical_clock == ");
-			Serial.println(vertical_clock);
-			Serial.print("machine_state == ");
-			Serial.println(machine_state);
-			*/
+
+		// Serial.print("bigben == ");
+		// Serial.println(bigben);
+		/*
+		Serial.print("horizontal_clock == ");
+		Serial.println(horizontal_clock);
+		Serial.print("vertical_clock == ");
+		Serial.println(vertical_clock);
+		Serial.print("machine_state == ");
+		Serial.println(machine_state);
+		*/
 #endif
 #undef DEBUG_SERIAL
 
 #ifdef DEBUG_TFT
-		text_tft.setCursor(0, 104);
+			text_tft.setCursor(0, 104);
 		text_print_string("bigben ");
 		text_print_dec(bigben);
 		text_print_string(" h_clock ");

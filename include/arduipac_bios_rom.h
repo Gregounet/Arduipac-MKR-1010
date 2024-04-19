@@ -3,10 +3,13 @@
 
 #include <avr/pgmspace.h>
 
-extern const PROGMEM uint8_t rom[4096];
+// extern const PROGMEM uint8_t rom[8192];
+extern uint8_t rom[8192];
 
-//#define ROM(addr) (rom[(addr) & 0xFFF])
+// #define ROM(addr) (rom[(addr) & 0xFFF])
 
-#define ROM(addr) (pgm_read_byte_near (rom + (addr & 0xFFF)))
+// #define ROM(addr) (pgm_read_byte_near (rom + (addr & 0xFFF)))
+// #define ROM(addr) (pgm_read_byte_near (rom + (rom_bank_select & 0x1FFF) + (addr & 0x0FFF)))
+#define ROM(addr) (rom[(rom_bank_select & 0x1FFF) + (addr & 0x0FFF)])
 
 #endif /* (ARDUIPAC_ROM_BIOS_H) */

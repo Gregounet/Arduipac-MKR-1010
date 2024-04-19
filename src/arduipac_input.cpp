@@ -11,6 +11,9 @@
 #undef DEBUG_KEYBOARD
 #define DEBUG_JOYSTICK
 
+// TODO: déplacer dans arduipac.c ou bien arduipac_8048.c ou encore arduipac_vmachine.C ce code
+// Il n'est pas spécifique aux inputs puisqu'il gère aussi la sélection de la banque de ROMS
+//
 void write_p1(uint8_t data)
 {
 #ifdef DEBUG_STDERR
@@ -28,6 +31,7 @@ void write_p1(uint8_t data)
 #endif
 
   p1 = data;
+  rom_bank_select = (p1 & 0x01) ? 0x0000 : 0x1000;
 }
 
 uint8_t

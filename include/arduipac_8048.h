@@ -6,6 +6,8 @@ extern uint8_t horizontal_clock;
 extern uint8_t p1;
 extern uint8_t p2;
 
+extern uint16_t rom_bank_select;
+
 extern uint32_t bigben;
 
 void ext_irq (void);
