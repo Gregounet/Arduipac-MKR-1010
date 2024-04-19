@@ -209,13 +209,6 @@ void exec_8048()
 				intel8048_ram[reg_pnt + 7], acc, pc,
 				(pc < 0x400) ? "bios" : "cart", op, lookup[op].mnemonic);
 #endif
-		Serial.print("Big Ben: ");
-		Serial.println(bigben);
-		Serial.print(" PC: 0x");
-		Serial.print(pc, HEX);
-		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
-		Serial.print(" Op: 0x");
-		Serial.println(op, HEX);
 #ifdef DEBUG_SERIAL
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
