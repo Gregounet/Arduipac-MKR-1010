@@ -110,7 +110,23 @@ char welcome_string[] = "Arduipac MKR Wifi 1010 " ARDUIPAC_VERSION;
   delay(TFT_DEBUG_DELAY);
 #endif
 
-  arduipac_keyboard.begin();
+pinMode(KEYBOARD_R1, INPUT_PULLDOWN);
+pinMode(KEYBOARD_R2, INPUT_PULLDOWN);
+pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
+pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
+
+pinMode(KEYBOARD_C1, OUTPUT);
+pinMode(KEYBOARD_C2, OUTPUT);
+pinMode(KEYBOARD_C3, OUTPUT);
+
+pinMode(JOYSTICK_R1, INPUT_PULLDOWN);
+pinMode(JOYSTICK_R2, INPUT_PULLDOWN);
+pinMode(JOYSTICK_R3, INPUT_PULLDOWN);
+pinMode(JOYSTICK_R4, INPUT_PULLDOWN);
+
+pinMode(JOYSTICK_C1, OUTPUT);
+pinMode(JOYSTICK_C2, OUTPUT);
+pinMode(JOYSTICK_C3, OUTPUT);
 
   // collision = NULL;
 

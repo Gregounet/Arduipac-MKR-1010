@@ -335,32 +335,22 @@ void show_4sprites()
     {
       sprite_data = intel8245_ram[sprite_pattern + sprite_row];
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
-#endif
-      if (sprite_number == 0 || sprite_number == 1)
-      {
         /*
         Serial.print("show_4sprites() - affichage de la ligne ");
         Serial.print(sprite_row);
         Serial.print(" - data : 0x");
         Serial.println(sprite_data, HEX);
         */
-      }
+#endif
 
       uint8_t mask = 0x01;
 
       for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
       {
-        // if (sprite_number == 0 || sprite_number == 1)
         {
           if (sprite_data & mask)
           {
-            graphic_tft.fillRect(20 + sprite_x + sprite_column * 2, sprite_y + sprite_row * 2, 2, 2, ST77XX_BLACK);
-            // Serial.print("I");
-          }
-          else
-          {
-            graphic_tft.fillRect(20 + sprite_x + sprite_column * 2, sprite_y + sprite_row * 2, 2, 2, ST77XX_WHITE);
-            // Serial.print(" ");
+            graphic_tft.fillRect(20 + sprite_x + sprite_column * 2, sprite_y + sprite_row * 2, 2, 2, sprite_color);
           }
           mask <<= 1;
         }
@@ -369,7 +359,6 @@ void show_4sprites()
     sprite_control += 0x04;
     sprite_pattern += 0x08;
   }
-  // delay(2000);
 }
 
 /*
