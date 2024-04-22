@@ -183,11 +183,13 @@ void exec_8048()
 	uint8_t data;	 // Data
 	uint16_t addr;	 // Address
 	uint16_t temp;	 // Temporary value
+
+delay(1000);
 #ifdef DEBUG_STDERR
 	fprintf(stderr, "Entering exec_8048()\n");
 #endif
 #ifdef DEBUG_SERIAL
-	//delay(1000);
+	delay(1000);
 	Serial.println("Entering exec_8048()");
 #endif
 #ifdef DEBUG_TFT
@@ -197,6 +199,7 @@ void exec_8048()
 
 	for (;;)
 	{
+		//delay(100);
 		op_cycles = 1;
 
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)

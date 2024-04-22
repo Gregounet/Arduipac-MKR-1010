@@ -1,0 +1,70 @@
+alien
+krazy
+munch
+flipp
+prend
+satel
+skisk
+speed
+stone
+ufouf
+peter
+
+rom_alien
+rom_krazy
+rom_munch
+rom_flipp
+rom_prend
+rom_satel
+rom_skisk
+rom_speed
+rom_stone
+rom_ufouf
+rom_peter
+
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+
+#if defined(ROM_ALIEN)
+#endif
+
+#if defined(ROM_KRAZY)
+#endif
+
+#if defined(ROM_MUNCH)
+#endif
+
+#if defined(ROM_FLIPP)
+#endif
+
+#if defined(ROM_PREND)
+#endif
+
+#if defined(ROM_SATEL)
+#endif
+
+#if defined(ROM_SKISK)
+#endif
+
+#if defined(ROM_SPEED)
+#endif
+
+#if defined(ROM_STONE)
+#endif
+
+#if defined(ROM_UFOUF)
+#endif
+
+#if defined(ROM_PETER)
+#endif
+
+
