@@ -17,7 +17,7 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-#define DEBUG_SERIAL
+// #define DEBUG_SERIAL
 #define DEBUG_DELAY 0
 uint16_t debug_delay = DEBUG_DELAY;
 
