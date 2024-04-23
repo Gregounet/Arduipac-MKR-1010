@@ -7,8 +7,6 @@
 extern uint8_t collision_table[];
 extern uint8_t intel8245_ram[];
 
-extern int control_delay ;
-
 void init_intel8245 ();
 void draw_display ();
 

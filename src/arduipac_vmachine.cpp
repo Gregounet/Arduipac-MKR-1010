@@ -190,30 +190,13 @@ void ext_write(uint8_t data, uint8_t addr)
 	case 0x08: // External RAM
 	{
 #ifdef DEBUG_SERIAL
-		if (bigben > 1000)
-		{
-			Serial.println();
-			Serial.print(bigben);
-			Serial.print(" - ext_write() - external_ram[0x");
-			Serial.print(addr, HEX);
-			Serial.print("] <- 0x");
-			Serial.println(data, HEX);
-			control_delay = 1000;
-		}
+		Serial.println();
+		Serial.print(bigben);
+		Serial.print(" - ext_write() - external_ram[0x");
+		Serial.print(addr, HEX);
+		Serial.print("] <- 0x");
+		Serial.println(data, HEX);
 #endif
-		if (addr >= 0x2E && addr <= 0x3B && data != 0x00)
-		{
-			Serial.println();
-			Serial.print(bigben);
-			Serial.print(" - PC : Ox");
-			Serial.print(pc,HEX);
-			Serial.print(" - ext_write() - external_ram[0x");
-			Serial.print(addr, HEX);
-			Serial.print("] <- 0x");
-			Serial.println(data, HEX);
-			control_delay = 1000;
-			//delay(5000);
-		}
 		external_ram[addr] = data;
 		break;
 	}

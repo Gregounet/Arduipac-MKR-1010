@@ -68,14 +68,11 @@ void setup()
   text_tft.setTextColor(ST77XX_GREEN);
 #endif
 
-  // delay(TFT_DEBUG_DELAY);
-
   graphic_tft.init(240, 320);
   graphic_tft.fillScreen(ST77XX_BLACK);
   graphic_tft.setSPISpeed(100000000);
   graphic_tft.setRotation(1);
   graphic_tft.setTextColor(ST77XX_WHITE);
-  // delay(TFT_DEBUG_DELAY);
   
 #ifdef DEBUG_STDERR
   fprintf(stderr, "%s\n", welcome_string);
@@ -86,10 +83,6 @@ void setup()
 
 #undef DEBUG_TFT
 #ifdef DEBUG_TFT
-  text_print_string(welcome_string);
-  delay(TFT_DEBUG_DELAY);
-  graphic_drawtext(welcome_string);
-  delay(TFT_DEBUG_DELAY);
 #endif
 #undef DEBUG_TFT
 

@@ -17,9 +17,6 @@ extern uint8_t horizontal_clock;
 
 extern uint8_t machine_state;
 
-// TODO remove later
-extern uint8_t external_ram[];
-
 /*
  * Relatif aux ports I/O du 8048
  */

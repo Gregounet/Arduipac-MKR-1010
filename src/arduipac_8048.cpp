@@ -17,8 +17,8 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-#define DEBUG_SERIAL
-#define DEBUG_DELAY 0
+// #undef DEBUG_SERIAL
+// #define DEBUG_DELAY 0
 
 #define push(d)                    \
 	{                              \
@@ -87,8 +87,7 @@ void init_intel8048()
 	rom_bank_select = 0x1000; // TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
 
 	sp = 0x08;
-	p1 = 0xFF; // Ca a fonctionné un moment comme ça pourtant ! TOTO: comprendre comment ça a pu fonctionner !
-	// p1 = 00;
+	p1 = 0xFF;
 
 	p2 = 0xFF;
 	reg_pnt = 0x00;
@@ -174,10 +173,6 @@ void timer_irq()
 		op_cycles = 2;
 	}
 }
-int interest_page = 0;
-int old_interest_page = 0;
-int control_delay = 0;
-int old_control_delay = 0;
 
 void exec_8048()
 {
@@ -198,80 +193,9 @@ void exec_8048()
 	delay(TFT_DEBUG_DELAY);
 #endif
 
-	int incomingByte;
-
 	for (;;)
 	{
-		if ((pc >= 0x900) && (pc <= 0x92E))
-		{
-			// interest_page = 1;
-			// control_delay = 1000;
-			//delay(1000);
-
-			int spr_data = 0x3B;
-			for (int i = 0; i < 14; i++)
-
-			{
-				uint8_t bmp_byte = external_ram[spr_data];
-				uint8_t mask = 0x80;
-				for (int sprite_column = 0; sprite_column < 8; sprite_column++)
-				{
-					if (bmp_byte & mask)
-						graphic_tft.fillRect(sprite_column*4, i* 4, 3, 3, ST77XX_WHITE);
-					mask >>= 1;
-				}
-				spr_data--;
-			}
-
-			// if (old_control_delay != control_delay) old_control_delay = control_delay;
-		}
-		else
-		{
-			interest_page = 0;
-			control_delay = old_control_delay;
-		}
-		if (old_interest_page != interest_page)
-		{
-			delay(1000);
-			old_interest_page = interest_page;
-		}
-
-		if (Serial.available() > 0)
-		{
-			// read the incoming byte:
-			incomingByte = Serial.read();
-			switch (incomingByte)
-			{
-			case '+':
-				control_delay -= 20;
-				control_delay = (control_delay < 0) ? 0 : control_delay;
-				break;
-			case '-':
-				control_delay += 200;
-				break;
-			case 'N':
-			case 'n':
-				control_delay = 10;
-				break;
-			case 'S':
-			case 's':
-				control_delay += 500;
-				break;
-			case 'F':
-			case 'f':
-				control_delay = 0;
-				break;
-			case 'P':
-			case 'p':
-				while (!Serial.available())
-					;
-				break;
-			}
-		}
-		delay(control_delay);
-
 		op_cycles = 1;
-
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
 		op = ROM(pc);
 #endif
@@ -289,8 +213,6 @@ void exec_8048()
 		Serial.println();
 		Serial.print("Big Ben: ");
 		Serial.print(bigben);
-		Serial.print(" - control_delay: ");
-		Serial.println(control_delay);
 		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
 		Serial.print(" BS: ");
@@ -1178,7 +1100,7 @@ void exec_8048()
 			text_print_hex(ROM(pc));
 			delay(TFT_DEBUG_DELAY);
 #endif
-//			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
+			//			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB0)]] = ROM(pc++);
 			op_cycles = 2;
 			break;
@@ -1424,16 +1346,12 @@ void exec_8048()
 #endif
 #ifdef DEBUG_SERIAL
 		delay(DEBUG_DELAY);
-		// Serial.print("bigben == ");
-		// Serial.println(bigben);
-		/*
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");
 		Serial.println(vertical_clock);
 		Serial.print("machine_state == ");
 		Serial.println(machine_state);
-		*/
 #endif
 #undef DEBUG_SERIAL
 
@@ -1450,8 +1368,6 @@ void exec_8048()
 		text_print_dec(machine_state);
 		delay(TFT_DEBUG_DELAY);
 #endif
-#undef DEBUG_TFT
-
 		if (interrupt_clock >= op_cycles)
 			interrupt_clock -= op_cycles;
 		else

@@ -27,15 +27,15 @@
 #define COLLISION_HGRID 0x20
 #define COLLISION_CHAR 0x80
 
-#undef DEBUG_STDERR
+// #undef DEBUG_STDERR
 // #undef DEBUG_SERIAL
-#undef DEBUG_TFT
+// #undef DEBUG_TFT
 
-#undef DEBUG_CHARS
-#undef DEBUG_GRID
-#undef DEBUG_SPRITES
+// #undef DEBUG_CHARS
+// #undef DEBUG_GRID
+// #undef DEBUG_SPRITES
 
-#undef DEBUG_DETAIL
+// #undef DEBUG_DETAIL
 
 uint8_t intel8245_ram[256];
 uint8_t collision_table[256]; // TODO Va falloir trouver un moyen de remplacer ce tableau ENORME
@@ -336,12 +336,10 @@ void show_4sprites()
     {
       sprite_data = intel8245_ram[sprite_pattern + sprite_row];
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
-      /*
       Serial.print("show_4sprites() - affichage de la ligne ");
       Serial.print(sprite_row);
       Serial.print(" - data : 0x");
       Serial.println(sprite_data, HEX);
-      */
 #endif
 
       uint8_t mask = 0x01;
@@ -359,38 +357,6 @@ void show_4sprites()
     }
     sprite_control += 0x04;
     sprite_pattern += 0x08;
-  }
-}
-
-void show_bigsprite()
-{
-  uint8_t sprite_data;
-
-  uint8_t sprite_pattern = 0x88;
-
-  for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
-  {
-    sprite_data = intel8245_ram[sprite_pattern + sprite_row];
-    uint8_t mask = 0x01;
-    for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
-    {
-      if (sprite_data & mask)
-        graphic_tft.fillRect(sprite_column * 10, sprite_row * 10, 10, 10, ST77XX_WHITE);
-      mask <<= 1;
-    }
-  }
-
-  sprite_pattern = 0x80;
-  for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
-  {
-    sprite_data = intel8245_ram[sprite_pattern + sprite_row];
-    uint8_t mask = 0x01;
-    for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
-      {
-        if (sprite_data & mask)
-        graphic_tft.fillRect(100 + sprite_column * 10, sprite_row * 10, 10, 10, ST77XX_GREEN);
-        mask <<= 1;
-      }
   }
 }
 
@@ -457,10 +423,9 @@ void draw_display()
   if (intel8245_ram[0xA0] & 0x20)
   {
     show_12chars();
-    // show_4quads();
-    // show_4sprites();
-    // show_bigsprite();
-  }
+    show_4quads();
+    show_4sprites();
+   }
 }
 
 /*
