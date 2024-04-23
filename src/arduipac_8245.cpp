@@ -316,6 +316,10 @@ void show_4sprites()
     sprite_even_shift = intel8245_ram[sprite_control + 0x02] & 0x02 >> 1;
     sprite_full_shift = intel8245_ram[sprite_control + 0x02] & 0x01;
 
+
+#define DEBUG_SERIAL
+#define DEBUG_SPRITES
+#define DEBUG_DETAIL
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
     Serial.print("show_4sprites() - sprite numéro ");
     Serial.print(sprite_number);
@@ -371,8 +375,7 @@ void clear_collision()
   fprintf(stderr, "clear_collision()\n");
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES)
-  Serial.print(bigben);
-  Serial.println(" - clear_collision()");
+  Serial.println("clear_collision()");
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_SPRITES)
 #endif
@@ -396,8 +399,7 @@ void draw_display()
 #ifdef DEBUG_STDERR
 #endif
 #ifdef DEBUG_SERIAL
-  Serial.print(bigben);
-  Serial.println(" - draw_display()");
+  Serial.println("draw_display()");
   Serial.print("Registre 0xA0 == 0x");
   Serial.println(intel8245_ram[0xA0], HEX);
 #endif
@@ -416,8 +418,8 @@ void draw_display()
   graphic_tft.fillScreen(bg_color);
 
   // bit 3 == enable grid
-  // if (intel8245_ram[0xA0] & 0x08)
-  //   draw_grid();
+  if (intel8245_ram[0xA0] & 0x08)
+    draw_grid();
 
   // bit 5 = enable display
   if (intel8245_ram[0xA0] & 0x20)
@@ -425,7 +427,7 @@ void draw_display()
     show_12chars();
     show_4quads();
     show_4sprites();
-   }
+  }
 }
 
 /*
@@ -438,8 +440,6 @@ void init_intel8245()
 #ifdef DEBUG_STDERR
 #endif
 #ifdef DEBUG_SERIAL
-  Serial.print(bigben);
-  Serial.println(" - init_intel8245()");
 #endif
 #ifdef DEBUG_TFT
 #endif
