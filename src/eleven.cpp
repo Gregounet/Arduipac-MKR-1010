@@ -1,5 +1,36 @@
 #include <stdint.h>
 
+#define ALIEN 1
+#define KRAZY 2
+#define MUNCH 3
+#define FLIPP 4
+#define PREND 5
+#define SATEL 6
+#define SKISK 7
+#define SPEED 8
+#define STONE 9
+#define UFOUF 10
+#define PETER 11
+
+//
+// Available ROMs:
+//
+// ALIEN
+// KRAZY
+// MUNCH
+// FLIPP
+// PREND
+// SATEL
+// SKISK
+// SPEED
+// STONE
+// UFOUF
+// PETER
+
+#define GAME PETER
+
+#ifdef GAME
+#if GAME == ALIEN
 #define ROM_ALIEN
 #undef ROM_KRAZY
 #undef ROM_MUNCH
@@ -11,6 +42,128 @@
 #undef ROM_STONE
 #undef ROM_UFOUF
 #undef ROM_PETER
+#elif GAME == KRAZY
+#undef ROM_ALIEN
+#define ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == MUNCH
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#define ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == FLIPP
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#define ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == PREND
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#define ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == SATEL
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#define ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == SKISK
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#define ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == SPEED
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#define ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == STONE
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#define ROM_STONE
+#undef ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == UFOUF
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#define ROM_UFOUF
+#undef ROM_PETER
+#elif GAME == PETER
+#undef ROM_ALIEN
+#undef ROM_KRAZY
+#undef ROM_MUNCH
+#undef ROM_FLIPP
+#undef ROM_PREND
+#undef ROM_SATEL
+#undef ROM_SKISK
+#undef ROM_SPEED
+#undef ROM_STONE
+#undef ROM_UFOUF
+#define ROM_PETER
+#endif
+#endif
 
 #if defined(ROM_ALIEN)
 

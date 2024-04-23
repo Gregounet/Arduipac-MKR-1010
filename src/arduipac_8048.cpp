@@ -1100,7 +1100,8 @@ void exec_8048()
 			text_print_hex(ROM(pc));
 			delay(TFT_DEBUG_DELAY);
 #endif
-			//			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
+			// The infamous ALIEN INVADERS BUG (april 2024 - GTE)
+			//		intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB0)]] = ROM(pc++);
 			op_cycles = 2;
 			break;

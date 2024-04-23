@@ -28,11 +28,13 @@
 #define COLLISION_CHAR 0x80
 
 // #undef DEBUG_STDERR
-// #undef DEBUG_SERIAL
+#define DEBUG_SERIAL
 // #undef DEBUG_TFT
 
+#define DEBUG_DETAIL
+
 // #undef DEBUG_CHARS
-// #undef DEBUG_GRID
+#define DEBUG_GRID
 // #undef DEBUG_SPRITES
 
 // #undef DEBUG_DETAIL
@@ -52,8 +54,7 @@ void draw_grid()
   uint8_t width; // Largeur d'une colonne
 
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
-  Serial.print(bigben);
-  Serial.println(" - draw_grid()");
+  Serial.println("draw_grid()");
 #endif
 
   uint8_t grid_color_index;
@@ -89,32 +90,38 @@ void draw_grid()
   }
 
   // TODO optimisation future: aller de 1 à 9 (au lieu de 0 à 8) et éviter ainsi ((j*24)+24)*WIDTH pour avoir à la place j*24*WIDTH
-  //      optimisation future: je pense que deux boucles distinctes iraient mieux
   //
-
+  //
   // Tracé des 9 lignes
-  // j : balayage des lignes 0 à 8
-  for (uint8_t j = 0; j < 9; j++)
+  //
+  // Balayage des lignes 0 à 7
+  for (uint8_t ligne = 0; ligne < 8; ligne++)
   {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
     Serial.print("draw_grid() - affichage ligne ");
-    Serial.println(j);
+    Serial.println(ligne);
 #endif
     mask = 0x01;
-    // i : balayage par colonnes de 0 à 8
-    for (uint8_t i = 0; i < 9; i++)
+    // Balayage par colonnes de 0 à 8
+    for (uint8_t colonne = 0; colonne < 9; colonne++)
     {
-      // 0xC0 - 0xC8 = Lignes, chaque octet représente une colonne
-      data = intel8245_ram[0xC0 + i];
-      // 0xD0 - 0xD8 = 9ième ligne, seul le bit 0 est utilisé
-      if (j == 8)
-      {
-        data = intel8245_ram[0xD0 + i];
-        mask = 0x01;
-      }
+      // 0xC0 - 0xC8 = segments horizontaux, chaque octet représente une colonne
+      data = intel8245_ram[0xC0 + colonne];
       if (data & mask)
-        graphic_tft.fillRect(20 + 32 * i, 24 + 24 * j, 36, 3, grid_color);
-      mask <<= 1;
+      {
+        graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * ligne, 36, 3, grid_color);
+      }
+    }
+    mask <<= 1;
+  }
+
+  for (uint8_t colonne = 0; colonne < 9; colonne++)
+  {
+    // 0xD0 - 0xD8 = 9ième ligne, seul le bit 0 est utilisé
+    data = intel8245_ram[0xC0 + colonne];
+    if (data & 0x01)
+    {
+      graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * 8, 36, 3, grid_color);
     }
   }
 
@@ -126,30 +133,30 @@ void draw_grid()
 #endif
 
   // Tracé des 10 colonnes verticales
-  for (uint8_t x = 0; x < 10; x++)
+  for (uint8_t colonne = 0; colonne < 10; colonne++)
   {
     // 0xE0 - 0xE9 = Colonnes, chaque octet représente une colonne et chaque bit un segment
-    data = intel8245_ram[0xE0 + x];
+    data = intel8245_ram[0xE0 + colonne];
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
     Serial.print("draw_grid() - affichage de la colonne ");
-    Serial.print(x);
+    Serial.print(colonne);
     Serial.print(", octet == ");
     Serial.println(data);
 #endif
     mask = 0x01;
-    for (uint8_t y = 0; y < 8; y++)
+    for (uint8_t ligne = 0; ligne < 8; ligne++)
     {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-      Serial.print("mask == ");
-      Serial.println(mask);
+      // Serial.print("mask == ");
+      // Serial.println(mask);
 #endif
       if (data & mask)
       {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
         Serial.print("draw_grid() - affichage d'un segment ");
-        Serial.println(x);
+        Serial.println(colonne);
 #endif
-        graphic_tft.fillRect(20 + 32 * x, 24 + 24 * y, width, 24, grid_color);
+        graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * ligne, width, 24, grid_color);
       }
       mask <<= 1;
     }
@@ -316,10 +323,9 @@ void show_4sprites()
     sprite_even_shift = intel8245_ram[sprite_control + 0x02] & 0x02 >> 1;
     sprite_full_shift = intel8245_ram[sprite_control + 0x02] & 0x01;
 
-
-#define DEBUG_SERIAL
-#define DEBUG_SPRITES
-#define DEBUG_DETAIL
+// #define DEBUG_SERIAL
+// #define DEBUG_SPRITES
+// #define DEBUG_DETAIL
 #if defined(DEBUG_SERIAL) && defined(DEBUG_SPRITES) && defined(DEBUG_DETAIL)
     Serial.print("show_4sprites() - sprite numéro ");
     Serial.print(sprite_number);

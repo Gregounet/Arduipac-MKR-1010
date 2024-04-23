@@ -12,5 +12,7 @@ void ext_irq (void);
 void init_intel8048 (void);
 void exec_8048 (void);
 
+extern uint32_t bigben;
+
 
 #endif /*ARDUIPAC_8048_H */
