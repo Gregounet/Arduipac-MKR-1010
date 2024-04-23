@@ -17,8 +17,9 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-// #undef DEBUG_SERIAL
-// #define DEBUG_DELAY 0
+#define DEBUG_SERIAL
+#define DEBUG_DELAY 0
+uint16_t debug_delay = DEBUG_DELAY;
 
 #define push(d)                    \
 	{                              \
@@ -192,9 +193,45 @@ void exec_8048()
 	text_print_string("Entering exec_8048()\n");
 	delay(TFT_DEBUG_DELAY);
 #endif
-
+	int incomingByte;
 	for (;;)
 	{
+#ifdef DEBUG_SERIAL
+		if (Serial.available() > 0)
+		{
+			// read the incoming byte:
+			incomingByte = Serial.read();
+			switch (incomingByte)
+			{
+			case '+':
+				debug_delay -= 20;
+				debug_delay = (debug_delay < 0) ? 0 : debug_delay;
+				break;
+			case '-':
+				debug_delay += 200;
+				break;
+			case 'N':
+			case 'n':
+				debug_delay = 10;
+				break;
+			case 'S':
+			case 's':
+				debug_delay += 500;
+				break;
+			case 'F':
+			case 'f':
+				debug_delay = 0;
+				break;
+			case 'P':
+			case 'p':
+				while (!Serial.available())
+					;
+				break;
+			}
+		}
+		delay(debug_delay);
+#endif
+
 		op_cycles = 1;
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
 		op = ROM(pc);
@@ -212,7 +249,7 @@ void exec_8048()
 #ifdef DEBUG_SERIAL
 		Serial.println();
 		Serial.print("Big Ben: ");
-		Serial.print(bigben);
+		Serial.println(bigben);
 		Serial.print("Acc: ");
 		Serial.print(acc, HEX);
 		Serial.print(" BS: ");
@@ -525,15 +562,12 @@ void exec_8048()
 		case 0x77: /* RR A */
 			data = acc & 0x01;
 			acc >>= 1;
-			acc = (data) ? 0x80 : 0x7F;
+			acc |= (data) ? 0x80 : 0x00;
 			break;
 		case 0xE7: /* RL A */
 			data = acc & 0x80;
 			acc <<= 1;
-			if (data)
-				acc |= 0x01;
-			else
-				acc &= 0xFE;
+			acc |= (data) ? 0x01 : 0x00;
 			break;
 		case 0x04: /* JMP */
 		case 0x24: /* JMP */
@@ -1346,7 +1380,6 @@ void exec_8048()
 		fprintf(stderr, "machine_state == %d\n");
 #endif
 #ifdef DEBUG_SERIAL
-		delay(DEBUG_DELAY);
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");

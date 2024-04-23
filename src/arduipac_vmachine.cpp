@@ -332,7 +332,7 @@ void ext_write(uint8_t data, uint8_t addr)
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
-
+			//debug_delay = 1000;
 			intel8245_ram[addr] = data;
 		}
 		break;

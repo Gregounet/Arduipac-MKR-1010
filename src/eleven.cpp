@@ -3,13 +3,13 @@
 #define ALIEN 1
 #define KRAZY 2
 #define MUNCH 3
-#define FLIPP 4
-#define PREND 5
+#define FLIP 4
+#define TAKE 5
 #define SATEL 6
-#define SKISK 7
+#define SKI 7
 #define SPEED 8
 #define STONE 9
-#define UFOUF 10
+#define UFO 10
 #define PETER 11
 
 //
@@ -18,16 +18,16 @@
 // ALIEN
 // KRAZY
 // MUNCH
-// FLIPP
-// PREND
+// FLIP
+// TAKE
 // SATEL
-// SKISK
+// SKI
 // SPEED
 // STONE
-// UFOUF
+// UFO
 // PETER
 
-#define GAME PETER
+#define GAME ALIEN
 
 #ifdef GAME
 #if GAME == ALIEN
@@ -66,7 +66,7 @@
 #undef ROM_STONE
 #undef ROM_UFOUF
 #undef ROM_PETER
-#elif GAME == FLIPP
+#elif GAME == FLIP
 #undef ROM_ALIEN
 #undef ROM_KRAZY
 #undef ROM_MUNCH
@@ -78,7 +78,7 @@
 #undef ROM_STONE
 #undef ROM_UFOUF
 #undef ROM_PETER
-#elif GAME == PREND
+#elif GAME == TAKE
 #undef ROM_ALIEN
 #undef ROM_KRAZY
 #undef ROM_MUNCH
@@ -102,7 +102,7 @@
 #undef ROM_STONE
 #undef ROM_UFOUF
 #undef ROM_PETER
-#elif GAME == SKISK
+#elif GAME == SKI
 #undef ROM_ALIEN
 #undef ROM_KRAZY
 #undef ROM_MUNCH
@@ -138,7 +138,7 @@
 #define ROM_STONE
 #undef ROM_UFOUF
 #undef ROM_PETER
-#elif GAME == UFOUF
+#elif GAME == UFO
 #undef ROM_ALIEN
 #undef ROM_KRAZY
 #undef ROM_MUNCH
