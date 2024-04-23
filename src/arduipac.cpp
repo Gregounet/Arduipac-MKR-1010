@@ -58,7 +58,7 @@ void graphic_drawtext(char *text)
 
 void setup()
 {
-  Serial.begin(38400);
+  Serial.begin(9600);
 
 #ifdef DEBUG_TFT
   text_tft.initR(INITR_BLACKTAB);

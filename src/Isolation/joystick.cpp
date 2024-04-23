@@ -8,7 +8,7 @@
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(1000);
 
   pinMode(JOYSTICK_FIRE_PIN, INPUT_PULLUP);

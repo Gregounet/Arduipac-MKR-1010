@@ -268,7 +268,6 @@ void show_12chars()
 #endif
   for (uint8_t i = 0; i < 12; i++)
     show_1char(intel8245_ram[0x10 + i * 4 + 1], intel8245_ram[0x10 + i * 4], intel8245_ram[0x10 + i * 4 + 2], intel8245_ram[0x10 + i * 4 + 3]);
-  //delay(5000);
 }
 
 /*
@@ -363,6 +362,38 @@ void show_4sprites()
   }
 }
 
+void show_bigsprite()
+{
+  uint8_t sprite_data;
+
+  uint8_t sprite_pattern = 0x88;
+
+  for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
+  {
+    sprite_data = intel8245_ram[sprite_pattern + sprite_row];
+    uint8_t mask = 0x01;
+    for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
+    {
+      if (sprite_data & mask)
+        graphic_tft.fillRect(sprite_column * 10, sprite_row * 10, 10, 10, ST77XX_WHITE);
+      mask <<= 1;
+    }
+  }
+
+  sprite_pattern = 0x80;
+  for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
+  {
+    sprite_data = intel8245_ram[sprite_pattern + sprite_row];
+    uint8_t mask = 0x01;
+    for (uint8_t sprite_column = 0; sprite_column < 8; sprite_column++)
+      {
+        if (sprite_data & mask)
+        graphic_tft.fillRect(100 + sprite_column * 10, sprite_row * 10, 10, 10, ST77XX_GREEN);
+        mask <<= 1;
+      }
+  }
+}
+
 /*
  * clear_collision()
  *
@@ -419,15 +450,16 @@ void draw_display()
   graphic_tft.fillScreen(bg_color);
 
   // bit 3 == enable grid
-  if (intel8245_ram[0xA0] & 0x08)
-    draw_grid();
+  // if (intel8245_ram[0xA0] & 0x08)
+  //   draw_grid();
 
   // bit 5 = enable display
   if (intel8245_ram[0xA0] & 0x20)
   {
     show_12chars();
-    show_4quads();
-    show_4sprites();
+    // show_4quads();
+    // show_4sprites();
+    // show_bigsprite();
   }
 }
 
