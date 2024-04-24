@@ -3,10 +3,6 @@
 
 #undef DEBUG_STDERR
 #undef DEBUG_TFT
-#define DEBUG_SERIAL
-
-#define TFT_DEBUG_DELAY 0
-#define STDERR_DEBUG_DELAY 100
-#define SERIAL_DEBUG_DELAY 100
+#undef DEBUG_SERIAL
 
 #endif /* ARDUINO_CONFIG_H */

@@ -29,9 +29,9 @@
 #define COLLISION_CHAR 0x80
 
 // #undef DEBUG_STDERR
-#define DEBUG_SERIAL
-#define DEBUG_GRID
-#define DEBUG_DETAIL
+// #define DEBUG_SERIAL
+// #define DEBUG_GRID
+// #define DEBUG_DETAIL
 // #undef DEBUG_TFT
 
 // #undef DEBUG_CHARS
@@ -54,36 +54,16 @@ void show_grid()
   Serial.println("show_grid()");
 #endif
 
-  uint8_t grid_color_index;
-  uint16_t grid_color;
-
-  grid_color_index = intel8245_ram[0xA3] & 0x07;
-  if (intel8245_ram[0xA3] & 0x40)
-    grid_color = LIGHT_COLORS(grid_color_index);
-  else
-    grid_color = DARK_COLORS(grid_color_index);
-
-  // Bit 6 de 0xA0 controle l'affichage des points de la grille
-  if (intel8245_ram[0xA0] & 0x40)
+  if (grid_dots)
   {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
     Serial.println("draw_grid() - affichage des points");
 #endif
-    // j : balayage par lignes de 0 à 8
+    // balayage par lignes de 0 à 8
     for (uint8_t ligne = 0; ligne < 9; ligne++)
-    {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-      Serial.print("draw_grid() - affichage des points de la ligne ");
-      Serial.println(ligne);
-#endif
-      // i : balayage par colonne de 0 à 9
+      // balayage par colonne de 0 à 9
       for (uint8_t colonne = 0; colonne < 10; colonne++)
-      {
-        // Les lignes sont séparées de 24 pixels
-        // Les colonnes sont séparées de 32 pixels.
         graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * ligne, 4, 3, grid_color);
-      }
-    }
   }
 
   //
@@ -359,24 +339,15 @@ void draw_display()
 #endif
 #ifdef DEBUG_TFT
 #endif
-
-  uint8_t bg_color_index;
-  uint16_t bg_color;
-
-  bg_color_index = (intel8245_ram[0xA3] & 0x38) >> 3;
-  if (intel8245_ram[0xA3] & 0x40)
-    bg_color = LIGHT_COLORS(bg_color_index);
-  else
-    bg_color = DARK_COLORS(bg_color_index);
-
-  graphic_tft.fillScreen(bg_color);
+ 
+  graphic_tft.fillScreen(background_color);
 
   // bit 3 == enable grid
-  if (intel8245_ram[0xA0] & 0x08)
+  if (grid_control)
     show_grid();
 
   // bit 5 = enable display
-  if (intel8245_ram[0xA0] & 0x20)
+  if (foreground_control)
   {
     show_12chars();
     show_4quads();
@@ -401,5 +372,4 @@ void init_intel8245()
   for (uint8_t i = 0x00; i < 0xFF; i++)
     intel8245_ram[i] = 0x00;
   init_grid_elements();
-  delay(10000);
 }

@@ -18,7 +18,7 @@ struct h_segment_t
     uint8_t start_x;
     uint8_t start_y;
     uint8_t displayed;
-} ;
+};
 
 struct v_segment_t
 { // fixed height, variable width
@@ -26,7 +26,7 @@ struct v_segment_t
     uint8_t end_x;
     uint8_t start_y;
     uint8_t displayed;
-} ;
+};
 
 struct displayed_char_t
 { // variable height, fixed width
@@ -36,7 +36,7 @@ struct displayed_char_t
     uint8_t start_y;
     uint8_t end_y;
     uint16_t color;
-}; 
+};
 
 struct displayed_sprite_t
 { // variable height and width
@@ -66,8 +66,12 @@ struct displayed_sprite_t
 // uint8_t number_h_segments;
 // uint8_t number_v_segments;
 
-extern uint8_t v_segments_width;
-extern uint16_t segments_color;
+extern uint8_t grid_control ;
+extern uint8_t foreground_control ;
+extern uint8_t grid_dots ;
+extern uint8_t v_segments_width ; // This one REALLY needs to be initialized
+extern uint16_t grid_color ;
+extern uint16_t background_color ;
 
 extern h_segment_t h_segments[NB_H_SEGMENTS];
 extern v_segment_t v_segments[NB_V_SEGMENTS];
@@ -79,7 +83,6 @@ extern displayed_char_t displayed_chars[28];
 // stockage des sprites
 
 extern displayed_sprite_t displayed_sprites[4];
-
 
 // Functions
 

@@ -11,20 +11,22 @@
 #include "arduipac_config.h"
 #include "arduipac_collisions.h"
 
-#define DEBUG_SERIAL
-#define DEBUG_GRID
-#define DEBUG_DETAIL
+// #define DEBUG_SERIAL
+// #define DEBUG_GRID
+// #define DEBUG_DETAIL
 
 //
 // Storage
 //
 
-// stockage des segments
+uint8_t grid_control = 0;
+uint8_t foreground_control = 0;
+uint8_t grid_dots = 0;
+uint8_t v_segments_width = 3;  // This one REALLY needs to be initialized
+uint16_t grid_color = 0;
+uint16_t background_color = 0;
 
-// uint8_t number_h_segments;
-// uint8_t number_v_segments;
-uint8_t v_segments_width;
-uint16_t segments_color;
+// stockage des segments
 
 h_segment_t h_segments[NB_H_SEGMENTS];
 v_segment_t v_segments[NB_V_SEGMENTS];

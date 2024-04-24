@@ -9,6 +9,7 @@
 #include "arduipac_bios_rom.h"
 #include "arduipac_config.h"
 #include "arduipac_collisions.h"
+#include "arduipac_colors.h"
 
 uint16_t vertical_clock;
 uint8_t horizontal_clock;
@@ -186,6 +187,9 @@ ext_read(uint8_t addr)
 
 void ext_write(uint8_t data, uint8_t addr)
 {
+	Serial.println("ext_write = ");
+	Serial.println(data, HEX);
+	Serial.println(addr, HEX);
 	switch (p1 & 0x58)
 	{
 	case 0x08: // External RAM
@@ -204,6 +208,9 @@ void ext_write(uint8_t data, uint8_t addr)
 	case 0x10: // VDC RAM
 	case 0x40: // Copy Mode (read from External RAM and Write to VDC)
 	{
+		Serial.println("VDC = ");
+		Serial.println(data, HEX);
+		Serial.println(addr, HEX);
 		if (addr < 0x10) // Sprites positions and colors
 		{
 #ifdef DEBUG_SERIAL
@@ -293,26 +300,67 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 			intel8245_ram[addr] = data;
 		}
-		else if (addr >= 0xA0 && addr <= 0xA3) // VDC Video Registers
+		else if ((addr == 0xA0) && (intel8245_ram[0xA0] != data))
 		{
-
-#ifdef DEBUG_SERIAL
-			Serial.print("Accessing VDC Video Register[0x");
-			Serial.print(addr, HEX);
-			Serial.print("] <- 0x");
-			Serial.println(data, HEX);
-#endif
-			if (addr == 0xA0)
+			if ((intel8245_ram[0xA0] & 0x02) && !(data & 0x02))
 			{
-				if ((intel8245_ram[0xA0] & 0x02) && !(data & 0x02))
-				{ // Le bit 1 de la VRAM était à 1 et est passé à 0 donc x_latch et y_latch suivent le beam
-					y_latch = vertical_clock / 22;
-					x_latch = horizontal_clock * 12;
-					if (y_latch > 241)
-						y_latch = 0xFF;
-				}
+				// Le bit 1 de la VRAM était à 1 et est passé à 0 donc x_latch et y_latch suivent le beam
+				y_latch = vertical_clock / 22;
+				x_latch = horizontal_clock * 12;
+				if (y_latch > 241)
+					y_latch = 0xFF;
 			}
-			intel8245_ram[addr] = data;
+			if ((intel8245_ram[0xA0] & 0x08) != (data & 0x08))
+			{
+				// Grid display on / off
+				// Nota bene: Grid should never been set off once already set on
+				grid_control = data & 0x08;
+				Serial.print("grid_control = ");
+				Serial.println(grid_control);
+#ifdef DEBUG_SERIAL
+#endif
+			}
+			if ((intel8245_ram[0xA0] & 0x20) != (data & 0x20))
+			{
+				// Foreground objects (ie chars and sprites) display on / off
+				// Nota bene: FG objects should never been set off once already set on
+				foreground_control = data & 0x20;
+				Serial.print("foreground_control = ");
+				Serial.println(foreground_control);
+#ifdef DEBUG_SERIAL
+#endif
+			}
+			if ((intel8245_ram[0xA0] & 0x40) != (data & 0x40))
+			{
+				// Dots display on / off
+				grid_dots = data & 0x40;
+				Serial.print("grid_dots = ");
+				Serial.println(grid_dots);
+#ifdef DEBUG_SERIAL
+#endif
+			}
+			if ((intel8245_ram[0xA0] & 0x80) != (data & 0x80))
+			{
+				// Vertical segments width
+				v_segments_width = (data & 0x80) ? 16 : 3;
+				Serial.print("v_segments_width = ");
+				Serial.println(v_segments_width);
+			}
+			intel8245_ram[0xA0] = data;
+		}
+		else if (addr == 0xA3 && intel8245_ram[0xA3] != data)
+		{
+			if ((intel8245_ram[0xA3] & 0x47) != (data & 0x47))
+			{
+				// Grid color
+				grid_color = (data & 0x40) ? LIGHT_COLORS(data & 0x07) : DARK_COLORS(data & 0x07);
+			}
+			if ((intel8245_ram[0xA3] & 0x38) != (data & 0x38))
+			{
+				// Background color TODO check if luminance is used for BG color
+				background_color = DARK_COLORS((data & 0x38) >> 3);
+			}
+			intel8245_ram[0xA3] = data;
 		}
 		else if (addr >= 0xA7 && addr <= 0xAA) // VDC Sound Register
 		{
@@ -378,7 +426,7 @@ void ext_write(uint8_t data, uint8_t addr)
 	}
 		/*
 		 * Comme je ne comprends pas pour l'instant je commente. TODO
-		if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data) draw_display();
-		*/
+		 * if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data) draw_display();
+		 */
 	}
 }
