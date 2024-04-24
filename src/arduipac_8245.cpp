@@ -43,18 +43,15 @@ uint8_t intel8245_ram[256];
 uint8_t collision_table[256]; // TODO Va falloir trouver un moyen de remplacer ce tableau ENORME
 
 /*
- * draw_grid()
+ * show_grid()
  *
  */
 
-void draw_grid()
+void show_grid()
 {
-  uint8_t mask;  // Masque utilisé pour le décodage des bits de chaque octet
-  uint8_t data;  // Octet provenant de la RAM VDC
-  uint8_t width; // Largeur d'une colonne
 
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
-  Serial.println("draw_grid()");
+  Serial.println("show_grid()");
 #endif
 
   uint8_t grid_color_index;
@@ -90,83 +87,30 @@ void draw_grid()
   }
 
   //
-  // Tracé des 9 lignes horizontales
+  // Tracé des segments horizontaux
   //
-  // Balayage par colonnes de 0 à 8
-  //
-  for (uint8_t colonne = 0; colonne < 9; colonne++)
+  for (uint8_t h_seg_idx = 0; h_seg_idx < NB_H_SEGMENTS; h_seg_idx++)
   {
-    // 0xC0 - 0xC8 = segments horizontaux, chaque octet représente une colonne
-    data = intel8245_ram[0xC0 + colonne];
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-    Serial.print("draw_grid() - segments horizontaux de la colonne  ");
-    Serial.print(colonne);
-    Serial.print(", octet == ");
-    Serial.println(data);
+    Serial.print("show_grid() - segments horizontaux");
 #endif
-    mask = 0x01;
-    for (uint8_t ligne = 0; ligne < 8; ligne++)
-    {
-      if (data & mask)
-      {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-        Serial.print("draw_grid() - tracé du segment de la ligne ");
-        Serial.println(ligne);
-#endif
-        graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * ligne, 36, 3, grid_color);
-      }
-      mask <<= 1;
-    }
-    // 0xD0 - 0xD8 = 9ième ligne, seul le bit 0 est utilisé
-    data = intel8245_ram[0xC0 + colonne];
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-    Serial.print("draw_grid() - octet de la ligne 9 ");
-    Serial.println(data);
-#endif
-    if (data & 0x01)
-    {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-      Serial.print("draw_grid() - tracé du segment de la ligne 9");
-#endif
-      graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * 8, 36, 3, grid_color);
-    }
+    if (h_segments[h_seg_idx].displayed)
+      graphic_tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, grid_color);
   }
 
-  // Bit 7 de 0xA0 contrôle la largeur des colonnes
-  width = (intel8245_ram[0xA0] & 0x80) ? 32 : 4;
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-  Serial.print("draw_grid() - largeur des colonnes : ");
-  Serial.println(width);
-#endif
   //
-  // Tracé des 10 colonnes verticales
+  // Tracé des segments verticaux
   //
-  for (uint8_t colonne = 0; colonne < 10; colonne++)
+
+  for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
   {
-    // 0xE0 - 0xE9 = Colonnes, chaque octet représente une colonne et chaque bit un segment
-    data = intel8245_ram[0xE0 + colonne];
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-    Serial.print("draw_grid() - affichage de la colonne ");
-    Serial.print(colonne);
-    Serial.print(", octet == ");
-    Serial.println(data);
+    Serial.print("show_grid() - segments verticaux");
 #endif
-    mask = 0x01;
-    for (uint8_t ligne = 0; ligne < 8; ligne++)
-    {
-      if (data & mask)
-      {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-        Serial.print("draw_grid() - affichage d'un segment ");
-        Serial.println(colonne);
-#endif
-        graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * ligne, width, 24, grid_color);
-      }
-      mask <<= 1;
-    }
+    if (v_segments[v_seg_idx].displayed)
+      graphic_tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width *2, 24, grid_color);
   }
 }
-
 /*
  * Major system
  *
@@ -429,7 +373,7 @@ void draw_display()
 
   // bit 3 == enable grid
   if (intel8245_ram[0xA0] & 0x08)
-    draw_grid();
+    show_grid();
 
   // bit 5 = enable display
   if (intel8245_ram[0xA0] & 0x20)

@@ -8,6 +8,7 @@
 #include "arduipac_8245.h"
 #include "arduipac_bios_rom.h"
 #include "arduipac_config.h"
+#include "arduipac_collisions.h"
 
 uint16_t vertical_clock;
 uint8_t horizontal_clock;
@@ -332,13 +333,52 @@ void ext_write(uint8_t data, uint8_t addr)
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
 #endif
-			intel8245_ram[addr] = data;
+			if (intel8245_ram[addr] != data)
+			{
+				// Update grid information
+				intel8245_ram[addr] = data;
+				if (addr >= 0xC0 && addr <= 0xC8) // horizontal segments 0 - 7
+				{
+					uint8_t base_index = (addr - 0xC0) * 9;
+					uint8_t mask = 0x01;
+					for (uint8_t row = 0; row < 8; row++)
+						h_segments[base_index + row].displayed = 0;
+
+					for (uint8_t bit = 0; bit < 8; bit++)
+					{
+						if (data & mask)
+							h_segments[base_index + bit].displayed = 1;
+						mask <<= 1;
+					}
+				}
+				else if (addr >= 0xD0 && addr <= 0xD8) // horizontal segments 8
+				{
+					uint8_t base_index = (addr - 0xD0) * 9;
+					if (data & 0x01)
+						h_segments[base_index + 8].displayed = 1;
+					else
+						h_segments[base_index + 8].displayed = 0;
+				}
+				else if (addr >= 0xE0 && addr <= 0xE9) // vertical segments
+				{
+					uint8_t base_index = (addr - 0xE0) * 8;
+					uint8_t mask = 0x01;
+					for (uint8_t col = 0; col < 8; col++)
+						v_segments[base_index + col].displayed = 0;
+					for (uint8_t bit = 0; bit < 8; bit++)
+					{
+						if (data & mask)
+							v_segments[base_index + bit].displayed = 1;
+						mask <<= 1;
+					}
+				}
+			}
 		}
 		break;
 	}
+		/*
+		 * Comme je ne comprends pas pour l'instant je commente. TODO
+		if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data) draw_display();
+		*/
 	}
-	/*
-	 * Comme je ne comprends pas pour l'instant je commente. TODO
-	if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data) draw_display();
-	*/
 }
