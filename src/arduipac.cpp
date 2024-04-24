@@ -56,9 +56,12 @@ void graphic_drawtext(char *text)
   graphic_tft.print(text);
 }
 
+char welcome_string[] = "Disco disco" ;
+
 void setup()
 {
   Serial.begin(9600);
+  delay(100);
 
 #ifdef DEBUG_TFT
   text_tft.initR(INITR_BLACKTAB);
@@ -81,10 +84,8 @@ void setup()
   Serial.println(welcome_string);
 #endif
 
-#undef DEBUG_TFT
 #ifdef DEBUG_TFT
 #endif
-#undef DEBUG_TFT
 
 #ifdef DEBUG_STDERR
   fprintf(stderr, "Entering main()\n");
