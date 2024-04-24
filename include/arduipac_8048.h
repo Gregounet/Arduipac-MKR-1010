@@ -8,10 +8,11 @@ extern uint8_t p2;
 
 extern uint16_t rom_bank_select;
 
-extern uint32_t bigben;
-
 void ext_irq (void);
 void init_intel8048 (void);
 void exec_8048 (void);
+
+extern uint32_t bigben;
+extern uint16_t debug_delay;
 
 #endif /*ARDUIPAC_8048_H */

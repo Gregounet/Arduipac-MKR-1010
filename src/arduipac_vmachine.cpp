@@ -13,7 +13,7 @@ uint16_t vertical_clock;
 uint8_t horizontal_clock;
 uint8_t x_latch, y_latch;
 uint8_t machine_state; // 0 during normal operation and 1 during Vertical Blank
-uint8_t external_ram[128];
+uint8_t external_ram[256];
 
 #undef DEBUG_SERIAL
 
@@ -30,7 +30,7 @@ void init_vmachine()
 	horizontal_clock = 0;
 	machine_state = 0;
 
-	for (uint8_t i = 0x00; i < 0x7F; i++)
+	for (uint8_t i = 0x00; i < 0xFF; i++)
 		external_ram[i] = 0x00;
 
 	clear_collision();
@@ -76,6 +76,7 @@ ext_read(uint8_t addr)
 #ifdef DEBUG_SERIAL
 		Serial.println("VDC RAM Access");
 #endif
+
 #ifdef DEBUG_TFT
 #endif
 		switch (addr)
@@ -169,6 +170,7 @@ ext_read(uint8_t addr)
 			Serial.println(external_ram[addr], HEX);
 		}
 #endif
+
 #ifdef DEBUG_TFT
 #endif
 		return external_ram[addr];
@@ -183,37 +185,19 @@ ext_read(uint8_t addr)
 
 void ext_write(uint8_t data, uint8_t addr)
 {
-#ifdef DEBUG_SERIAL
-	if (addr == 0xA0)
-	{
-		Serial.print(bigben);
-		Serial.print(" - ext_write(0x");
-		Serial.print(data, HEX);
-		Serial.print(", 0x");
-		Serial.print(addr, HEX);
-		Serial.print(") - p1 == ");
-		Serial.println(p1, HEX);
-		// delay(5000);
-	}
-#endif
 	switch (p1 & 0x58)
 	{
 	case 0x08: // External RAM
 	{
-		if (addr < 0x80)
-		{
 #ifdef DEBUG_SERIAL
-			if (addr >= 0x3A && addr <= 0x3B)
-			{
-				Serial.print(bigben);
-				Serial.print(" - ext_write() - external_ram[0x");
-				Serial.print(addr, HEX);
-				Serial.print("] <- 0x");
-				Serial.print(data, HEX);
-			}
+		Serial.println();
+		Serial.print(bigben);
+		Serial.print(" - ext_write() - external_ram[0x");
+		Serial.print(addr, HEX);
+		Serial.print("] <- 0x");
+		Serial.println(data, HEX);
 #endif
-			external_ram[addr] = data;
-		}
+		external_ram[addr] = data;
 		break;
 	}
 	case 0x10: // VDC RAM
@@ -342,7 +326,8 @@ void ext_write(uint8_t data, uint8_t addr)
 		else if (addr >= 0xC0 && addr <= 0xE9) // Grid
 		{
 #ifdef DEBUG_SERIAL
-			Serial.print("Accessing Grid [0x");
+			Serial.print(bigben);
+			Serial.print(" - Accessing Grid [0x");
 			Serial.print(addr, HEX);
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);

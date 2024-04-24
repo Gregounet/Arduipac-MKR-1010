@@ -7,9 +7,8 @@
 #include "arduipac_8048.h"
 #include "arduipac_config.h"
 
-#define DEBUG_SERIAL
+// #define DEBUG_SERIAL
 // #undef DEBUG_KEYBOARD
-#undef DEBUG_KEYBOARD
 // #define DEBUG_JOYSTICK
 
 // TODO: déplacer dans arduipac.c ou bien arduipac_8048.c ou encore arduipac_vmachine.C ce code

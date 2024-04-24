@@ -17,8 +17,9 @@
 #include "mnemonics.h"
 #include "arduipac_config.h"
 
-#define DEBUG_SERIAL
+// #define DEBUG_SERIAL
 #define DEBUG_DELAY 0
+uint16_t debug_delay = DEBUG_DELAY;
 
 #define push(d)                    \
 	{                              \
@@ -85,11 +86,9 @@ void init_intel8048()
 	a11_backup = 0x000;
 
 	rom_bank_select = 0x1000; // TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
-	
 
 	sp = 0x08;
-	p1 = 0xFF; // Ca a fonctionné un moment comme ça pourtant ! TOTO: comprendre comment ça a pu fonctionner !
-	// p1 = 00;
+	p1 = 0xFF;
 
 	p2 = 0xFF;
 	reg_pnt = 0x00;
@@ -183,22 +182,57 @@ void exec_8048()
 	uint8_t data;	 // Data
 	uint16_t addr;	 // Address
 	uint16_t temp;	 // Temporary value
+
 #ifdef DEBUG_STDERR
 	fprintf(stderr, "Entering exec_8048()\n");
 #endif
 #ifdef DEBUG_SERIAL
-	//delay(1000);
 	Serial.println("Entering exec_8048()");
 #endif
 #ifdef DEBUG_TFT
 	text_print_string("Entering exec_8048()\n");
 	delay(TFT_DEBUG_DELAY);
 #endif
-
+	int incomingByte;
 	for (;;)
 	{
-		op_cycles = 1;
+#ifdef DEBUG_SERIAL
+		if (Serial.available() > 0)
+		{
+			// read the incoming byte:
+			incomingByte = Serial.read();
+			switch (incomingByte)
+			{
+			case '+':
+				debug_delay -= 20;
+				debug_delay = (debug_delay < 0) ? 0 : debug_delay;
+				break;
+			case '-':
+				debug_delay += 200;
+				break;
+			case 'N':
+			case 'n':
+				debug_delay = 10;
+				break;
+			case 'S':
+			case 's':
+				debug_delay += 500;
+				break;
+			case 'F':
+			case 'f':
+				debug_delay = 0;
+				break;
+			case 'P':
+			case 'p':
+				while (!Serial.available())
+					;
+				break;
+			}
+		}
+		delay(debug_delay);
+#endif
 
+		op_cycles = 1;
 #if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
 		op = ROM(pc);
 #endif
@@ -216,7 +250,9 @@ void exec_8048()
 		Serial.println();
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
-		Serial.print("BS: ");
+		Serial.print("Acc: ");
+		Serial.print(acc, HEX);
+		Serial.print(" BS: ");
 		Serial.print(bs >> 4);
 		Serial.print(" SP: ");
 		Serial.print(sp, HEX);
@@ -248,13 +284,12 @@ void exec_8048()
 		Serial.print(a11, HEX);
 		Serial.print(" rom_bank_select : ");
 		Serial.println(rom_bank_select, HEX);
-		Serial.print("Acc: ");
-		Serial.print(acc, HEX);
-		Serial.print(" PC: 0x");
+		Serial.print("PC: 0x");
 		Serial.print(pc, HEX);
 		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
 		Serial.print(" Op: 0x");
-		Serial.println(op, HEX);
+		Serial.print(op, HEX);
+		Serial.print(" - ");
 		Serial.print(lookup[op].mnemonic);
 		Serial.print(" ");
 #endif
@@ -527,15 +562,12 @@ void exec_8048()
 		case 0x77: /* RR A */
 			data = acc & 0x01;
 			acc >>= 1;
-			acc = (data) ? 0x80 : 0x7F;
+			acc |= (data) ? 0x80 : 0x00;
 			break;
 		case 0xE7: /* RL A */
 			data = acc & 0x80;
 			acc <<= 1;
-			if (data)
-				acc |= 0x01;
-			else
-				acc &= 0xFE;
+			acc |= (data) ? 0x01 : 0x00;
 			break;
 		case 0x04: /* JMP */
 		case 0x24: /* JMP */
@@ -957,6 +989,9 @@ void exec_8048()
 #ifdef DEBUG_STDERR
 			fprintf(stderr, " 0x%02X", ROM(pc));
 #endif
+#ifdef DEBUG_SERIAL
+			Serial.print(ROM(pc), HEX);
+#endif
 #ifdef DEBUG_TFT
 			text_print_hex(ROM(pc));
 #endif
@@ -1099,7 +1134,9 @@ void exec_8048()
 			text_print_hex(ROM(pc));
 			delay(TFT_DEBUG_DELAY);
 #endif
-			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
+			// The infamous ALIEN INVADERS BUG (april 2024 - GTE)
+			//		intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
+			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB0)]] = ROM(pc++);
 			op_cycles = 2;
 			break;
 		case 0xB3: /* JMPP @A */
@@ -1343,17 +1380,12 @@ void exec_8048()
 		fprintf(stderr, "machine_state == %d\n");
 #endif
 #ifdef DEBUG_SERIAL
-		delay(DEBUG_DELAY);
-		// Serial.print("bigben == ");
-		// Serial.println(bigben);
-		/*
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");
 		Serial.println(vertical_clock);
 		Serial.print("machine_state == ");
 		Serial.println(machine_state);
-		*/
 #endif
 #undef DEBUG_SERIAL
 
@@ -1370,8 +1402,6 @@ void exec_8048()
 		text_print_dec(machine_state);
 		delay(TFT_DEBUG_DELAY);
 #endif
-#undef DEBUG_TFT
-
 		if (interrupt_clock >= op_cycles)
 			interrupt_clock -= op_cycles;
 		else
