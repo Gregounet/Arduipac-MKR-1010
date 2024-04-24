@@ -187,9 +187,6 @@ ext_read(uint8_t addr)
 
 void ext_write(uint8_t data, uint8_t addr)
 {
-	Serial.println("ext_write = ");
-	Serial.println(data, HEX);
-	Serial.println(addr, HEX);
 	switch (p1 & 0x58)
 	{
 	case 0x08: // External RAM
@@ -208,9 +205,6 @@ void ext_write(uint8_t data, uint8_t addr)
 	case 0x10: // VDC RAM
 	case 0x40: // Copy Mode (read from External RAM and Write to VDC)
 	{
-		Serial.println("VDC = ");
-		Serial.println(data, HEX);
-		Serial.println(addr, HEX);
 		if (addr < 0x10) // Sprites positions and colors
 		{
 #ifdef DEBUG_SERIAL
@@ -315,29 +309,30 @@ void ext_write(uint8_t data, uint8_t addr)
 				// Grid display on / off
 				// Nota bene: Grid should never been set off once already set on
 				grid_control = data & 0x08;
+#ifdef DEBUG_SERIAL
 				Serial.print("grid_control = ");
 				Serial.println(grid_control);
-#ifdef DEBUG_SERIAL
-#endif
+				#endif
 			}
 			if ((intel8245_ram[0xA0] & 0x20) != (data & 0x20))
 			{
 				// Foreground objects (ie chars and sprites) display on / off
 				// Nota bene: FG objects should never been set off once already set on
 				foreground_control = data & 0x20;
+#ifdef DEBUG_SERIAL
 				Serial.print("foreground_control = ");
 				Serial.println(foreground_control);
-#ifdef DEBUG_SERIAL
-#endif
+				#endif
 			}
 			if ((intel8245_ram[0xA0] & 0x40) != (data & 0x40))
 			{
 				// Dots display on / off
 				grid_dots = data & 0x40;
+
+#ifdef DEBUG_SERIAL
 				Serial.print("grid_dots = ");
 				Serial.println(grid_dots);
-#ifdef DEBUG_SERIAL
-#endif
+				#endif
 			}
 			if ((intel8245_ram[0xA0] & 0x80) != (data & 0x80))
 			{
