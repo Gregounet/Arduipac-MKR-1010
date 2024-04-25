@@ -26,6 +26,7 @@ uint8_t v_segments_width = 3; // This one REALLY needs to be initialized
 uint16_t grid_color = 0;
 uint16_t background_color = 0;
 
+uint8_t background_uptodate = 0;
 uint8_t h_grid_uptodate = 0;
 uint8_t v_grid_uptodate = 0;
 uint8_t sprites_uptodate = 0;
@@ -79,7 +80,6 @@ void init_grid_elements()
     //
     for (uint8_t colonne = 0; colonne < 10; colonne++)
     {
-
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
         Serial.print("init_grid_elements() - segments verticaux de la colonne ");
         Serial.println(colonne);
@@ -90,7 +90,7 @@ void init_grid_elements()
             v_segments[colonne * 8 + ligne].end_x = 10 + 16 * colonne + v_segments_width;
             v_segments[colonne * 8 + ligne].start_y = 24 + 24 * ligne;
             v_segments[colonne * 8 + ligne].changed_displayed = 0;
-         }
+        }
     }
 
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
@@ -129,13 +129,13 @@ void init_displayed_chars()
     {
         displayed_chars[char_number].start_x = 0;
         displayed_chars[char_number].start_y = 0;
+        displayed_chars[char_number].height = 0;
         displayed_chars[char_number].end_y = 0;
+        displayed_chars[char_number].cset_offset = 0;
+        displayed_chars[char_number].color = 0;
         displayed_chars[char_number].previous_start_x = 0;
         displayed_chars[char_number].previous_start_y = 0;
-        displayed_chars[char_number].previous_end_y = 0;
-        displayed_chars[char_number].color = 0;
-        displayed_chars[char_number].cset_offset = 0;
-        displayed_chars[char_number].height = 0;
+        displayed_chars[char_number].previous_height = 0;
         displayed_chars[char_number].changed_displayed = 0;
     }
 }
@@ -145,17 +145,16 @@ void init_displayed_sprites()
     for (uint8_t sprite_number = 0; sprite_number < NB_SPRITES; sprite_number++)
     {
         displayed_sprites[sprite_number].start_x = 0;
-        displayed_sprites[sprite_number].end_x = 0;
         displayed_sprites[sprite_number].start_y = 0;
-        displayed_sprites[sprite_number].end_y = 0;
-        displayed_sprites[sprite_number].previous_start_x = 0;
-        displayed_sprites[sprite_number].previous_end_x = 0;
-        displayed_sprites[sprite_number].previous_start_y = 0;
-        displayed_sprites[sprite_number].previous_end_y = 0;
-        displayed_sprites[sprite_number].color = 0;
         displayed_sprites[sprite_number].size = 1;
         displayed_sprites[sprite_number].shift = 0;
         displayed_sprites[sprite_number].even_shift = 0;
+        displayed_sprites[sprite_number].end_x = 0;
+        displayed_sprites[sprite_number].end_y = 0;
+        displayed_sprites[sprite_number].color = 0;
+        displayed_sprites[sprite_number].previous_start_x = 0;
+        displayed_sprites[sprite_number].previous_start_y = 0;
+        displayed_sprites[sprite_number].previous_size = 0;
         displayed_sprites[sprite_number].changed_displayed = 0;
     }
 }

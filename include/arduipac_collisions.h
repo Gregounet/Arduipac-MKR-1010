@@ -34,12 +34,12 @@ struct displayed_char_t
     uint8_t start_x;
     uint8_t start_y;
     uint8_t end_y;
+    uint8_t height;
+    uint16_t cset_offset;
+    uint16_t color;
     uint8_t previous_start_x;
     uint8_t previous_start_y;
-    uint8_t previous_end_y;
-    uint16_t color;
-    uint16_t cset_offset;
-    uint8_t height;
+    uint8_t previous_height;
     uint8_t changed_displayed;
 };
 
@@ -49,14 +49,13 @@ struct displayed_sprite_t
     uint8_t end_x;
     uint8_t start_y;
     uint8_t end_y;
-    uint8_t previous_start_x;
-    uint8_t previous_end_x;
-    uint8_t previous_start_y;
-    uint8_t previous_end_y;
-    uint16_t color;
     uint8_t size; // 1 for normal sized ones, 2 for double-sized ones
     uint8_t shift;
     uint8_t even_shift;
+    uint16_t color;
+    uint8_t previous_start_x;
+    uint8_t previous_start_y;
+    uint8_t previous_size;
     uint8_t changed_displayed;
 };
 
@@ -80,6 +79,7 @@ extern uint8_t v_segments_width; // This one REALLY needs to be initialized
 extern uint16_t grid_color;
 extern uint16_t background_color;
 
+extern uint8_t background_uptodate;
 extern uint8_t h_grid_uptodate;
 extern uint8_t v_grid_uptodate;
 extern uint8_t sprites_uptodate;

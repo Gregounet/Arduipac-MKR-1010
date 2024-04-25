@@ -282,13 +282,12 @@ void ext_write(uint8_t data, uint8_t addr)
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
 #endif
-
-			if (intel8245_ram[addr] != data)
+			if (intel8245_ram[addr] != data) // data changes
 			{
 				// Update sprites information
 				intel8245_ram[addr] = data;
 
-				if (addr < 0x10) // Sprites control
+				if (addr < 0x10) // Sprite control
 				{
 					sprites_uptodate = 0;
 
@@ -303,24 +302,27 @@ void ext_write(uint8_t data, uint8_t addr)
 					Serial.print("Value 0x");
 					Serial.println(data, HEX);
 #endif
-					displayed_sprites[sprite_number].changed_displayed = 0x03; // TODO compute "display" depending on x y values
+					displayed_sprites[sprite_number].changed_displayed = 0x03; // TODO compute "display" part depending on x & y values
+					//
+					// Previous information ALL need to be updated in case of ANY (ie x, y or size) position-related change
+					//
+					displayed_sprites[sprite_number].previous_start_x = displayed_sprites[sprite_number].start_x;
+					displayed_sprites[sprite_number].previous_start_y = displayed_sprites[sprite_number].start_y;
+					displayed_sprites[sprite_number].previous_size = displayed_sprites[sprite_number].size;
 
 					switch (sprite_attribute)
 					{
 					case 0: // y
-						displayed_sprites[sprite_number].previous_start_y = displayed_sprites[sprite_number].previous_start_y;
-						displayed_sprites[sprite_number].previous_end_y = displayed_sprites[sprite_number].previous_end_y;
 						displayed_sprites[sprite_number].start_y = data;
 						displayed_sprites[sprite_number].end_y = data + (7 * displayed_sprites[sprite_number].size);
 						break;
 					case 1: // x
-						displayed_sprites[sprite_number].previous_start_x = displayed_sprites[sprite_number].previous_start_x;
-						displayed_sprites[sprite_number].previous_end_x = displayed_sprites[sprite_number].previous_end_x;
 						displayed_sprites[sprite_number].start_x = (data - 8) * 2;
 						displayed_sprites[sprite_number].end_x = displayed_sprites[sprite_number].start_x + (7 * displayed_sprites[sprite_number].size);
 						break;
 					case 2: // color, shift, size, etc
 						displayed_sprites[sprite_number].color = CHAR_COLORS((data & 0x38) >> 3);
+						displayed_sprites[sprite_number].previous_size = displayed_sprites[sprite_number].size;
 						displayed_sprites[sprite_number].size = ((data & 0x04) >> 2) + 1;
 						displayed_sprites[sprite_number].shift = (data & 0x02) >> 1;
 						displayed_sprites[sprite_number].even_shift = (data & 0x01);
@@ -330,10 +332,18 @@ void ext_write(uint8_t data, uint8_t addr)
 					}
 				}
 
-				else // Sprites shapes
+				else // Sprite shapes
 				{
 					uint8_t sprite_number = (addr - 0x80) / 8;
 					sprites_uptodate = 0;
+
+					//
+					// Previous information alse need to be updated in case of sprite shape change
+					// TODO: confirm this is usefull
+					//
+					displayed_sprites[sprite_number].previous_start_x = displayed_sprites[sprite_number].start_x;
+					displayed_sprites[sprite_number].previous_start_y = displayed_sprites[sprite_number].start_y;
+					displayed_sprites[sprite_number].previous_size = displayed_sprites[sprite_number].size;
 
 					displayed_sprites[sprite_number].changed_displayed = 0x03; // TODO compute "display" depending on x y values
 
@@ -414,7 +424,7 @@ void ext_write(uint8_t data, uint8_t addr)
 		}
 		else if (addr == 0xA3 && intel8245_ram[0xA3] != data) // VDC Color Register
 		{
-			if ((intel8245_ram[0xA3] & 0x47) != (data & 0x47))
+			if ((intel8245_ram[0xA3] & 0x47) != (data & 0x47)) // Grid color
 			{
 #if defined(DEBUG_SERIAL)
 #endif
@@ -429,12 +439,32 @@ void ext_write(uint8_t data, uint8_t addr)
 				for (uint8_t v_segment = 0; v_segment < NB_H_SEGMENTS; v_segment++)
 					h_segments[v_segment].changed_displayed |= 0x02;
 			}
-			if ((intel8245_ram[0xA3] & 0x38) != (data & 0x38))
+			if ((intel8245_ram[0xA3] & 0x38) != (data & 0x38)) // Luminance and background color
 			{
 				// Background color TODO check if luminance is used for BG color
 				background_color = DARK_COLORS((data & 0x38) >> 3);
+				//
+				// Need to force redrawing everything !
+				//
+				background_uptodate = 0;
+				h_grid_uptodate = 0;
+				v_grid_uptodate = 0;
+				sprites_uptodate = 0;
+				chars_uptodate = 0;
+				// Force redrawing grid elements
+				for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
+					h_segments[h_segment].changed_displayed |= 0x02;
+				for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
+					v_segments[v_segment].changed_displayed |= 0x02;
+				// Force redrawing chars
+				for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
+					displayed_chars[char_number].changed_displayed |= 0x02;
+				// Force redrawing sprites
+				for (uint8_t sprite_number = 0; sprite_number < NB_SPRITES; sprite_number++)
+					displayed_sprites[sprite_number].changed_displayed |= 0x02;
+
+				intel8245_ram[0xA3] = data;
 			}
-			intel8245_ram[0xA3] = data;
 		}
 		else if (addr >= 0xA7 && addr <= 0xAA) // VDC Sound Register
 		{
@@ -455,7 +485,7 @@ void ext_write(uint8_t data, uint8_t addr)
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
 #endif
-			if (intel8245_ram[addr] != data)
+			if (intel8245_ram[addr] != data) // Data changed
 			{
 				// Update grid information
 				intel8245_ram[addr] = data;
@@ -468,7 +498,6 @@ void ext_write(uint8_t data, uint8_t addr)
 					uint8_t mask = 0x01;
 					for (uint8_t row = 0; row < 8; row++)
 						h_segments[base_index + row].changed_displayed = 0x02;
-
 					for (uint8_t bit = 0; bit < 8; bit++)
 					{
 						if (data & mask)
@@ -476,7 +505,6 @@ void ext_write(uint8_t data, uint8_t addr)
 						mask <<= 1;
 					}
 				}
-
 				else if (addr >= 0xD0 && addr <= 0xD8) // horizontal segments 8
 				{
 					h_grid_uptodate = 0;
@@ -487,7 +515,6 @@ void ext_write(uint8_t data, uint8_t addr)
 					else
 						h_segments[base_index + 8].changed_displayed = 0x03;
 				}
-
 				else if (addr >= 0xE0 && addr <= 0xE9) // vertical segments
 				{
 					h_grid_uptodate = 0;
