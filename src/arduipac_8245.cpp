@@ -105,30 +105,6 @@ void show_grid()
   }
 }
 
-/*
- * Major system
- *
- */
-
-/*
- * show_quads()
- *
- */
-
-void show_quads()
-{
-#if defined(DEBUG_STDERR)
-#endif
-#if defined(DEBUG_SERIAL)
-  Serial.println("show_4quads()");
-#endif
-#if defined(DEBUG_TFT)
-#endif
-  for (uint8_t quad_indx = 0x40; quad_indx < 0x80; quad_indx += 0x10)
-  {
-    ;
-  }
-}
 
 /*
  * show_chars()
@@ -146,8 +122,9 @@ void show_chars()
 #endif
 #if defined(DEBUG_TFT)
 #endif
+  chars_uptodate = 1;
 
-  for (uint8_t char_number = 0; char_number < 12; char_number++)
+  for (uint8_t char_number = 0; char_number < 28; char_number++)
   {
 #if defined(DEBUG_SERIAL)
     Serial.print("char_number ");
@@ -234,6 +211,7 @@ void show_sprites()
 #if defined(DEBUG_TFT)
 #endif
 
+  sprites_uptodate = 1;
   for (uint8_t sprite_number = 0; sprite_number < NB_SPRITES; sprite_number++)
   {
     if (displayed_sprites[sprite_number].changed_displayed & 0x02) // Sprite data was changed
@@ -344,11 +322,7 @@ void draw_display()
   if (foreground_control)
   {
     if (!chars_uptodate)
-    {
-      chars_uptodate = 1;
       show_chars();
-      show_quads();
-    }
 
     if (!sprites_uptodate)
       show_sprites();

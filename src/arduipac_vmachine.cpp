@@ -205,7 +205,7 @@ void ext_write(uint8_t data, uint8_t addr)
 	case 0x10: // VDC RAM
 	case 0x40: // Copy Mode (read from External RAM and Write to VDC)
 	{
-		if (addr >= 0x10 && addr < 0x40) // Characters
+		if (addr >= 0x10 && addr < 0x80) // Characters (or quads)
 		{
 #ifdef DEBUG_SERIAL
 			Serial.print("Accessing Characters [0x");
@@ -223,109 +223,180 @@ void ext_write(uint8_t data, uint8_t addr)
 			{
 			case 0: // y
 			{
-				displayed_chars[char_number].previous_start_y = displayed_chars[char_number].start_y;
-				displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
+				uint16_t offset;
+				if ((char_number < 12) || (char_number % 4 == 0)) // If one of the 12 "independant" chars or the 1st char from a quad
+				{
+					displayed_chars[char_number].previous_start_y = displayed_chars[char_number].start_y;
+					displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
 
-				displayed_chars[char_number].start_y = data & 0xFE;
+					displayed_chars[char_number].start_y = data & 0xFE;
 
-				uint16_t offset =
-					(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
-					((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
-				displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
-				displayed_chars[char_number].height =
-					((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
-					displayed_chars[char_number].cset_start_address;
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
+					displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+					displayed_chars[char_number].height =
+						((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
+						displayed_chars[char_number].cset_start_address;
+				}
+				if ((char_number >= 12) && (char_number % 4 == 0)) // 1st char from a quad
+				{
+					//
+					// Copy modified data in remaining three chars
+					//
+					displayed_chars[char_number + 1].previous_start_y = displayed_chars[char_number].previous_start_y;
+					displayed_chars[char_number + 1].previous_height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 1].start_y = displayed_chars[char_number].start_y;
+					displayed_chars[char_number + 1].height = displayed_chars[char_number].height;
+
+					displayed_chars[char_number + 2].previous_start_y = displayed_chars[char_number].previous_start_y;
+					displayed_chars[char_number + 2].previous_height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 2].start_y = displayed_chars[char_number].start_y;
+					displayed_chars[char_number + 2].height = displayed_chars[char_number].height;
+
+					displayed_chars[char_number + 3].previous_start_y = displayed_chars[char_number].previous_start_y;
+					displayed_chars[char_number + 3].previous_height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 3].start_y = displayed_chars[char_number].start_y;
+					displayed_chars[char_number + 3].height = displayed_chars[char_number].height;
+
+					//
+					// Each char has its own cset_start_address
+					//
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 1) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 1) + 2]);
+					displayed_chars[char_number + 1].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 2) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 2) + 2]);
+					displayed_chars[char_number + 2].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 3) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 3) + 2]);
+					displayed_chars[char_number + 3].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+				}
 				break;
 			}
 			case 1: // x
-				displayed_chars[char_number].previous_start_x = displayed_chars[char_number].start_x;
-				displayed_chars[char_number].start_x = data;
+			{
+				if ((char_number < 12) || (char_number % 4 == 0)) // If one of the 12 "independant" chars or the 1st char from a quad
+				{
+					displayed_chars[char_number].previous_start_x = displayed_chars[char_number].start_x;
+					displayed_chars[char_number].start_x = data;
+				}
+				if ((char_number >= 12) && (char_number % 4 == 0)) // 1st char from a quad
+				{
+					//
+					// Copy (after slight re-computing) modified data in remaining three chars
+					//
+					displayed_chars[char_number + 1].start_x = displayed_chars[char_number].start_x + 16;
+					displayed_chars[char_number + 1].previous_start_x = displayed_chars[char_number].previous_start_x + 16;
+
+					displayed_chars[char_number + 2].start_x = displayed_chars[char_number].start_x + 32;
+					displayed_chars[char_number + 2].previous_start_x = displayed_chars[char_number].previous_start_x + 32;
+
+					displayed_chars[char_number + 3].start_x = displayed_chars[char_number].start_x + 48;
+					displayed_chars[char_number + 3].previous_start_x = displayed_chars[char_number].previous_start_x + 48;
+				}
 				break;
+			}
 			case 2: // offset (bits 0-7)
 			{
-				displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
-				
-				uint16_t offset =
-					(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
-					((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
-				displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
-				displayed_chars[char_number].height =
-					((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
-					displayed_chars[char_number].cset_start_address;
+				uint16_t offset;
+				if ((char_number < 12) || (char_number % 4 == 0)) // If one of the 12 "independant" chars or the 1st char from a quad
+				{
+					displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
+
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
+					displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+					displayed_chars[char_number].height =
+						((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
+						displayed_chars[char_number].cset_start_address;
+				}
+				if ((char_number >= 12) && (char_number % 4 == 0)) // 1st char from a quad
+				{
+					//
+					// Copy modified data in remaining three chars
+					//
+					displayed_chars[char_number + 1].height = displayed_chars[char_number].height;
+					displayed_chars[char_number + 1].previous_height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 2].height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 2].previous_height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 3].height = displayed_chars[char_number].height;
+					displayed_chars[char_number + 3].previous_height = displayed_chars[char_number].previous_height;
+
+					//
+					// Each char has its own cset_start_address
+					//
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 1) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 1) + 2]);
+					displayed_chars[char_number + 1].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 2) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 2) + 2]);
+					displayed_chars[char_number + 2].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 3) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 3) + 2]);
+					displayed_chars[char_number + 3].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+				}
 				break;
 			}
 			case 3: // color index + offset b8
 			{
-				displayed_chars[char_number].color = CHAR_COLORS((data >> 1) & 0x07);
-				displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
+				uint16_t offset;
 
-				uint16_t offset =
-					(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
-					((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
-				displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
-				displayed_chars[char_number].height =
-					((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
-					displayed_chars[char_number].cset_start_address;
-				break;
-			}
-			}
-		}
-		else if (addr >= 0x40 && addr < 0x80) // Quads
-		{
-#ifdef DEBUG_SERIAL
-			Serial.print("Accessing Quads [0x");
-			Serial.print(addr, HEX);
-			Serial.print("] <- 0x");
-			Serial.println(data, HEX);
-#endif
-			if ((addr & 0x02) == 0) // Il s'agit donc des positions X et Y des caractères du Quad
-			{
-#ifdef DEBUG_SERIAL
-				Serial.println("Positions X ou Y");
-#endif
-				if ((addr & 0x0C) == 0x00) // Il s'agit du premier caractère du Quad, donc celui qui va déterminer l'emplacement des autres
+				displayed_chars[char_number].color = CHAR_COLORS((data >> 1) & 0x07);
+
+				if ((char_number < 12) || (char_number % 4 == 0)) // If one of the 12 "independant" chars or the 1st char from a quad
 				{
-#ifdef DEBUG_SERIAL
-					Serial.println("Premier caractère");
-#endif
-					if ((addr & 0x01) == 0x00) // Il s'agit donc de la position Y du caractère
-					{
-#ifdef DEBUG_SERIAL
-						Serial.println("Position Y");
-#endif
-						data &= 0xFE;		// qui sera donc nécessairement paire
-						addr = addr & 0x70; // Adresse de base du groupe de caractères
-						intel8245_ram[addr] = data;
-						intel8245_ram[addr + 0x04] = data;
-						intel8245_ram[addr + 0x08] = data;
-						intel8245_ram[addr + 0x0C] = data;
-					}
-					else // Il s'agit donc de la position X du caractère
-					{
-#ifdef DEBUG_SERIAL
-						Serial.println("Position X");
-#endif
-						addr = addr & 0x70; // Adresse de base du groupe de caractères
-						intel8245_ram[addr + 0x01] = data + 0;
-						intel8245_ram[addr + 0x05] = data + 0x10;
-						intel8245_ram[addr + 0x09] = data + 0X20;
-						intel8245_ram[addr + 0x0D] = data + 0x30;
-					}
+					displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
+
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
+					displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+					displayed_chars[char_number].height =
+						((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
+						displayed_chars[char_number].cset_start_address;
 				}
-				else
+				if ((char_number >= 12) && (char_number % 4 == 0)) // 1st char from a quad
 				{
-					intel8245_ram[addr] = data;
-#ifdef DEBUG_SERIAL
-					Serial.println("Pas le dernier caractère");
-#endif
+					//
+					// Copy modified data in remaining three chars
+					//
+					displayed_chars[char_number + 1].previous_height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 1].height = displayed_chars[char_number].height;
+					displayed_chars[char_number + 2].previous_height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 2].height = displayed_chars[char_number].height;
+					displayed_chars[char_number + 3].previous_height = displayed_chars[char_number].previous_height;
+					displayed_chars[char_number + 4].height = displayed_chars[char_number].height;
+
+					//
+					// Each char has its own cset_start_address
+					//
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 1) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 1) + 2]);
+					displayed_chars[char_number + 1].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number + 1].start_y >> 1)) % 512;
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 2) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 2) + 2]);
+					displayed_chars[char_number + 1].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number + 2].start_y >> 1)) % 512;
+					offset =
+						(((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 3) + 3] & 0x01) << 8) +
+						((uint16_t)intel8245_ram[0x10 + 4 * (char_number + 3) + 2]);
+					displayed_chars[char_number + 1].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number + 3].start_y >> 1)) % 512;
 				}
 			}
-			else // Il s'agit donc du caractère et de sa couleur
-			{
-#ifdef DEBUG_SERIAL
-				Serial.println("Index dans CSET ou couleur");
-#endif
-				intel8245_ram[addr] = data;
+			break;
 			}
 		}
 		else if (addr < 0x10 || (addr >= 0x80 && addr < 0xA0)) // Sprites
