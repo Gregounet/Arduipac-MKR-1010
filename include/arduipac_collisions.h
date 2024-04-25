@@ -30,12 +30,12 @@ struct v_segment_t
 
 struct displayed_char_t
 { // variable height, fixed width
- 
+
     uint8_t start_x;
     uint8_t start_y;
     uint8_t end_y;
+    uint16_t cset_start_address;
     uint8_t height;
-    uint16_t cset_offset;
     uint16_t color;
     uint8_t previous_start_x;
     uint8_t previous_start_y;
@@ -84,7 +84,6 @@ extern uint8_t h_grid_uptodate;
 extern uint8_t v_grid_uptodate;
 extern uint8_t sprites_uptodate;
 extern uint8_t chars_uptodate;
-
 
 // stockage des segments
 

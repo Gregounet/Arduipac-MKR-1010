@@ -131,7 +131,7 @@ void init_displayed_chars()
         displayed_chars[char_number].start_y = 0;
         displayed_chars[char_number].height = 0;
         displayed_chars[char_number].end_y = 0;
-        displayed_chars[char_number].cset_offset = 0;
+        displayed_chars[char_number].cset_start_address = 0;
         displayed_chars[char_number].color = 0;
         displayed_chars[char_number].previous_start_x = 0;
         displayed_chars[char_number].previous_start_y = 0;

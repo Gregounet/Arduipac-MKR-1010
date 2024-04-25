@@ -213,7 +213,62 @@ void ext_write(uint8_t data, uint8_t addr)
 			Serial.print("] <- 0x");
 			Serial.println(data, HEX);
 #endif
+			chars_uptodate = 0;
 			intel8245_ram[addr] = data;
+			uint8_t char_number = (addr - 0x10) / 4;
+			uint8_t char_attribute = (addr - 0x10) % 4;
+			displayed_chars[char_number].changed_displayed = 0x03; // TODO compute "display" part depending on x & y values
+
+			switch (char_attribute)
+			{
+			case 0: // y
+			{
+				displayed_chars[char_number].previous_start_y = displayed_chars[char_number].start_y;
+				displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
+
+				displayed_chars[char_number].start_y = data & 0xFE;
+
+				uint16_t offset =
+					(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
+					((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
+				displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+				displayed_chars[char_number].height =
+					((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
+					displayed_chars[char_number].cset_start_address;
+				break;
+			}
+			case 1: // x
+				displayed_chars[char_number].previous_start_x = displayed_chars[char_number].start_x;
+				displayed_chars[char_number].start_x = data;
+				break;
+			case 2: // offset (bits 0-7)
+			{
+				displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
+				
+				uint16_t offset =
+					(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
+					((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
+				displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+				displayed_chars[char_number].height =
+					((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
+					displayed_chars[char_number].cset_start_address;
+				break;
+			}
+			case 3: // color index + offset b8
+			{
+				displayed_chars[char_number].color = CHAR_COLORS((data >> 1) & 0x07);
+				displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
+
+				uint16_t offset =
+					(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
+					((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
+				displayed_chars[char_number].cset_start_address = (offset + (uint16_t)(displayed_chars[char_number].start_y >> 1)) % 512;
+				displayed_chars[char_number].height =
+					((displayed_chars[char_number].cset_start_address / 8) + 1) * 8 -
+					displayed_chars[char_number].cset_start_address;
+				break;
+			}
+			}
 		}
 		else if (addr >= 0x40 && addr < 0x80) // Quads
 		{
@@ -322,7 +377,6 @@ void ext_write(uint8_t data, uint8_t addr)
 						break;
 					case 2: // color, shift, size, etc
 						displayed_sprites[sprite_number].color = CHAR_COLORS((data & 0x38) >> 3);
-						displayed_sprites[sprite_number].previous_size = displayed_sprites[sprite_number].size;
 						displayed_sprites[sprite_number].size = ((data & 0x04) >> 2) + 1;
 						displayed_sprites[sprite_number].shift = (data & 0x02) >> 1;
 						displayed_sprites[sprite_number].even_shift = (data & 0x01);
@@ -338,12 +392,12 @@ void ext_write(uint8_t data, uint8_t addr)
 					sprites_uptodate = 0;
 
 					//
-					// Previous information alse need to be updated in case of sprite shape change
-					// TODO: confirm this is usefull
+					// Previous information alse needs to be updated in case of sprite shape change
+					// TODO: confirm whether this is usefull
 					//
-					displayed_sprites[sprite_number].previous_start_x = displayed_sprites[sprite_number].start_x;
-					displayed_sprites[sprite_number].previous_start_y = displayed_sprites[sprite_number].start_y;
-					displayed_sprites[sprite_number].previous_size = displayed_sprites[sprite_number].size;
+					// displayed_sprites[sprite_number].previous_start_x = displayed_sprites[sprite_number].start_x;
+					// displayed_sprites[sprite_number].previous_start_y = displayed_sprites[sprite_number].start_y;
+					// displayed_sprites[sprite_number].previous_size = displayed_sprites[sprite_number].size;
 
 					displayed_sprites[sprite_number].changed_displayed = 0x03; // TODO compute "display" depending on x y values
 
@@ -358,6 +412,11 @@ void ext_write(uint8_t data, uint8_t addr)
 		}
 		else if ((addr == 0xA0) && (intel8245_ram[0xA0] != data)) // VDC Control Register
 		{
+			//
+			// Comme je ne comprends pas pour l'instant je commente. TODO
+			//
+			// if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data) draw_display();
+
 			if ((intel8245_ram[0xA0] & 0x02) && !(data & 0x02)) // beam latch
 			{
 				// Le bit 1 de la VRAM était à 1 et est passé à 0 donc x_latch et y_latch suivent le beam
@@ -534,9 +593,5 @@ void ext_write(uint8_t data, uint8_t addr)
 		}
 		break;
 	}
-		/*
-		 * Comme je ne comprends pas pour l'instant je commente. TODO
-		 * if (vertical_clock <= START_VBLCLK && intel8245_ram[0xA0] != data) draw_display();
-		 */
 	}
 }

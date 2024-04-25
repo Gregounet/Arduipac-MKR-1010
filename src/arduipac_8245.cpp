@@ -30,14 +30,7 @@
 
 // #undef DEBUG_STDERR
 // #define DEBUG_SERIAL
-// #define DEBUG_GRID
-// #define DEBUG_DETAIL
 // #undef DEBUG_TFT
-
-// #undef DEBUG_CHARS
-// #undef DEBUG_SPRITES
-
-// #undef DEBUG_DETAIL
 
 uint8_t intel8245_ram[256];
 uint8_t collision_table[256]; // TODO Va falloir trouver un moyen de remplacer ce tableau ENORME
@@ -118,123 +111,115 @@ void show_grid()
  */
 
 /*
- * show_1char()
- */
-
-void show_1char(uint8_t x, uint8_t y, uint8_t offset, uint8_t char_color_index)
-{
-  uint16_t char_color = CHAR_COLORS((char_color_index >> 1) & 0x07);
-  uint16_t cset_start_address = ((uint16_t)((char_color_index & 1) << 8) + (uint16_t)offset + (uint16_t)(y >> 1)) % 512;
-  uint8_t number_of_rows = ((cset_start_address / 8 + 1) * 8) - cset_start_address;
-
-  y &= 0xFE; // TODO pas clair ce Y...
-
-#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
-  fprintf(stderr, "show1_char(): x = %d, y = %d, indice dans cset = %0x03x, index couleur = %d\n", x, y, cset_start_offset, char_color_index);
-#endif
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-  Serial.print("show1_char() x = ");
-  Serial.print(x);
-  Serial.print(", y = ");
-  Serial.print(y);
-  Serial.print(", offset = 0x");
-  Serial.print(offset, HEX);
-  Serial.print(", indice dans cset = 0x");
-  Serial.print(cset_start_address, HEX);
-  Serial.print(", char number = 0x");
-  Serial.print(cset_start_address / 8, HEX);
-  Serial.print(", color_index = 0x");
-  Serial.println(char_color_index, HEX);
-#endif
-#if defined(DEBUG_TFT) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
-#endif
-
-  for (uint8_t char_row = 0; char_row < number_of_rows; char_row++)
-  {
-    uint8_t cset_byte = CSET(cset_start_address + char_row);
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
-    Serial.print("cset_byte[0x");
-    Serial.print(char_row, HEX);
-    Serial.print("] = 0x");
-    Serial.println(cset_byte, HEX);
-#endif
-
-    uint8_t mask = 0x80;
-    for (int8_t char_column = 0; char_column < 8; char_column++)
-    {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
-      Serial.print("char_column = ");
-      Serial.println(char_column, HEX);
-#endif
-      if (cset_byte & mask)
-      {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS) && defined(DEBUG_DETAIL)
-        Serial.print("drawPixel(");
-        Serial.print(x + (7 - char_column), HEX);
-        Serial.print(", ");
-        Serial.print(y + char_row, HEX);
-        Serial.print(", ");
-        Serial.print(char_color);
-        Serial.println(")");
-#endif
-        graphic_tft.fillRect(20 + 2 * (x + char_column - 8), y + char_row * 2, 2, 2, char_color);
-      }
-      mask >>= 1;
-    }
-  }
-}
-
-/*
- * show_4quads()
+ * show_quads()
  *
  */
 
-void show_4quads()
+void show_quads()
 {
-#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
+#if defined(DEBUG_STDERR)
 #endif
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
+#if defined(DEBUG_SERIAL)
   Serial.println("show_4quads()");
 #endif
-#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
+#if defined(DEBUG_TFT)
 #endif
   for (uint8_t quad_indx = 0x40; quad_indx < 0x80; quad_indx += 0x10)
   {
-    show_1char(intel8245_ram[quad_indx + 1], intel8245_ram[quad_indx + 0], intel8245_ram[quad_indx + 2], intel8245_ram[quad_indx + 3]);
-    show_1char(intel8245_ram[quad_indx + 5], intel8245_ram[quad_indx + 4], intel8245_ram[quad_indx + 6], intel8245_ram[quad_indx + 7]);
-    show_1char(intel8245_ram[quad_indx + 9], intel8245_ram[quad_indx + 8], intel8245_ram[quad_indx + 10], intel8245_ram[quad_indx + 11]);
-    show_1char(intel8245_ram[quad_indx + 13], intel8245_ram[quad_indx + 12], intel8245_ram[quad_indx + 14], intel8245_ram[quad_indx + 15]);
+    ;
   }
 }
 
 /*
- * show_12chars()
+ * show_chars()
  *
  */
 
-void show_12chars()
-{
-#if defined(DEBUG_STDERR) && defined(DEBUG_CHARS)
-#endif
-#if defined(DEBUG_SERIAL) && defined(DEBUG_CHARS)
-  Serial.print(bigben);
-  Serial.println(" - show_12chars()");
-#endif
-#if defined(DEBUG_TFT) && defined(DEBUG_CHARS)
-#endif
-  for (uint8_t i = 0; i < 12; i++)
-    show_1char(intel8245_ram[0x10 + i * 4 + 1], intel8245_ram[0x10 + i * 4], intel8245_ram[0x10 + i * 4 + 2], intel8245_ram[0x10 + i * 4 + 3]);
-}
+#define DEBUG_SERIAL
 
+void show_chars()
+{
+#if defined(DEBUG_STDERR)
+#endif
+#if defined(DEBUG_SERIAL)
+  Serial.println("show_chars()");
+#endif
+#if defined(DEBUG_TFT)
+#endif
+
+  for (uint8_t char_number = 0; char_number < 12; char_number++)
+  {
+#if defined(DEBUG_SERIAL)
+    Serial.print("char_number ");
+    Serial.println(char_number);
+#endif
+    if (displayed_chars[char_number].changed_displayed & 0x02) // Char data was changed
+    {
+#if defined(DEBUG_SERIAL)
+      Serial.println("Changed");
+#endif
+      displayed_chars[char_number].changed_displayed &= 0xFD; // Clear change flag
+
+      //
+      // "Erase" old char position
+      //
+      graphic_tft.fillRect(
+          20 + 2 * (displayed_chars[char_number].previous_start_x - 8),
+          displayed_chars[char_number].previous_start_y,
+          16,
+          2 * displayed_chars[char_number].previous_height,
+          background_color);
+
+      for (uint8_t row = 0; row < displayed_chars[char_number].height; row++)
+      {
+#if defined(DEBUG_SERIAL)
+        Serial.print("row ");
+        Serial.println(row);
+#endif
+        uint8_t cset_byte = CSET(displayed_chars[char_number].cset_start_address + row);
+        uint8_t mask = 0x80;
+
+        for (int8_t char_column = 0; char_column < 8; char_column++)
+        {
+#if defined(DEBUG_SERIAL)
+          Serial.print("char_column = ");
+          Serial.println(char_column, HEX);
+#endif
+          if (cset_byte & mask)
+          {
+#if defined(DEBUG_SERIAL)
+            Serial.println("fillRect");
+            Serial.print(20 + 2 * (displayed_chars[char_number].start_x + char_column - 8));
+            Serial.print(", ");
+            Serial.print(displayed_chars[char_number].start_y + row * 2);
+            Serial.print(", 2, 2, ");
+            Serial.print(displayed_chars[char_number].color);
+            Serial.println(")");
+#endif
+            graphic_tft.fillRect(
+                20 + 2 * (displayed_chars[char_number].start_x + char_column - 8),
+                displayed_chars[char_number].start_y + row * 2,
+                2,
+                2,
+                displayed_chars[char_number].color);
+          }
+          mask >>= 1;
+        }
+      }
+    }
+  }
+}
 /*
  * Minor system
  *
  */
 
 /*
- * show_4sprites()
+ * show_sprites()
  *
  */
+
+#undef DEBUG_SERIAL
 
 void show_sprites()
 {
@@ -361,8 +346,8 @@ void draw_display()
     if (!chars_uptodate)
     {
       chars_uptodate = 1;
-      show_12chars();
-      show_4quads();
+      show_chars();
+      show_quads();
     }
 
     if (!sprites_uptodate)
