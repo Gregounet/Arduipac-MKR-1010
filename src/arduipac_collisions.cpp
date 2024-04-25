@@ -22,9 +22,14 @@
 uint8_t grid_control = 0;
 uint8_t foreground_control = 0;
 uint8_t grid_dots = 0;
-uint8_t v_segments_width = 3;  // This one REALLY needs to be initialized
+uint8_t v_segments_width = 3; // This one REALLY needs to be initialized
 uint16_t grid_color = 0;
 uint16_t background_color = 0;
+
+uint8_t h_grid_uptodate = 0;
+uint8_t v_grid_uptodate = 0;
+uint8_t sprites_uptodate = 0;
+uint8_t chars_uptodate = 0;
 
 // stockage des segments
 
@@ -33,18 +38,18 @@ v_segment_t v_segments[NB_V_SEGMENTS];
 
 // stockage des caractères
 
-displayed_char_t displayed_chars[28];
+displayed_char_t displayed_chars[NB_CHARS];
 
 // stockage des sprites
 
-displayed_sprite_t displayed_sprites[4];
+displayed_sprite_t displayed_sprites[NB_SPRITES];
 
 //
 // Display elements changing
 //
 
 //
-// Initialisation de la grille
+// Initialisations
 //
 
 void init_grid_elements()
@@ -62,8 +67,7 @@ void init_grid_elements()
         {
             h_segments[colonne * 9 + ligne].start_x = 10 + 16 * colonne;
             h_segments[colonne * 9 + ligne].start_y = 24 + 24 * ligne;
-            h_segments[colonne * 9 + ligne].displayed = 0;
-            // graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * ligne, 36, 3, grid_color);
+            h_segments[colonne * 9 + ligne].changed_displayed = 0;
         }
     }
 
@@ -85,9 +89,8 @@ void init_grid_elements()
             v_segments[colonne * 8 + ligne].start_x = 10 + 16 * colonne;
             v_segments[colonne * 8 + ligne].end_x = 10 + 16 * colonne + v_segments_width;
             v_segments[colonne * 8 + ligne].start_y = 24 + 24 * ligne;
-            v_segments[colonne * 8 + ligne].displayed = 0;
-            // graphic_tft.fillRect(20 + 32 * colonne, 24 + 24 * ligne, width, 24, grid_color);
-        }
+            v_segments[colonne * 8 + ligne].changed_displayed = 0;
+         }
     }
 
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
@@ -106,78 +109,58 @@ void init_grid_elements()
 
     for (int i = 0; i < NB_V_SEGMENTS; i++)
     {
-    Serial.print("v_segments[");
-    Serial.print(i);
-    Serial.print("].start_x = ");
-    Serial.print(v_segments[i].start_x);
-    Serial.print(", end_x = ");
-    Serial.print(v_segments[i].end_x);
-    Serial.print(", start_y = ");
-    Serial.print(v_segments[i].start_y);
-    Serial.print(", displayed = ");
-    Serial.println(v_segments[i].displayed);
+        Serial.print("v_segments[");
+        Serial.print(i);
+        Serial.print("].start_x = ");
+        Serial.print(v_segments[i].start_x);
+        Serial.print(", end_x = ");
+        Serial.print(v_segments[i].end_x);
+        Serial.print(", start_y = ");
+        Serial.print(v_segments[i].start_y);
+        Serial.print(", displayed = ");
+        Serial.println(v_segments[i].displayed);
     }
 #endif
+}
 
+void init_displayed_chars()
+{
+    for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
+    {
+        displayed_chars[char_number].start_x = 0;
+        displayed_chars[char_number].start_y = 0;
+        displayed_chars[char_number].end_y = 0;
+        displayed_chars[char_number].previous_start_x = 0;
+        displayed_chars[char_number].previous_start_y = 0;
+        displayed_chars[char_number].previous_end_y = 0;
+        displayed_chars[char_number].color = 0;
+        displayed_chars[char_number].cset_offset = 0;
+        displayed_chars[char_number].height = 0;
+        displayed_chars[char_number].changed_displayed = 0;
+    }
+}
+
+void init_displayed_sprites()
+{
+    for (uint8_t sprite_number = 0; sprite_number < NB_SPRITES; sprite_number++)
+    {
+        displayed_sprites[sprite_number].start_x = 0;
+        displayed_sprites[sprite_number].end_x = 0;
+        displayed_sprites[sprite_number].start_y = 0;
+        displayed_sprites[sprite_number].end_y = 0;
+        displayed_sprites[sprite_number].previous_start_x = 0;
+        displayed_sprites[sprite_number].previous_end_x = 0;
+        displayed_sprites[sprite_number].previous_start_y = 0;
+        displayed_sprites[sprite_number].previous_end_y = 0;
+        displayed_sprites[sprite_number].color = 0;
+        displayed_sprites[sprite_number].size = 1;
+        displayed_sprites[sprite_number].shift = 0;
+        displayed_sprites[sprite_number].even_shift = 0;
+        displayed_sprites[sprite_number].changed_displayed = 0;
+    }
 }
 
 /*
-// Modification des caractères
-
-Pour chaque élément caractère:
-
-{
-    displayed_chars[...].start_x
-        displayed_chars[...]
-            .start_y
-                displayed_chars[...]
-            .end_y
-                displayed_chars[...]
-            .color
-}
-
-// Modification des sprites
-
-for (uint8_t sprite_number = 0; sprite_number < 4; sprite_number++)
-{
-    displayed_sprites[sprite_number].size = …;
-    displayed_sprites[sprite_number].start_x = …;
-    displayed_sprites[sprite_number].end_x = start_x + (size * 8);
-    displayed_sprites[sprite_number].start_y = …;
-    displayed_sprites[sprite_number].end_y = start_x + (size * 8);
-    displayed_sprites[sprite_number].color = … ;
-    displayed_sprites[sprite_number].shift = …;
-    displayed_sprites[sprite_number].even_shift = …;
-}
-
-//
-// Affichages
-//
-
-for (uint8_t h_segment_number = 0; h_segment_number < number_h_segments; h_segment_number++)
-    graphic_tft.fillRect(
-        displayed_h_segments[h_segment_number].start_x,
-        displayed_h_segments[h_segment_number].start_y,
-…,
-        3,
-        segments_color);
-
-for (uint8_t v_segment_number = 0; v_segment_number < number_v_segments; v_segment_number++)
-    graphic_tft.fillRect(
-        displayed_v_segments[v_segment_number].start_x,
-        displayed_v_segments[v_segment_number].start_y,
-        v_segments_width,
-… segments_color);
-
-for (uint8_t char_number = 0; char_number < 28; char_number++)
-{
-<reprendre le code existant>
-}
-
-for (uint8_t sprite_number = 0; sprite_number < 4; sprite_number++)
-{
-    <reprendre le code existant>
-
         //
         // Détection des collisions
         //
@@ -261,15 +244,6 @@ for (uint8_t sprite_number = 0; sprite_number < 4; sprite_number++)
 //
 // Etapes:
 //
-// 1 - ajout des stockages de données lors des modifications
-// 1a. Création des structures de stockage (dans 8245.c)
-// 1b. Initialisation des structures - vraiment nécessaire ?
-// 1c. Mise à jour des données qd modif
-//
-// 2 - utilisation de ces structures pour gérer les affichages
-// 2a. grille
-// 2b. caractères
-// 2c. sprites
 //
 // 3 - gestion des collisions
 // 3a. collisions sprites / grille
@@ -280,6 +254,5 @@ for (uint8_t sprite_number = 0; sprite_number < 4; sprite_number++)
 //
 // Questions en suspens:
 // ? quid des points de la grille ?
-// ? gestion séparée quad caractères ?
 
 */
