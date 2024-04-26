@@ -105,14 +105,10 @@ void show_grid()
   }
 }
 
-
 /*
  * show_chars()
  *
  */
-
-#define DEBUG_SERIAL
-
 void show_chars()
 {
 #if defined(DEBUG_STDERR)
@@ -127,16 +123,19 @@ void show_chars()
   for (uint8_t char_number = 0; char_number < 28; char_number++)
   {
 #if defined(DEBUG_SERIAL)
+#endif
     Serial.print("char_number ");
     Serial.println(char_number);
-#endif
     if (displayed_chars[char_number].changed_displayed & 0x02) // Char data was changed
     {
 #if defined(DEBUG_SERIAL)
-      Serial.println("Changed");
 #endif
+      Serial.println("Changed");
+      Serial.print("x = ");
+      Serial.print(displayed_chars[char_number].start_x);
+      Serial.print(", y = ");
+      Serial.println(displayed_chars[char_number].start_y);
       displayed_chars[char_number].changed_displayed &= 0xFD; // Clear change flag
-
       //
       // "Erase" old char position
       //
@@ -146,7 +145,12 @@ void show_chars()
           16,
           2 * displayed_chars[char_number].previous_height,
           background_color);
-
+      //
+      // Record new position as previous one
+      //
+      displayed_chars[char_number].previous_start_x = displayed_chars[char_number].start_x;
+      displayed_chars[char_number].previous_start_y = displayed_chars[char_number].start_y;
+      displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
       for (uint8_t row = 0; row < displayed_chars[char_number].height; row++)
       {
 #if defined(DEBUG_SERIAL)
@@ -155,7 +159,6 @@ void show_chars()
 #endif
         uint8_t cset_byte = CSET(displayed_chars[char_number].cset_start_address + row);
         uint8_t mask = 0x80;
-
         for (int8_t char_column = 0; char_column < 8; char_column++)
         {
 #if defined(DEBUG_SERIAL)
@@ -186,18 +189,11 @@ void show_chars()
     }
   }
 }
-/*
- * Minor system
- *
- */
 
 /*
  * show_sprites()
  *
  */
-
-#undef DEBUG_SERIAL
-
 void show_sprites()
 {
   // TODO: gérer shift et even_shift
@@ -227,6 +223,12 @@ void show_sprites()
           16 * displayed_sprites[sprite_number].previous_size,
           16 * displayed_sprites[sprite_number].previous_size,
           background_color);
+      //
+      // Record new position as previous one
+      //
+      displayed_sprites[sprite_number].previous_start_x = displayed_sprites[sprite_number].start_x;
+      displayed_sprites[sprite_number].previous_start_y = displayed_sprites[sprite_number].start_y;
+      displayed_sprites[sprite_number].previous_size = displayed_sprites[sprite_number].size;
 
 #if defined(DEBUG_SERIAL)
       Serial.print("show_sprites() - sprite numéro ");
