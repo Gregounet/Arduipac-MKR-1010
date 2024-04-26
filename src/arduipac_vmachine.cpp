@@ -207,15 +207,51 @@ void ext_write(uint8_t data, uint8_t addr)
 	{
 		if (intel8245_ram[addr] != data)
 		{
-			if (addr >= 0x10 && addr < 0x80) // Characters (or quads)
+			if (addr < 0x10) // Sprite control
+			{
+				intel8245_ram[addr] = data;
+				sprites_uptodate = 0;
+
+				uint8_t sprite_number = addr / 4;
+				uint8_t sprite_attribute = addr % 4;
+
+#if defined(DEBUG_SERIAL)
+				Serial.print("Sprites control - sprite number ");
+				Serial.println(sprite_number);
+				Serial.print("Attribute ");
+				Serial.println(sprite_attribute);
+				Serial.print("Value 0x");
+				Serial.println(data, HEX);
+#endif
+				displayed_sprites[sprite_number].changed_displayed = 0x03; // TODO compute "display" part depending on x & y values
+				switch (sprite_attribute)
+				{
+				case 0: // y
+					displayed_sprites[sprite_number].start_y = data;
+					displayed_sprites[sprite_number].end_y = data + (7 * displayed_sprites[sprite_number].size);
+					break;
+				case 1: // x
+					displayed_sprites[sprite_number].start_x = (data - 8) * 2;
+					displayed_sprites[sprite_number].end_x = displayed_sprites[sprite_number].start_x + (7 * displayed_sprites[sprite_number].size);
+					break;
+				case 2: // color, shift, size, etc
+					displayed_sprites[sprite_number].color = CHAR_COLORS((data & 0x38) >> 3);
+					displayed_sprites[sprite_number].size = ((data & 0x04) >> 2) + 1;
+					displayed_sprites[sprite_number].shift = (data & 0x02) >> 1;
+					displayed_sprites[sprite_number].even_shift = (data & 0x01);
+					break;
+				default: // not used
+					break;
+				}
+			}
+			else if (addr >= 0x10 && addr < 0x80) // Characters (or quads)
 			{
 #ifdef DEBUG_SERIAL
-#endif
 				Serial.print("Accessing Characters [0x");
 				Serial.print(addr, HEX);
 				Serial.print("] <- 0x");
 				Serial.println(data, HEX);
-
+#endif
 				intel8245_ram[addr] = data;
 				chars_uptodate = 0;
 				uint8_t char_number = (addr - 0x10) / 4;
@@ -240,7 +276,7 @@ void ext_write(uint8_t data, uint8_t addr)
 						uint16_t offset;
 						uint16_t cset_start_address;
 						uint8_t height;
-						displayed_chars[char_number].start_y = start_y ;
+						displayed_chars[char_number].start_y = start_y;
 						offset =
 							(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
 							((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
@@ -345,72 +381,20 @@ void ext_write(uint8_t data, uint8_t addr)
 				}
 				}
 			}
-			else if (addr < 0x10 || (addr >= 0x80 && addr < 0xA0)) // Sprites
+			else if (addr >= 0x80 && addr < 0xA0) // Sprite shapes
 			{
-#ifdef DEBUG_SERIAL
-				Serial.print(bigben);
-				Serial.print("- Accessing Sprites Shapes [0x");
-				Serial.print(addr, HEX);
-				Serial.print("] <- 0x");
-				Serial.println(data, HEX);
-#endif
-
-				// Update sprites information
 				intel8245_ram[addr] = data;
-
-				if (addr < 0x10) // Sprite control
-				{
-					sprites_uptodate = 0;
-
-					uint8_t sprite_number = addr / 4;
-					uint8_t sprite_attribute = addr % 4;
-
+				sprites_uptodate = 0;
+				uint8_t sprite_number = (addr - 0x80) / 8;
+				displayed_sprites[sprite_number].changed_displayed = 0x03; // TODO compute "display" depending on x y values
 #if defined(DEBUG_SERIAL)
-					Serial.print("Sprites control - sprite number ");
-					Serial.println(sprite_number);
-					Serial.print("Attribute ");
-					Serial.println(sprite_attribute);
-					Serial.print("Value 0x");
-					Serial.println(data, HEX);
+				Serial.print("Sprites shapes - sprite number ");
+				Serial.println(sprite_number);
+				Serial.print("Value ");
+				Serial.println(data);
 #endif
-					displayed_sprites[sprite_number].changed_displayed = 0x03; // TODO compute "display" part depending on x & y values
-					//
-					// Previous information ALL need to be updated in case of ANY (ie x, y or size) position-related change
-					//
-					switch (sprite_attribute)
-					{
-					case 0: // y
-						displayed_sprites[sprite_number].start_y = data;
-						displayed_sprites[sprite_number].end_y = data + (7 * displayed_sprites[sprite_number].size);
-						break;
-					case 1: // x
-						displayed_sprites[sprite_number].start_x = (data - 8) * 2;
-						displayed_sprites[sprite_number].end_x = displayed_sprites[sprite_number].start_x + (7 * displayed_sprites[sprite_number].size);
-						break;
-					case 2: // color, shift, size, etc
-						displayed_sprites[sprite_number].color = CHAR_COLORS((data & 0x38) >> 3);
-						displayed_sprites[sprite_number].size = ((data & 0x04) >> 2) + 1;
-						displayed_sprites[sprite_number].shift = (data & 0x02) >> 1;
-						displayed_sprites[sprite_number].even_shift = (data & 0x01);
-						break;
-					default: // not used
-						break;
-					}
-				}
-				else // Sprite shapes
-				{
-					uint8_t sprite_number = (addr - 0x80) / 8;
-					sprites_uptodate = 0;
-					displayed_sprites[sprite_number].changed_displayed = 0x03; // TODO compute "display" depending on x y values
-#if defined(DEBUG_SERIAL)
-					Serial.print("Sprites shapes - sprite number ");
-					Serial.println(sprite_number);
-					Serial.print("Value ");
-					Serial.println(data);
-#endif
-				}
 			}
-			else if ((addr == 0xA0) && (intel8245_ram[0xA0] != data)) // VDC Control Register
+			else if (addr == 0xA0) // VDC Control Register
 			{
 				//
 				// Comme je ne comprends pas pour l'instant je commente. TODO
@@ -462,24 +446,12 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 				}
 				if ((intel8245_ram[0xA0] & 0x40) != (data & 0x40)) // Dots objects
-				{
-					// Dots display on / off
 					grid_dots = data & 0x40;
-#ifdef DEBUG_SERIAL
-					Serial.print("grid_dots = ");
-					Serial.println(grid_dots);
-#endif
-				}
 				if ((intel8245_ram[0xA0] & 0x80) != (data & 0x80)) // Vertical segments width
-				{
-					// Vertical segments width
 					v_segments_width = (data & 0x80) ? 16 : 3;
-					Serial.print("v_segments_width = ");
-					Serial.println(v_segments_width);
-				}
 				intel8245_ram[0xA0] = data;
 			}
-			else if (addr == 0xA3 && intel8245_ram[0xA3] != data) // VDC Color Register
+			else if (addr == 0xA3) // VDC Color Register
 			{
 				if ((intel8245_ram[0xA3] & 0x47) != (data & 0x47)) // Grid color
 				{
@@ -508,6 +480,7 @@ void ext_write(uint8_t data, uint8_t addr)
 					sprites_uptodate = 0;
 					chars_uptodate = 0;
 					// Force redrawing grid elements
+					// TODO: find a way to indicate to the show_grid routine that all elements must be drawn
 					for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
 						h_segments[h_segment].changed_displayed |= 0x02;
 					for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
@@ -518,76 +491,56 @@ void ext_write(uint8_t data, uint8_t addr)
 					// Force redrawing sprites
 					for (uint8_t sprite_number = 0; sprite_number < NB_SPRITES; sprite_number++)
 						displayed_sprites[sprite_number].changed_displayed |= 0x02;
-
-					intel8245_ram[0xA3] = data;
 				}
+				intel8245_ram[0xA3] = data;
 			}
 			else if (addr >= 0xA7 && addr <= 0xAA) // VDC Sound Register
-			{
-#ifdef DEBUG_SERIAL
-				Serial.print("Accessing VDC Sound Register[0x");
-				Serial.print(addr, HEX);
-				Serial.print("] <- 0x");
-				Serial.println(data, HEX);
-#endif
 				intel8245_ram[addr] = data;
-			}
-			else if (addr >= 0xC0 && addr <= 0xE9) // Grid
+			else if (addr >= 0xC0 && addr <= 0xC8) // Grid horizontal segments 0 - 7
 			{
-#ifdef DEBUG_SERIAL
-				Serial.print(bigben);
-				Serial.print(" - Accessing Grid [0x");
-				Serial.print(addr, HEX);
-				Serial.print("] <- 0x");
-				Serial.println(data, HEX);
-#endif
-
-				// Update grid information
 				intel8245_ram[addr] = data;
+				h_grid_uptodate = 0;
 
-				if (addr >= 0xC0 && addr <= 0xC8) // horizontal segments 0 - 7
+				uint8_t base_index = (addr - 0xC0) * 9;
+				uint8_t mask = 0x01;
+				for (uint8_t row = 0; row < 8; row++)
+					h_segments[base_index + row].changed_displayed = 0x02;
+				for (uint8_t bit = 0; bit < 8; bit++)
 				{
-					h_grid_uptodate = 0;
-
-					uint8_t base_index = (addr - 0xC0) * 9;
-					uint8_t mask = 0x01;
-					for (uint8_t row = 0; row < 8; row++)
-						h_segments[base_index + row].changed_displayed = 0x02;
-					for (uint8_t bit = 0; bit < 8; bit++)
-					{
-						if (data & mask)
-							h_segments[base_index + bit].changed_displayed = 0x03;
-						mask <<= 1;
-					}
-				}
-				else if (addr >= 0xD0 && addr <= 0xD8) // horizontal segments 8
-				{
-					h_grid_uptodate = 0;
-
-					uint8_t base_index = (addr - 0xD0) * 9;
-					if (data & 0x01)
-						h_segments[base_index + 8].changed_displayed = 0x02;
-					else
-						h_segments[base_index + 8].changed_displayed = 0x03;
-				}
-				else if (addr >= 0xE0 && addr <= 0xE9) // vertical segments
-				{
-					h_grid_uptodate = 0;
-
-					uint8_t base_index = (addr - 0xE0) * 8;
-					uint8_t mask = 0x01;
-					for (uint8_t col = 0; col < 8; col++)
-						v_segments[base_index + col].changed_displayed = 0x02;
-					for (uint8_t bit = 0; bit < 8; bit++)
-					{
-						if (data & mask)
-							v_segments[base_index + bit].changed_displayed = 0x03;
-						mask <<= 1;
-					}
+					if (data & mask)
+						h_segments[base_index + bit].changed_displayed = 0x03;
+					mask <<= 1;
 				}
 			}
-			break;
+			else if (addr >= 0xD0 && addr <= 0xD8) // Grid horizontal segments 8
+			{
+				intel8245_ram[addr] = data;
+				h_grid_uptodate = 0;
+
+				uint8_t base_index = (addr - 0xD0) * 9;
+				if (data & 0x01)
+					h_segments[base_index + 8].changed_displayed = 0x02;
+				else
+					h_segments[base_index + 8].changed_displayed = 0x03;
+			}
+			else if (addr >= 0xE0 && addr <= 0xE9) // Grid vertical segments
+			{
+				intel8245_ram[addr] = data;
+				v_grid_uptodate = 0;
+
+				uint8_t base_index = (addr - 0xE0) * 8;
+				uint8_t mask = 0x01;
+				for (uint8_t col = 0; col < 8; col++)
+					v_segments[base_index + col].changed_displayed = 0x02;
+				for (uint8_t bit = 0; bit < 8; bit++)
+				{
+					if (data & mask)
+						v_segments[base_index + bit].changed_displayed = 0x03;
+					mask <<= 1;
+				}
+			}
 		}
+		break;
 	}
 	}
 }

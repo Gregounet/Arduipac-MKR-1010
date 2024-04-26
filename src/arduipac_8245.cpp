@@ -89,8 +89,8 @@ void show_grid()
   {
     v_grid_uptodate = 1;
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-#endif
     Serial.println("show_grid() - segments verticaux");
+#endif
 
     for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
     {
@@ -123,18 +123,18 @@ void show_chars()
   for (uint8_t char_number = 0; char_number < 28; char_number++)
   {
 #if defined(DEBUG_SERIAL)
-#endif
     Serial.print("char_number ");
     Serial.println(char_number);
+#endif
     if (displayed_chars[char_number].changed_displayed & 0x02) // Char data was changed
     {
 #if defined(DEBUG_SERIAL)
-#endif
       Serial.println("Changed");
       Serial.print("x = ");
       Serial.print(displayed_chars[char_number].start_x);
       Serial.print(", y = ");
       Serial.println(displayed_chars[char_number].start_y);
+#endif
       displayed_chars[char_number].changed_displayed &= 0xFD; // Clear change flag
       //
       // "Erase" old char position
