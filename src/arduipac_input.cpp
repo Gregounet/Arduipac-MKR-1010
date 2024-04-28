@@ -20,7 +20,6 @@ void write_p1(uint8_t data)
   fprintf(stderr, "write_p1(0x%02X)\n", data);
 #endif
 #ifdef DEBUG_SERIAL
-  Serial.print(bigben);
   Serial.print(" - write_p1(0x");
   Serial.print(data, HEX);
   Serial.println(")");
@@ -49,7 +48,6 @@ read_p2() // 4x3 Keypad used as a keyboard
   fprintf(stderr, "read_p2()\n");
 #endif
 #if defined(DEBUG_SERIAL) || defined(DEBUG_KEYBOARD)
-  Serial.print(bigben);
   Serial.print(" - read_p2() - valeur P2 == 0x");
   Serial.println(p2, HEX);
 #endif

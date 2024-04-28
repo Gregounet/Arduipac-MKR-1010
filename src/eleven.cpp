@@ -27,7 +27,7 @@
 // UFO
 // PETER
 
-#define GAME PETER 
+#define GAME UFO 
 
 #ifdef GAME
 #if GAME == ALIEN

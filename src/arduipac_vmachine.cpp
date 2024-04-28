@@ -165,8 +165,7 @@ ext_read(uint8_t addr)
 #ifdef DEBUG_SERIAL
 		if (addr >= 0x3A && addr <= 0x3B)
 		{
-			Serial.print(bigben);
-			Serial.print(" - ext_read() - external_ram[0x");
+			Serial.print("ext_read() - external_ram[0x");
 			Serial.print(addr, HEX);
 			Serial.print("] -> 0x");
 			Serial.println(external_ram[addr], HEX);
@@ -192,9 +191,7 @@ void ext_write(uint8_t data, uint8_t addr)
 	case 0x08: // External RAM
 	{
 #ifdef DEBUG_SERIAL
-		Serial.println();
-		Serial.print(bigben);
-		Serial.print(" - ext_write() - external_ram[0x");
+		Serial.print("ext_write() - external_ram[0x");
 		Serial.print(addr, HEX);
 		Serial.print("] <- 0x");
 		Serial.println(data, HEX);
@@ -480,7 +477,7 @@ void ext_write(uint8_t data, uint8_t addr)
 					sprites_uptodate = 0;
 					chars_uptodate = 0;
 					// Force redrawing grid elements
-					// TODO: find a way to indicate to the show_grid routine that all elements must be drawn
+					// TODO: find a way to indicate to the all show routines that all elements must be drawn
 					for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
 						h_segments[h_segment].changed_displayed |= 0x02;
 					for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
@@ -494,8 +491,8 @@ void ext_write(uint8_t data, uint8_t addr)
 				}
 				intel8245_ram[0xA3] = data;
 			}
-			else if (addr >= 0xA7 && addr <= 0xAA) // VDC Sound Register
-				intel8245_ram[addr] = data;
+			//			else if (addr >= 0xA7 && addr <= 0xAA) // VDC Sound Register
+			//				intel8245_ram[addr] = data;		   // TODO; move this to an upper level
 			else if (addr >= 0xC0 && addr <= 0xC8) // Grid horizontal segments 0 - 7
 			{
 				intel8245_ram[addr] = data;

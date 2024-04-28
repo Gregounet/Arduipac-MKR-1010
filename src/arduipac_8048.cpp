@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
@@ -183,6 +184,14 @@ void exec_8048()
 	uint16_t addr;	 // Address
 	uint16_t temp;	 // Temporary value
 
+#define LOG_TIME
+#ifdef LOG_TIME
+	long clk_tck = CLOCKS_PER_SEC;
+	clock_t start_time, current_time;
+
+	start_time = clock();
+#endif
+
 #ifdef DEBUG_STDERR
 	fprintf(stderr, "Entering exec_8048()\n");
 #endif
@@ -193,7 +202,7 @@ void exec_8048()
 	text_print_string("Entering exec_8048()\n");
 	delay(TFT_DEBUG_DELAY);
 #endif
-	int incomingByte;
+
 	for (;;)
 	{
 #ifdef DEBUG_SERIAL
@@ -1369,7 +1378,28 @@ void exec_8048()
 #ifdef DEBUG_SERIAL
 		Serial.println();
 #endif
-		bigben++;
+
+		bigben += op;
+
+#ifdef LOG_TIME
+		if (!(bigben%1000000))
+{
+			current_time = clock();
+			Serial.print("Current time = ");
+			Serial.print((double)current_time/1000);
+			Serial.print(", last time = ");
+			Serial.print((double)start_time/1000);
+			Serial.print(", elapsed ticks = ");
+			Serial.print((double)(current_time - start_time));
+			Serial.print(", elapsed time = ");
+			Serial.print((double)(current_time - start_time)/((double)clk_tck));
+			Serial.print(", ticks/s = ");
+			Serial.println(clk_tck);
+			start_time = current_time;
+}
+
+#endif
+
 		horizontal_clock += op_cycles;
 		vertical_clock += op_cycles;
 
