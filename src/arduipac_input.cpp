@@ -162,7 +162,6 @@ in_bus() // 4x3 Keypad used as a joystick
   fprintf(stderr, "in_bus()\n");
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_JOYSTICK)
-  Serial.print(bigben);
   Serial.print(" - in_bus() - P1 == 0x");
   Serial.print(p1, HEX);
   Serial.print(" - P2 == 0x");

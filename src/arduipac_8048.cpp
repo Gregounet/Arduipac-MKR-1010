@@ -79,6 +79,7 @@ uint8_t interrupt_clock;
 uint16_t master_counter;
 
 uint32_t bigben;
+uint32_t previous_bigben;
 
 void init_intel8048()
 {
@@ -99,6 +100,7 @@ void init_intel8048()
 	f0 = 0x00;
 	f1 = 0x00;
 	bigben = 0;
+	previous_bigben = 0;
 
 	itimer = 0x00;
 	timer_on = 0;
@@ -183,6 +185,8 @@ void exec_8048()
 	uint8_t data;	 // Data
 	uint16_t addr;	 // Address
 	uint16_t temp;	 // Temporary value
+
+	int8_t elapsed_time;
 
 #define LOG_TIME
 #ifdef LOG_TIME
@@ -1379,24 +1383,37 @@ void exec_8048()
 		Serial.println();
 #endif
 
-		bigben += op;
+		bigben += op_cycles;
 
 #ifdef LOG_TIME
-		if (!(bigben%1000000))
-{
-			current_time = clock();
-			Serial.print("Current time = ");
-			Serial.print((double)current_time/1000);
-			Serial.print(", last time = ");
-			Serial.print((double)start_time/1000);
-			Serial.print(", elapsed ticks = ");
-			Serial.print((double)(current_time - start_time));
-			Serial.print(", elapsed time = ");
-			Serial.print((double)(current_time - start_time)/((double)clk_tck));
-			Serial.print(", ticks/s = ");
-			Serial.println(clk_tck);
-			start_time = current_time;
-}
+		if ((bigben - previous_bigben) > 3600000)
+		{ /*
+			 current_time = clock();
+			 Serial.print("Current time = ");
+			 Serial.print((double)current_time / 1000);
+			 Serial.print(", last time = ");
+			 Serial.print((double)start_time / 1000);
+			 Serial.print(", elapsed ticks = ");
+			 Serial.print((double)(current_time - start_time));
+			 Serial.print(", elapsed time = ");
+			 Serial.print((double)(current_time - start_time) / ((double)clk_tck));
+			 Serial.print(", ticks/s = ");
+			 Serial.println(clk_tck);
+			 start_time = current_time;
+
+			 minutes = rtc.getMinutes();*/
+			previous_bigben = bigben;
+			seconds = rtc.getSeconds();
+			minutes = rtc.getMinutes();
+
+			elapsed_time = ((minutes - previous_minutes) * 60 + (seconds - previous_seconds));
+
+			Serial.print("Elapsed time (seconds): ");
+			Serial.println(elapsed_time);
+
+			previous_minutes = minutes;
+			previous_seconds = seconds;
+		}
 
 #endif
 

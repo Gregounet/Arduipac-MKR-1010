@@ -4,10 +4,18 @@
 #include <Adafruit_ST7735.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
+#include <RTCZero.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+
+RTCZero rtc;
+
+uint8_t minutes;
+uint8_t previous_minutes;
+uint8_t seconds;
+uint8_t previous_seconds;
 
 #include "arduipac.h"
 #include "arduipac_vmachine.h"
@@ -56,7 +64,7 @@ void graphic_drawtext(char *text)
   graphic_tft.print(text);
 }
 
-char welcome_string[] = "Disco disco" ;
+char welcome_string[] = "Disco disco";
 
 void setup()
 {
@@ -76,7 +84,7 @@ void setup()
   graphic_tft.setSPISpeed(100000000);
   graphic_tft.setRotation(1);
   graphic_tft.setTextColor(ST77XX_WHITE);
-  
+
 #ifdef DEBUG_STDERR
   fprintf(stderr, "%s\n", welcome_string);
 #endif
@@ -98,23 +106,23 @@ void setup()
   delay(TFT_DEBUG_DELAY);
 #endif
 
-pinMode(KEYBOARD_R1, INPUT_PULLDOWN);
-pinMode(KEYBOARD_R2, INPUT_PULLDOWN);
-pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
-pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
+  pinMode(KEYBOARD_R1, INPUT_PULLDOWN);
+  pinMode(KEYBOARD_R2, INPUT_PULLDOWN);
+  pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
+  pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
 
-pinMode(KEYBOARD_C1, OUTPUT);
-pinMode(KEYBOARD_C2, OUTPUT);
-pinMode(KEYBOARD_C3, OUTPUT);
+  pinMode(KEYBOARD_C1, OUTPUT);
+  pinMode(KEYBOARD_C2, OUTPUT);
+  pinMode(KEYBOARD_C3, OUTPUT);
 
-pinMode(JOYSTICK_R1, INPUT_PULLDOWN);
-pinMode(JOYSTICK_R2, INPUT_PULLDOWN);
-pinMode(JOYSTICK_R3, INPUT_PULLDOWN);
-pinMode(JOYSTICK_R4, INPUT_PULLDOWN);
+  pinMode(JOYSTICK_R1, INPUT_PULLDOWN);
+  pinMode(JOYSTICK_R2, INPUT_PULLDOWN);
+  pinMode(JOYSTICK_R3, INPUT_PULLDOWN);
+  pinMode(JOYSTICK_R4, INPUT_PULLDOWN);
 
-pinMode(JOYSTICK_C1, OUTPUT);
-pinMode(JOYSTICK_C2, OUTPUT);
-pinMode(JOYSTICK_C3, OUTPUT);
+  pinMode(JOYSTICK_C1, OUTPUT);
+  pinMode(JOYSTICK_C2, OUTPUT);
+  pinMode(JOYSTICK_C3, OUTPUT);
 
   // collision = NULL;
 
@@ -167,6 +175,10 @@ pinMode(JOYSTICK_C3, OUTPUT);
   text_print_string("main(): launching exec_8048()\n");
   delay(TFT_DEBUG_DELAY);
 #endif
+
+  rtc.begin();
+  rtc.setMinutes(0);
+  rtc.setSeconds(0);
 
   exec_8048();
 }
