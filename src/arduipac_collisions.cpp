@@ -35,6 +35,7 @@ uint8_t chars_uptodate = 0;
 // stockage des segments
 
 h_segment_t h_segments[NB_H_SEGMENTS];
+dot_t dots[NB_DOTS];
 v_segment_t v_segments[NB_V_SEGMENTS];
 
 // stockage des caractères
@@ -56,19 +57,21 @@ displayed_sprite_t displayed_sprites[NB_SPRITES];
 void init_grid_elements()
 {
     //
-    // Coordonnées des 9 lignes horizontales
+    // Coordonnées des 9 rows horizontales et des dots
     //
-    for (uint8_t colonne = 0; colonne < 9; colonne++)
+    for (uint8_t column = 0; column < 9; column++)
     {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-        Serial.print("init_grid_elements() - segments horizontaux de la colonne  ");
-        Serial.println(colonne);
+        Serial.print("init_grid_elements() - segments horizontaux de la column  ");
+        Serial.println(column);
 #endif
-        for (uint8_t ligne = 0; ligne < 9; ligne++)
+        for (uint8_t row = 0; row < 9; row++)
         {
-            h_segments[colonne * 9 + ligne].start_x = 10 + 16 * colonne;
-            h_segments[colonne * 9 + ligne].start_y = 24 + 24 * ligne;
-            h_segments[colonne * 9 + ligne].changed_displayed = 0;
+            h_segments[column * 9 + row].start_x = 10 + 16 * column;
+            h_segments[column * 9 + row].start_y = 24 + 24 * row;
+            h_segments[column * 9 + row].changed_displayed = 0;
+            dots[column * 9 + row].start_x = 10 + 16 * column;
+            dots[column * 9 + row].start_y = 24 + 24 * row;
         }
     }
 
@@ -76,20 +79,20 @@ void init_grid_elements()
     // Default to standard width
 
     //
-    // Coordonnées des 10 colonnes verticales
+    // Coordonnées des 10 columns verticales
     //
-    for (uint8_t colonne = 0; colonne < 10; colonne++)
+    for (uint8_t column = 0; column < 10; column++)
     {
 #if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-        Serial.print("init_grid_elements() - segments verticaux de la colonne ");
-        Serial.println(colonne);
+        Serial.print("init_grid_elements() - segments verticaux de la column ");
+        Serial.println(column);
 #endif
-        for (uint8_t ligne = 0; ligne < 8; ligne++)
+        for (uint8_t row = 0; row < 8; row++)
         {
-            v_segments[colonne * 8 + ligne].start_x = 10 + 16 * colonne;
-            v_segments[colonne * 8 + ligne].end_x = 10 + 16 * colonne + v_segments_width;
-            v_segments[colonne * 8 + ligne].start_y = 24 + 24 * ligne;
-            v_segments[colonne * 8 + ligne].changed_displayed = 0;
+            v_segments[column * 8 + row].start_x = 10 + 16 * column;
+            v_segments[column * 8 + row].end_x = v_segments[column * 8 + row].start_x + v_segments_width - 1;
+            v_segments[column * 8 + row].start_y = 24 + 24 * row;
+            v_segments[column * 8 + row].changed_displayed = 0;
         }
     }
 
@@ -158,100 +161,3 @@ void init_displayed_sprites()
         displayed_sprites[sprite_number].changed_displayed = 0;
     }
 }
-
-/*
-        //
-        // Détection des collisions
-        //
-
-        for (uint8_t h_segment_number = 0; h_segment_number < number_h_segments;
-             h_segment_number++)
-    {
-        if (
-            (
-                (displayed_sprites[sprite_number].start_x > displayed_h_segments[h_segment_number].start_x &&
-                 displayed_sprites[sprite_number].start_x < displayed_h_segments[h_segment_number].end_x) ||
-                (displayed_sprites[sprite_number].end_x > displayed_h_segments[h_segment_number].start_x &&
-                 displayed_sprites[sprite_number].end_x < displayed_h_segments[h_segment_number].end_x)) &&
-            ((displayed_sprites[sprite_number].start_y > displayed_h_segments[h_segment_number].start_y &&
-              displayed_sprites[sprite_number].start_y < displayed_h_segments[h_segment_number].end_y) ||
-             (displayed_sprites[sprite_number].end_y > displayed_h_segments[h_segment_number].start_y &&
-              displayed_sprites[sprite_number].end_y < displayed_h_segments[h_segment_number].end_y)))
-        {
-            // il y a collision…
-        }
-    }
-
-    for (uint8_t v_segment_number = 0; v_segment_number < number_v_segments; v_segment_number++)
-    {
-        if (
-            (
-                (displayed_sprites[sprite_number].start_x > displayed_v_segments[v_segment_number].start_x &&
-                 displayed_sprites[sprite_number].start_x < displayed_v_segments[v_segment_number].end_x) ||
-                (displayed_sprites[sprite_number].end_x > displayed_v_segments[v_segment_number].start_x &&
-                 displayed_sprites[sprite_number].end_x < displayed_v_segments[v_segment_number].end_x)) &&
-            ((displayed_sprites[sprite_number].start_y > displayed_v_segments[v_segment_number].start_y &&
-              displayed_sprites[sprite_number].start_y < displayed_v_segments[v_segment_number].end_y) ||
-             (displayed_sprites[sprite_number].end_y > displayed_v_segments[v_segment_number].start_y &&
-              displayed_sprites[sprite_number].end_y < displayed_v_segments[v_segment_number].end_y)))
-        {
-            // il y a collision…
-        }
-    }
-
-    for (uint8_t char_number = 0; char_number < 28; char_number++)
-    {
-        {
-            if (
-                (
-                    (displayed_sprites[sprite_number].start_x > displayed_h_segments[h_segment_number].start_x &&
-                     displayed_sprites[sprite_number].start_x < displayed_h_segments[h_segment_number].end_x) ||
-                    (displayed_sprites[sprite_number].end_x > displayed_h_segments[h_segment_number].start_x &&
-                     displayed_sprites[sprite_number].end_x < displayed_h_segments[h_segment_number].end_x)) &&
-                ((displayed_sprites[sprite_number].start_y > displayed_h_segments[h_segment_number].start_y &&
-                  displayed_sprites[sprite_number].start_y < displayed_h_segments[h_segment_number].end_y) ||
-                 (displayed_sprites[sprite_number].end_y > displayed_h_segments[h_segment_number].start_y &&
-                  displayed_sprites[sprite_number].end_y < displayed_h_segments[h_segment_number].end_y)))
-            {
-                // il y a collision…
-            }
-        }
-
-        for (uint8_t col_sprite_number = 0; col_sprite_number < 4; col_sprite_number++)
-        {
-            if (sprite_number != col_sprite_number)
-            {
-                {
-                    if (
-                        (
-                            (displayed_sprites[sprite_number].start_x > displayed_h_segments[h_segment_number].start_x &&
-                             displayed_sprites[sprite_number].start_x < displayed_h_segments[h_segment_number].end_x) ||
-                            (displayed_sprites[sprite_number].end_x > displayed_h_segments[h_segment_number].start_x &&
-                             displayed_sprites[sprite_number].end_x < displayed_h_segments[h_segment_number].end_x)) &&
-                        ((displayed_sprites[sprite_number].start_y > displayed_h_segments[h_segment_number].start_y &&
-                          displayed_sprites[sprite_number].start_y < displayed_h_segments[h_segment_number].end_y) ||
-                         (displayed_sprites[sprite_number].end_y > displayed_h_segments[h_segment_number].start_y &&
-                          displayed_sprites[sprite_number].end_y < displayed_h_segments[h_segment_number].end_y)))
-                    {
-                        // il y a collision…
-                    }
-                }
-            }
-        }
-    }
-
-//
-// Etapes:
-//
-//
-// 3 - gestion des collisions
-// 3a. collisions sprites / grille
-// 3b. collisions sprites / caractères
-// 3c. collisions sprites / sprites
-//
-// 4 - rendu-compte des collisions
-//
-// Questions en suspens:
-// ? quid des points de la grille ?
-
-*/

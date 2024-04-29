@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdbool.h>
 
 RTCZero rtc;
 
@@ -123,8 +124,6 @@ void setup()
   pinMode(JOYSTICK_C1, OUTPUT);
   pinMode(JOYSTICK_C2, OUTPUT);
   pinMode(JOYSTICK_C3, OUTPUT);
-
-  // collision = NULL;
 
 #ifdef DEBUG_STDERR
   fprintf(stderr, "main(): launching init_intel8245()\n");

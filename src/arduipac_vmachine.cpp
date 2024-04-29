@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "arduipac.h"
 #include "arduipac_vmachine.h"
@@ -34,8 +35,6 @@ void init_vmachine()
 
 	for (uint8_t i = 0x00; i < 0xFF; i++)
 		external_ram[i] = 0x00;
-
-	clear_collision();
 }
 
 uint8_t
@@ -58,8 +57,6 @@ uint8_t
 ext_read(uint8_t addr)
 {
 	uint8_t data;
-	uint8_t scan_input;
-	uint8_t mask;
 #ifdef DEBUG_STDERR
 	fprint(stderr, "ext_read(0x%03X)\n", addr);
 #endif
@@ -84,6 +81,7 @@ ext_read(uint8_t addr)
 		switch (addr)
 		{
 		case 0xA1: // 8245 Status byte - Some other bits should normally be set
+		{
 #ifdef DEBUG_STDERR
 			fprint(stderr, "VDC 0xA0 Status Register\n", addr);
 #endif
@@ -98,35 +96,23 @@ ext_read(uint8_t addr)
 			if (horizontal_clock < (LINECNT - 7)) // TODO Why 7 here ?
 				data = data | 0x01;
 			return data;
-		case 0xA2: // Collision byte
+			break;
+		}
+		case 0xA2: // Collision Register
+		{
 #ifdef DEBUG_STDERR
-			fprint(stderr, "VDC 0xA0 0xA2 Register\n", addr);
+			fprint(stderr, "VDC 0xA2 Collision Register\n", addr);
 #endif
 #ifdef DEBUG_SERIAL
 			Serial.println("VDC 0xA2 Collision Register");
 #endif
 #ifdef DEBUG_TFT
 #endif
-			scan_input = intel8245_ram[0xA2];
-			mask = 0x01;
-			data = 0x00;
-			for (uint8_t i = 0; i < 8; i++)
-			{
-				if (scan_input & mask)
-				{
-					data |= collision_table[0x01] & mask;
-					data |= collision_table[0x02] & mask;
-					data |= collision_table[0x04] & mask;
-					data |= collision_table[0x08] & mask;
-					data |= collision_table[0x10] & mask;
-					data |= collision_table[0x20] & mask;
-					data |= collision_table[0x80] & mask;
-				}
-				mask <<= 1;
-			}
-			clear_collision();
-			return data;
+			return detect_collisions();;
+			break;
+		}
 		case 0xA4:
+		{
 #ifdef DEBUG_STDERR
 #endif
 #ifdef DEBUG_SERIAL
@@ -141,7 +127,10 @@ ext_read(uint8_t addr)
 					y_latch = 0xFF;
 			}
 			return y_latch;
+			break;
+		}
 		case 0xA5:
+		{
 #ifdef DEBUG_STDERR
 #endif
 #ifdef DEBUG_SERIAL
@@ -154,6 +143,8 @@ ext_read(uint8_t addr)
 				x_latch = horizontal_clock * 12; // TODO D'ou sort ce 2 ?
 			}
 			return x_latch;
+			break;
+		}
 		default:
 			return intel8245_ram[addr];
 		}
@@ -171,7 +162,6 @@ ext_read(uint8_t addr)
 			Serial.println(external_ram[addr], HEX);
 		}
 #endif
-
 #ifdef DEBUG_TFT
 #endif
 		return external_ram[addr];
@@ -225,11 +215,11 @@ void ext_write(uint8_t data, uint8_t addr)
 				{
 				case 0: // y
 					displayed_sprites[sprite_number].start_y = data;
-					displayed_sprites[sprite_number].end_y = data + (7 * displayed_sprites[sprite_number].size);
+					displayed_sprites[sprite_number].end_y = displayed_sprites[sprite_number].start_y + (8 * displayed_sprites[sprite_number].size) - 1;
 					break;
 				case 1: // x
-					displayed_sprites[sprite_number].start_x = (data - 8) * 2;
-					displayed_sprites[sprite_number].end_x = displayed_sprites[sprite_number].start_x + (7 * displayed_sprites[sprite_number].size);
+					displayed_sprites[sprite_number].start_x = data - 8;
+					displayed_sprites[sprite_number].end_x = displayed_sprites[sprite_number].start_x + (8 * displayed_sprites[sprite_number].size) - 1;
 					break;
 				case 2: // color, shift, size, etc
 					displayed_sprites[sprite_number].color = CHAR_COLORS((data & 0x38) >> 3);
@@ -273,13 +263,17 @@ void ext_write(uint8_t data, uint8_t addr)
 						uint16_t offset;
 						uint16_t cset_start_address;
 						uint8_t height;
+						uint8_t end_y;
 						displayed_chars[char_number].start_y = start_y;
 						offset =
 							(((uint16_t)intel8245_ram[0x10 + 4 * char_number + 3] & 0x01) << 8) +
 							((uint16_t)intel8245_ram[0x10 + 4 * char_number + 2]);
 						cset_start_address = (offset + (start_y / 2)) % 512;
 						displayed_chars[char_number].cset_start_address = cset_start_address;
-						displayed_chars[char_number].height = 8 - (cset_start_address % 8);
+						height = 8 - (cset_start_address % 8);
+						end_y = start_y + height - 1;
+						displayed_chars[char_number].height = height;
+						displayed_chars[char_number].end_y = end_y;
 						if (char_number >= 12) // 1st char from a quad
 						{
 							//
@@ -291,6 +285,9 @@ void ext_write(uint8_t data, uint8_t addr)
 							displayed_chars[char_number + 1].height =
 								displayed_chars[char_number + 2].height =
 									displayed_chars[char_number + 3].height = height;
+							displayed_chars[char_number + 1].end_y =
+								displayed_chars[char_number + 2].end_y =
+									displayed_chars[char_number + 3].end_y = end_y;
 							//
 							// Each char has its own cset_start_address
 							//
@@ -317,15 +314,15 @@ void ext_write(uint8_t data, uint8_t addr)
 					// If one of the 12 "independant" chars OR the 1st char from a quad
 					//
 					{
-						displayed_chars[char_number].start_x = data;
-						if (char_number >= 12) // 1st char from a quad
+						displayed_chars[char_number].start_x = data - 8; // TODO verifier ce -8
+						if (char_number >= 12)							 // 1st char from a quad
 						{
 							//
 							// Copy (after slight re-computing) modified data in remaining three chars
 							//
-							displayed_chars[char_number + 1].start_x = data + 16;
-							displayed_chars[char_number + 2].start_x = data + 32;
-							displayed_chars[char_number + 3].start_x = data + 48;
+							displayed_chars[char_number + 1].start_x = displayed_chars[char_number].start_x + 16;
+							displayed_chars[char_number + 2].start_x = displayed_chars[char_number].start_x + 32;
+							displayed_chars[char_number + 3].start_x = displayed_chars[char_number].start_x + 48;
 						}
 					}
 					break;
@@ -340,7 +337,9 @@ void ext_write(uint8_t data, uint8_t addr)
 					if (char_number <= 12 || char_number % 4 == 0) // If one of the 12 "independant" chars OR the 1st char from a quad
 					{
 						uint8_t height = 8 - (displayed_chars[char_number].cset_start_address % 8);
+						uint8_t end_y = start_y + height - 1;
 						displayed_chars[char_number].height = height;
+						displayed_chars[char_number].end_y = end_y;
 						if (char_number >= 12) // 1st char from a quad
 						{
 							//
@@ -349,6 +348,9 @@ void ext_write(uint8_t data, uint8_t addr)
 							displayed_chars[char_number + 1].height =
 								displayed_chars[char_number + 2].height =
 									displayed_chars[char_number + 3].height = height;
+							displayed_chars[char_number + 1].end_y =
+								displayed_chars[char_number + 2].end_y =
+									displayed_chars[char_number + 3].end_y = end_y;
 						}
 					}
 					break;
@@ -364,7 +366,9 @@ void ext_write(uint8_t data, uint8_t addr)
 					if (char_number <= 12 || char_number % 4 == 0) // If one of the 12 "independant" chars OR the 1st char from a quad
 					{
 						uint8_t height = 8 - (displayed_chars[char_number].cset_start_address % 8);
+						uint8_t end_y = start_y + height - 1;
 						displayed_chars[char_number].height = height;
+						displayed_chars[char_number].end_y = end_y;
 						if (char_number >= 12) // 1st char from a quad
 						{
 							//
@@ -373,6 +377,9 @@ void ext_write(uint8_t data, uint8_t addr)
 							displayed_chars[char_number + 1].height =
 								displayed_chars[char_number + 2].height =
 									displayed_chars[char_number + 3].height = height;
+							displayed_chars[char_number + 1].end_y =
+								displayed_chars[char_number + 2].end_y =
+									displayed_chars[char_number + 3].end_y = end_y;
 						}
 					}
 				}
@@ -536,6 +543,8 @@ void ext_write(uint8_t data, uint8_t addr)
 					mask <<= 1;
 				}
 			}
+			else if (addr == 0xA2) // VDC Collision Register
+				intel8245_ram[addr] = data;
 		}
 		break;
 	}

@@ -74,7 +74,6 @@ extern uint8_t machine_state;
 
 arduipac_8245.h
 
-extern uint8_t collision_table[];
 extern uint8_t intel8245_ram[];
 
 // Ces deux données sont déclarées dans deux headers !

@@ -7,11 +7,11 @@
 // Structures
 //
 
-// struct dot_t
-// { // fixed width and height
-//     uint8_t start_x;
-//     uint8_t start_y;
-// };
+struct dot_t
+{ // fixed width and height
+    uint8_t start_x;
+    uint8_t start_y;
+};
 
 struct h_segment_t
 { // fixed width and height
@@ -64,6 +64,7 @@ struct displayed_sprite_t
 //
 
 #define NB_H_SEGMENTS 81
+#define NB_DOTS 81 // TODO: check this
 #define NB_V_SEGMENTS 80
 #define NB_CHARS 28
 #define NB_SPRITES 4
@@ -88,6 +89,7 @@ extern uint8_t chars_uptodate;
 // stockage des segments
 
 extern h_segment_t h_segments[NB_H_SEGMENTS];
+extern dot_t dots[NB_DOTS];
 extern v_segment_t v_segments[NB_V_SEGMENTS];
 
 // stockage des caractères

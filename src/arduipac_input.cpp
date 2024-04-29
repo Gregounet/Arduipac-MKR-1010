@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "arduipac.h"
 #include "arduipac_input.h"

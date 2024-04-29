@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
