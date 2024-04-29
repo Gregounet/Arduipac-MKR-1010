@@ -32,7 +32,7 @@ void write_p1(uint8_t data)
 
   p1 = data;
   rom_bank_select = (p1 & 0x01) ? 0x1000 : 0x0000;
-
+  
 #ifdef DEBUG_SERIAL
   Serial.print("rom_bank_select == 0x");
   Serial.println(rom_bank_select, HEX);
@@ -151,19 +151,15 @@ read_p2() // 4x3 Keypad used as a keyboard
 }
 
 uint8_t
-in_bus() // 4x3 Keypad used as a joystick
+in_bus()
 {
   uint8_t data_output = 0xFF;
-
-  uint8_t joystick[12];
-  for (uint8_t i = 0; i < 12; i++)
-    joystick[i] = 0;
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_JOYSTICK)
   fprintf(stderr, "in_bus()\n");
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_JOYSTICK)
-  Serial.print(" - in_bus() - P1 == 0x");
+  Serial.print("in_bus() - P1 == 0x");
   Serial.print(p1, HEX);
   Serial.print(" - P2 == 0x");
   Serial.println(p2, HEX);
@@ -173,61 +169,35 @@ in_bus() // 4x3 Keypad used as a joystick
   delay(TFT_DEBUG_DELAY);
 #endif
 
-  if ((p1 & 0x18) == 0x18     // Ni le 8245 ni la RAM externe ne sont activés
-      && (p2 & 0x07) == 0x00) // Joystick #1
+  if ((p1 & 0x18) == 0x18) // Ni le 8245 ni la RAM externe ne sont activés
   {
-    digitalWrite(JOYSTICK_C1, LOW);
-    digitalWrite(JOYSTICK_C2, LOW);
-    digitalWrite(JOYSTICK_C3, LOW);
+    if (p2 & 0x04)
+    digitalWrite(UNO_JOYSTICK_SELECT, HIGH);
+  else
+    digitalWrite(UNO_JOYSTICK_SELECT, LOW);
 
-    digitalWrite(JOYSTICK_C1, HIGH);
-    joystick[0] = (uint8_t)digitalRead(JOYSTICK_R1);
-    joystick[3] = (uint8_t)digitalRead(JOYSTICK_R2);
-    joystick[6] = (uint8_t)digitalRead(JOYSTICK_R3);
-    joystick[9] = (uint8_t)digitalRead(JOYSTICK_R4);
-    digitalWrite(JOYSTICK_C1, LOW);
-
-    digitalWrite(JOYSTICK_C2, HIGH);
-    joystick[1] = (uint8_t)digitalRead(JOYSTICK_R1);
-    joystick[4] = (uint8_t)digitalRead(JOYSTICK_R2);
-    joystick[7] = (uint8_t)digitalRead(JOYSTICK_R3);
-    joystick[10] = (uint8_t)digitalRead(JOYSTICK_R4);
-    digitalWrite(JOYSTICK_C2, LOW);
-
-    digitalWrite(JOYSTICK_C3, HIGH);
-    joystick[2] = (uint8_t)digitalRead(JOYSTICK_R1);
-    joystick[5] = (uint8_t)digitalRead(JOYSTICK_R2);
-    joystick[8] = (uint8_t)digitalRead(JOYSTICK_R3);
-    joystick[11] = (uint8_t)digitalRead(JOYSTICK_R4);
-    digitalWrite(JOYSTICK_C3, LOW);
-
-    if (joystick[0])
-      data_output = 0xF6;
-    if (joystick[1])
-      data_output = 0xFE;
-    if (joystick[2])
-      data_output = 0xFC;
-    if (joystick[3])
-      data_output = 0xF7;
-    if (joystick[5])
-      data_output = 0xFD;
-    if (joystick[6])
-      data_output = 0xF3;
-    if (joystick[7])
-      data_output = 0xFB;
-    if (joystick[8])
-      data_output = 0xF9;
-    if (joystick[9] || joystick[11])
+    if (digitalRead(UNO_JOYSTICK_B0) == LOW)
+      data_output &= 0xFE;
+    if (digitalRead(UNO_JOYSTICK_B1) == LOW)
+      data_output &= 0xFD;
+    if (digitalRead(UNO_JOYSTICK_B2) == LOW)
+      data_output &= 0xFB;
+    if (digitalRead(UNO_JOYSTICK_B3) == LOW)
+      data_output &= 0xF7;
+    if (digitalRead(UNO_JOYSTICK_B4) == LOW)
       data_output &= 0xEF;
   }
-#if defined(DEBUG_STDERR) && defined(DEBUG_JOYSTICK)
+
+#define DEBUG_SERIAL
+#if defined(DEBUG_STDERR)
 #endif
-#if defined(DEBUG_SERIAL) || defined(DEBUG_JOYSTICK)
+#if defined(DEBUG_SERIAL)
   Serial.print("in_bus() returns 0x");
   Serial.println(data_output, HEX);
 #endif
-#if defined(DEBUG_TFT) && defined(DEBUG_JOYSTICK)
+#if defined(DEBUG_TFT)
 #endif
+#undef DEBUG_SERIAL
 
   return data_output;
 }
