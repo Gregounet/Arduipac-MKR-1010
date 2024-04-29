@@ -343,10 +343,12 @@ uint8_t detect_collisions()
               ((displayed_sprites[sprite_number].end_y >= displayed_sprites[second_sprite_number].start_y) &&
                (displayed_sprites[sprite_number].end_y <= displayed_sprites[second_sprite_number].end_y)))))
         {
+#ifdef DEBUG_SERIAL
           Serial.print("Collision sprites ");
           Serial.print(sprite_number);
           Serial.print(" avec ");
           Serial.println(second_sprite_number);
+#endif
           sprites_to_sprites[sprite_number][second_sprite_number] = true;
         }
       }
@@ -489,6 +491,7 @@ uint8_t detect_collisions()
               (displayed_sprites[sprite_number].end_y <= displayed_chars[disp_char].end_y))))
         {
           sprites_to_chars[sprite_number][disp_char] = true;
+#ifdef DEBUG_SERIAL
           Serial.print("Collision sprite ");
           Serial.print(sprite_number);
           Serial.print(" (");
@@ -502,6 +505,7 @@ uint8_t detect_collisions()
           Serial.print(", ");
           Serial.print(displayed_chars[disp_char].start_y);
           Serial.println(")");
+#endif
         }
       }
   }
@@ -731,6 +735,7 @@ uint8_t detect_collisions()
 
   // intel8245_ram[addr] = result;
   // intel8245_ram[addr] = data;
+#ifdef DEBUG_SERIAL
 
   if (displayed_sprites[2].start_x != 240)
   {
@@ -763,8 +768,10 @@ uint8_t detect_collisions()
     if ((result & 0x88) == 0x88)
       Serial.println("Impact ennemi");
     // Serial.println();
+    ;
   }
-  delay(50);
+// delay(50);
+#endif
 
   return result;
 }
