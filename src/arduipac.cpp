@@ -116,15 +116,14 @@ void setup()
   pinMode(KEYBOARD_C2, OUTPUT);
   pinMode(KEYBOARD_C3, OUTPUT);
 
-  pinMode(JOYSTICK_R1, INPUT_PULLDOWN);
-  pinMode(JOYSTICK_R2, INPUT_PULLDOWN);
-  pinMode(JOYSTICK_R3, INPUT_PULLDOWN);
-  pinMode(JOYSTICK_R4, INPUT_PULLDOWN);
-
-  pinMode(JOYSTICK_C1, OUTPUT);
-  pinMode(JOYSTICK_C2, OUTPUT);
-  pinMode(JOYSTICK_C3, OUTPUT);
-
+  pinMode(UNO_JOYSTICK_B0, INPUT);
+  pinMode(UNO_JOYSTICK_B1, INPUT);
+  pinMode(UNO_JOYSTICK_B2, INPUT);
+  pinMode(UNO_JOYSTICK_B3, INPUT);
+  pinMode(UNO_JOYSTICK_B4, INPUT);
+  
+  pinMode(UNO_JOYSTICK_SELECT, OUTPUT);
+  
 #ifdef DEBUG_STDERR
   fprintf(stderr, "main(): launching init_intel8245()\n");
 #endif
