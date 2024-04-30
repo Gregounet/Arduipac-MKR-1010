@@ -28,7 +28,7 @@
 // PETER
 
 
-#define GAME ALIEN
+#define GAME MUNCH
 
 #ifdef GAME
 #if GAME == ALIEN

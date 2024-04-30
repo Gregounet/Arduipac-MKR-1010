@@ -188,7 +188,6 @@ in_bus()
       data_output &= 0xEF;
   }
 
-#define DEBUG_SERIAL
 #if defined(DEBUG_STDERR)
 #endif
 #if defined(DEBUG_SERIAL)
@@ -197,7 +196,6 @@ in_bus()
 #endif
 #if defined(DEBUG_TFT)
 #endif
-#undef DEBUG_SERIAL
 
   return data_output;
 }
