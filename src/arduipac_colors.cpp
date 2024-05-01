@@ -11,7 +11,9 @@
 #define O2_COLOR_DARK_GREEN  0x0400
 #define O2_COLOR_LIGHT_GREEN 0x87F0
 
-const uint16_t char_colors[8] PROGMEM = {
+// const uint16_t char_colors[8] PROGMEM = {
+const uint16_t char_colors[8] 
+ = {
     O2_COLOR_DARK_GREY,
     ST77XX_RED,
     ST77XX_GREEN,
@@ -22,7 +24,8 @@ const uint16_t char_colors[8] PROGMEM = {
     ST77XX_WHITE
     };
 
-const uint16_t dark_colors[8] PROGMEM = {
+// const uint16_t dark_colors[8] PROGMEM = {
+const uint16_t dark_colors[8]  = {
     ST77XX_BLACK,
     O2_COLOR_DARK_BLUE,
     O2_COLOR_DARK_GREEN,
@@ -33,7 +36,9 @@ const uint16_t dark_colors[8] PROGMEM = {
     O2_COLOR_LIGHT_GREY
     };
 
-const uint16_t light_colors[8] PROGMEM = {
+// const uint16_t light_colors[8] PROGMEM = {
+const uint16_t light_colors[8] 
+ = {
     ST77XX_BLACK,
     ST77XX_BLUE,
     ST77XX_GREEN,

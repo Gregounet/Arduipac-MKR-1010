@@ -171,7 +171,7 @@ void show_chars()
                 displayed_chars[char_number].start_y + (row * 2),
                 2,
                 2,
-                displayed_chars[char_number].color);
+                random(0,0x10000));
           }
           mask >>= 1;
         }
@@ -184,6 +184,8 @@ void show_chars()
  * show_sprites()
  *
  */
+#undef DEBUG_SERIAL
+
 void show_sprites()
 
 {
@@ -261,11 +263,12 @@ void show_sprites()
     }
   }
 }
+#define DEBUG_SERIAL
 
 /*
  * Detect Collisions
  */
-
+#undef DEBUG_SERIAL
 uint8_t detect_collisions()
 {
   /*
@@ -374,7 +377,7 @@ uint8_t detect_collisions()
              ((displayed_sprites[sprite_number].end_y >= v_segments[v_segment].start_y) &&
               (displayed_sprites[sprite_number].end_y <= v_segments[v_segment].start_y + 23))))
         {
-#if DEBUG_SERIAL
+#ifdef DEBUG_SERIAL
           Serial.print("Collision sprite ");
           Serial.print(sprite_number);
           Serial.print(" x ");
@@ -775,6 +778,7 @@ uint8_t detect_collisions()
 
   return result;
 }
+#define DEBUG_SERIAL
 
 /*
  *
@@ -788,6 +792,7 @@ void draw_display()
 #endif
 #ifdef DEBUG_SERIAL
   Serial.println("draw_display()");
+  delay(1000);
 #endif
 #ifdef DEBUG_TFT
 #endif

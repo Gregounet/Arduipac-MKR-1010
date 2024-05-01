@@ -7,11 +7,11 @@
 #include <Adafruit_ST7735.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
-#include <RTCZero.h>
+// #include <RTCZero.h>
 
 extern Adafruit_ST7735 text_tft;
 extern Adafruit_ST7789 graphic_tft;
-extern RTCZero rtc;
+// extern RTCZero rtc;
 
 extern uint8_t minutes;
 extern uint8_t previous_minutes;

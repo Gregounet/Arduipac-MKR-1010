@@ -4,14 +4,14 @@
 #include <Adafruit_ST7735.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
-#include <RTCZero.h>
+// #include <RTCZero.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <stdbool.h>
 
-RTCZero rtc;
+// RTCZero rtc;
 
 uint8_t minutes;
 uint8_t previous_minutes;
@@ -30,14 +30,27 @@ uint8_t previous_seconds;
 #define TEXT_TFT_RST -1
 #define TEXT_TFT_DC 1
 
-#define GRAPHIC_TFT_CS 6
-#define GRAPHIC_TFT_RST -1
-#define GRAPHIC_TFT_DC 7
+// Raspberry Pi Pico:
+#define GRAPHIC_TFT_CS 17
+#define GRAPHIC_TFT_RST 21
+#define GRAPHIC_TFT_DC 20
+#define GRAPHIC_TFT_MOSI 19
+#define GRAPHIC_TFT_SCLK 18
+
+// Arduino MKR 1010 WiFi:
+// #define GRAPHIC_TFT_CS 6
+// #define GRAPHIC_TFT_RST -1
+// #define GRAPHIC_TFT_DC 7
 
 #ifdef DEBUG_TFT
 Adafruit_ST7735 text_tft = Adafruit_ST7735(TEXT_TFT_CS, TEXT_TFT_DC, TEXT_TFT_RST);
 #endif
 
+// MKR 1010:
+// Adafruit_ST7789 graphic_tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GRAPHIC_TFT_RST);
+
+// Pico:
+// Adafruit_ST7789 graphic_tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GRAPHIC_TFT_MOSI,  GRAPHIC_TFT_SCLK, GRAPHIC_TFT_RST);
 Adafruit_ST7789 graphic_tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GRAPHIC_TFT_RST);
 
 #ifdef DEBUG_TFT
@@ -65,7 +78,7 @@ void graphic_drawtext(char *text)
   graphic_tft.print(text);
 }
 
-char welcome_string[] = "Disco disco";
+char welcome_string[] = "Travolta";
 
 void setup()
 {
@@ -82,10 +95,12 @@ void setup()
 
   graphic_tft.init(240, 320);
   graphic_tft.fillScreen(ST77XX_BLACK);
-  graphic_tft.setSPISpeed(100000000);
+  // graphic_tft.setSPISpeed(100000000);
   graphic_tft.setRotation(1);
   graphic_tft.setTextColor(ST77XX_WHITE);
 
+  // graphic_drawtext(welcome_string);
+  graphic_tft.print("La fievre");
 #ifdef DEBUG_STDERR
   fprintf(stderr, "%s\n", welcome_string);
 #endif
@@ -121,9 +136,9 @@ void setup()
   pinMode(UNO_JOYSTICK_B2, INPUT);
   pinMode(UNO_JOYSTICK_B3, INPUT);
   pinMode(UNO_JOYSTICK_B4, INPUT);
-  
+
   pinMode(UNO_JOYSTICK_SELECT, OUTPUT);
-  
+
 #ifdef DEBUG_STDERR
   fprintf(stderr, "main(): launching init_intel8245()\n");
 #endif
@@ -174,9 +189,9 @@ void setup()
   delay(TFT_DEBUG_DELAY);
 #endif
 
-  rtc.begin();
-  rtc.setMinutes(0);
-  rtc.setSeconds(0);
+  // rtc.begin();
+  // rtc.setMinutes(0);
+  // rtc.setSeconds(0);
 
   exec_8048();
 }

@@ -3,8 +3,8 @@
 
 extern uint8_t horizontal_clock;
 
-extern uint8_t p1;
-extern uint8_t p2;
+extern uint8_t port1;
+extern uint8_t port2;
 
 extern uint16_t rom_bank_select;
 

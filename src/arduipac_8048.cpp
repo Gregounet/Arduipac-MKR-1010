@@ -54,8 +54,8 @@ uint8_t reg_pnt; // Register Pointer (Registers are part of the built-in RAM)
 
 uint8_t sp; // Stack Pointer                                                                    (Values 8 - 23 : saved as 3 bits in PSW bits 0 - 2)
 
-uint8_t p1; // I/O Port #1
-uint8_t p2; // I/O Port #2
+uint8_t port1; // I/O Port #1
+uint8_t port2; // I/O Port #2
 
 uint8_t executing_isr; // Executing ISR
 
@@ -91,9 +91,9 @@ void init_intel8048()
 	rom_bank_select = 0x1000; // TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
 
 	sp = 0x08;
-	p1 = 0xFF;
+	port1 = 0xFF;
 
-	p2 = 0xFF;
+	port2 = 0xFF;
 	reg_pnt = 0x00;
 	bs = 0x00;
 	ac = 0x00;
@@ -178,6 +178,7 @@ void timer_irq()
 		op_cycles = 2;
 	}
 }
+#undef DEBUG_SERIAL
 
 void exec_8048()
 {
@@ -214,7 +215,7 @@ void exec_8048()
 		if (Serial.available() > 0)
 		{
 			// read the incoming byte:
-			incomingByte = Serial.read();
+			uint8_t incomingByte = Serial.read();
 			switch (incomingByte)
 			{
 			case '+':
@@ -291,9 +292,9 @@ void exec_8048()
 		Serial.print(" R7: ");
 		Serial.print(intel8048_ram[reg_pnt + 7], HEX);
 		Serial.print(" P1: ");
-		Serial.print(p1, HEX);
+		Serial.print(port1, HEX);
 		Serial.print(" P2: ");
-		Serial.print(p2, HEX);
+		Serial.print(port2, HEX);
 		Serial.print(" A11: ");
 		Serial.print(a11, HEX);
 		Serial.print(" rom_bank_select : ");
@@ -616,7 +617,7 @@ void exec_8048()
 			op_cycles = 2;
 			break;
 		case 0x09: /* IN A,P1 */
-			acc = p1;
+			acc = port1;
 			op_cycles = 2;
 			break;
 		case 0x0A: /* IN A,P2 */
@@ -759,7 +760,7 @@ void exec_8048()
 			if (op == 0x39)
 				write_p1(acc);
 			else
-				p2 = acc;
+				port2 = acc;
 			op_cycles = 2;
 			break;
 		case 0x3C: /* MOVD P4,A */
@@ -1010,9 +1011,9 @@ void exec_8048()
 			text_print_hex(ROM(pc));
 #endif
 			if (op == 0x89)
-				write_p1(p1 | ROM(pc++));
+				write_p1(port1 | ROM(pc++));
 			else
-				p2 |= ROM(pc++);
+				port2 |= ROM(pc++);
 			op_cycles = 2;
 			break;
 		case 0x8C: /* ORLD P4,A */
@@ -1060,9 +1061,9 @@ void exec_8048()
 			delay(TFT_DEBUG_DELAY);
 #endif
 			if (op == 0x99)
-				write_p1(p1 & ROM(pc++));
+				write_p1(port1 & ROM(pc++));
 			else
-				p2 &= ROM(pc++);
+				port2 &= ROM(pc++);
 			op_cycles = 2;
 			break;
 		case 0x9C: /* ANLD P4,A */
@@ -1386,7 +1387,7 @@ void exec_8048()
 
 		bigben += op_cycles;
 
-#ifdef LOG_TIME
+#if defined(LOG_TIME) && defined(DEBUG_SERIAL) 
 		if ((bigben - previous_bigben) > 3600000)
 		{ /*
 			 current_time = clock();
@@ -1403,9 +1404,9 @@ void exec_8048()
 			 start_time = current_time;
 
 			 minutes = rtc.getMinutes();*/
-			previous_bigben = bigben;
-			seconds = rtc.getSeconds();
-			minutes = rtc.getMinutes();
+			// previous_bigben = bigben;
+			// seconds = rtc.getSeconds();
+			// minutes = rtc.getMinutes();
 
 			elapsed_time = ((minutes - previous_minutes) * 60 + (seconds - previous_seconds));
 

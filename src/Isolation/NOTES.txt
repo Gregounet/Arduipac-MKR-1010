@@ -135,12 +135,12 @@ uint8_t read_t1();
 
 arduipac_8048.h
 
-extern uint8_t p1, p2
+extern uint8_t port1, port2
 
 arduipac_8048.cpp
 
-uint8_t p1; // I/O Port #1
-uint8_t p2; // I/O Port #2
+uint8_t port1; // I/O Port #1
+uint8_t port2; // I/O Port #2
 
 Dans la boucle principale de exec_8048():
 
@@ -148,7 +148,7 @@ Les trois op-code (OUTL BUS,A ; BUS #data ; ANL BUS,#data) ne font rien (nop).
 Par contre "IN A,BUS" provoque acc = in_bus().
 
 IN A,P1 -> acc = read_p1()
-IN A,P2 -> acc = p2
+IN A,P2 -> acc = port2
 
 
 
@@ -194,7 +194,7 @@ Supprimer arduipac_graphics du projet
 
 void ext_write(uint8_t data, uint8_t addr)
 {
-	if (!(p1 & 0x08)) // Accessing video_ram[]
+	if (!(port1 & 0x08)) // Accessing video_ram[]
 	{
 #ifdef DEBUG_STDERR
 		fprintf(stderr, "Accessing video_ram[0x%02X] <- 0x%02X\n", addr, data);
@@ -495,8 +495,8 @@ void ext_write(uint8_t data, uint8_t addr)
 
 			intel8245_ram[addr] = data;
 		}
-		// else if (!(p1 & 0x50)) // TODO: vérifier cette condition - Il est probale que je vais pouvoir transformer ceci en & 0x40
-		else if (!(p1 & 0x10) && !(p1 & 0x40))
+		// else if (!(port1 & 0x50)) // TODO: vérifier cette condition - Il est probale que je vais pouvoir transformer ceci en & 0x40
+		else if (!(port1 & 0x10) && !(port1 & 0x40))
 		{
 
 #ifdef DEBUG_STDERR

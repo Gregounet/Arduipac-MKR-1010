@@ -3,6 +3,6 @@
 
 #undef DEBUG_STDERR
 #undef DEBUG_TFT
-#undef DEBUG_SERIAL
+#define DEBUG_SERIAL
 
 #endif /* ARDUINO_CONFIG_H */

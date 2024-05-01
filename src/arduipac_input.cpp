@@ -8,6 +8,8 @@
 #include "arduipac_8048.h"
 #include "arduipac_config.h"
 
+#undef DEBUG_SERIAL
+
 // #define DEBUG_SERIAL
 // #undef DEBUG_KEYBOARD
 // #define DEBUG_JOYSTICK
@@ -30,8 +32,8 @@ void write_p1(uint8_t data)
   delay(TFT_DEBUG_DELAY);
 #endif
 
-  p1 = data;
-  rom_bank_select = (p1 & 0x01) ? 0x1000 : 0x0000;
+  port1 = data;
+  rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
   
 #ifdef DEBUG_SERIAL
   Serial.print("rom_bank_select == 0x");
@@ -50,17 +52,17 @@ read_p2() // 4x3 Keypad used as a keyboard
 #endif
 #if defined(DEBUG_SERIAL) || defined(DEBUG_KEYBOARD)
   Serial.print(" - read_p2() - valeur P2 == 0x");
-  Serial.println(p2, HEX);
+  Serial.println(port2, HEX);
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_KEYBOARD)
   text_print_string("read_p2()\n");
   delay(TFT_DEBUG_DELAY);
 #endif
 
-  if (!(p1 & 0x04))
+  if (!(port1 & 0x04))
   // Lecture du clavier
   {
-    scan_input = (p2 & 0x07);
+    scan_input = (port2 & 0x07);
 
 #if defined(DEBUG_SERIAL) || defined(DEBUG_KEYBOARD)
     Serial.print("scan_input == ");
@@ -132,22 +134,22 @@ read_p2() // 4x3 Keypad used as a keyboard
     }
   }
 
-  p2 &= 0x0F;
-  p2 |= (scan_output << 4);
+  port2 &= 0x0F;
+  port2 |= (scan_output << 4);
 
 #if defined(DEBUG_STDERR) && defined(DEBUG_KEYBOARD)
-  fprintf(stderr, "Retour read_p2() == 0x%02X\n", p2);
+  fprintf(stderr, "Retour read_p2() == 0x%02X\n", port2);
 #endif
 #if defined(DEBUG_SERIAL) || defined(DEBUG_KEYBOARD)
   Serial.print("scan_output == ");
   Serial.println(scan_output);
   Serial.print("Retour read_p2() == 0x");
-  Serial.println(p2, HEX);
+  Serial.println(port2, HEX);
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_KEYBOARD)
 #endif
 
-  return p2;
+  return port2;
 }
 
 uint8_t
@@ -160,18 +162,18 @@ in_bus()
 #endif
 #if defined(DEBUG_SERIAL) && defined(DEBUG_JOYSTICK)
   Serial.print("in_bus() - P1 == 0x");
-  Serial.print(p1, HEX);
+  Serial.print(port1, HEX);
   Serial.print(" - P2 == 0x");
-  Serial.println(p2, HEX);
+  Serial.println(port2, HEX);
 #endif
 #if defined(DEBUG_TFT) && defined(DEBUG_JOYSTICK)
   text_print_string("\nread_p2()\n");
   delay(TFT_DEBUG_DELAY);
 #endif
 
-  if ((p1 & 0x18) == 0x18) // Ni le 8245 ni la RAM externe ne sont activés
+  if ((port1 & 0x18) == 0x18) // Ni le 8245 ni la RAM externe ne sont activés
   {
-    if (p2 & 0x04)
+    if (port2 & 0x04)
     digitalWrite(UNO_JOYSTICK_SELECT, HIGH);
   else
     digitalWrite(UNO_JOYSTICK_SELECT, LOW);

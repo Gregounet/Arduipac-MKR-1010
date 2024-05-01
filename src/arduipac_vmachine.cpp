@@ -67,7 +67,7 @@ ext_read(uint8_t addr)
 #endif
 #ifdef DEBUG_TFT
 #endif
-	if ((p1 & 0x58) == 0x10) // Read from VDC RAM
+	if ((port1 & 0x58) == 0x10) // Read from VDC RAM
 	{
 #ifdef DEBUG_STDERR
 		fprint(stderr, "VDC Ram access\n", addr);
@@ -149,7 +149,7 @@ ext_read(uint8_t addr)
 			return intel8245_ram[addr];
 		}
 	}
-	else if (!(p1 & 0x10))
+	else if (!(port1 & 0x10))
 	{
 #ifdef DEBUG_STDERR
 #endif
@@ -176,7 +176,7 @@ ext_read(uint8_t addr)
 
 void ext_write(uint8_t data, uint8_t addr)
 {
-	switch (p1 & 0x58)
+	switch (port1 & 0x58)
 	{
 	case 0x08: // External RAM
 	{
