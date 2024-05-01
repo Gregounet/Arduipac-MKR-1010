@@ -2,6 +2,7 @@
 #define ARDUIPAC_VMACHINE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 extern uint16_t vertical_clock;
 extern uint8_t horizontal_clock;

@@ -1,8 +1,0 @@
-#ifndef ARDUINO_CONFIG_H
-#define ARDUINO_CONFIG_H
-
-#undef DEBUG_STDERR
-#undef DEBUG_TFT
-#define DEBUG_SERIAL
-
-#endif /* ARDUINO_CONFIG_H */

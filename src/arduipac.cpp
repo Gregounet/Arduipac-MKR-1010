@@ -24,7 +24,6 @@ uint8_t previous_seconds;
 #include "arduipac_8245.h"
 #include "arduipac_bios_rom.h"
 #include "arduipac_input.h"
-#include "arduipac_config.h"
 
 #define TEXT_TFT_CS 0
 #define TEXT_TFT_RST -1
@@ -101,25 +100,9 @@ void setup()
 
   // graphic_drawtext(welcome_string);
   graphic_tft.print("La fievre");
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "%s\n", welcome_string);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
   Serial.println(welcome_string);
-#endif
-
-#ifdef DEBUG_TFT
-#endif
-
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "Entering main()\n");
-#endif
-#ifdef DEBUG_SERIAL
   Serial.println("Entering main()");
-#endif
-#ifdef DEBUG_TFT
-  text_print_string("Entering main()\n");
-  delay(TFT_DEBUG_DELAY);
 #endif
 
   pinMode(KEYBOARD_R1, INPUT_PULLDOWN);
@@ -139,54 +122,26 @@ void setup()
 
   pinMode(UNO_JOYSTICK_SELECT, OUTPUT);
 
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "main(): launching init_intel8245()\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
   Serial.println("main(): launching init_intel8245()");
-#endif
-#ifdef DEBUG_TFT
-  text_print_string("main(): launching init_intel8245()\n");
-  delay(TFT_DEBUG_DELAY);
 #endif
 
   init_intel8245();
 
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "main(): launching init_intel8048()\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
   Serial.println("main(): launching init_intel8048()");
-#endif
-#ifdef DEBUG_TFT
-  text_print_string("main(): launching init_intel8048()\n");
-  delay(TFT_DEBUG_DELAY);
 #endif
 
   init_intel8048();
 
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "main(): launching init_vmachine()\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
   Serial.println("main(): launching init_vmachine()");
-#endif
-#ifdef DEBUG_TFT
-  text_print_string("main(): launching init_vmachine()\n");
-  delay(TFT_DEBUG_DELAY);
 #endif
 
   init_vmachine();
 
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "main(): launching exec_8048()\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
   Serial.println("main(): launching exec_8048()");
-#endif
-#ifdef DEBUG_TFT
-  text_print_string("main(): launching exec_8048()\n");
-  delay(TFT_DEBUG_DELAY);
 #endif
 
   // rtc.begin();
@@ -198,14 +153,7 @@ void setup()
 
 void loop()
 {
-#ifdef DEBUG_STDERR
-  fprintf(stderr, "loop()\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
   Serial.println("loop()");
-#endif
-#ifdef DEBUG_TFT
-  text_print_string("loop\n");
-  delay(TFT_DEBUG_DELAY);
 #endif
 }

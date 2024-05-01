@@ -1,9 +1,6 @@
 #ifndef ARDUIPAC_ROM_BIOS_H
 #define ARDUIPAC_ROM_BIOS_H
 
-#include <avr/pgmspace.h>
-
-// extern const PROGMEM uint8_t rom[8192];
 extern uint8_t rom[8192];
 
 // #define ROM(addr) (rom[(addr) & 0xFFF])

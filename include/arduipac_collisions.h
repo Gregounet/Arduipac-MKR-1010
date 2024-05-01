@@ -17,7 +17,8 @@ struct h_segment_t
 { // fixed width and height
     uint8_t start_x;
     uint8_t start_y;
-    uint8_t changed_displayed;
+    bool changed;
+    bool displayed;
 };
 
 struct v_segment_t
@@ -25,7 +26,8 @@ struct v_segment_t
     uint8_t start_x;
     uint8_t end_x;
     uint8_t start_y;
-    uint8_t changed_displayed;
+    bool changed;
+    bool displayed;
 };
 
 struct displayed_char_t
@@ -40,7 +42,8 @@ struct displayed_char_t
     uint8_t previous_start_x;
     uint8_t previous_start_y;
     uint8_t previous_height;
-    uint8_t changed_displayed;
+    bool changed;
+    bool displayed;
 };
 
 struct displayed_sprite_t
@@ -50,13 +53,14 @@ struct displayed_sprite_t
     uint8_t start_y;
     uint8_t end_y;
     uint8_t size; // 1 for normal sized ones, 2 for double-sized ones
-    uint8_t shift;
-    uint8_t even_shift;
+    bool shift;
+    bool even_shift;
     uint16_t color;
     uint8_t previous_start_x;
     uint8_t previous_start_y;
     uint8_t previous_size;
-    uint8_t changed_displayed;
+    bool changed;
+    bool displayed;
 };
 
 //
@@ -68,23 +72,22 @@ struct displayed_sprite_t
 #define NB_V_SEGMENTS 80
 #define NB_CHARS 28
 #define NB_SPRITES 4
+#define LEFT_OFFSET 20
+#define TOP_OFFSET 20
 
 //
 // Storage
 //
 
-extern uint8_t grid_control;
-extern uint8_t foreground_control;
-extern uint8_t grid_dots;
+extern bool grid_control;
+extern bool foreground_control;
+extern bool grid_dots;
 extern uint8_t v_segments_width; // This one REALLY needs to be initialized
 extern uint16_t grid_color;
 extern uint16_t background_color;
-
-extern uint8_t background_uptodate;
-extern uint8_t h_grid_uptodate;
-extern uint8_t v_grid_uptodate;
-extern uint8_t sprites_uptodate;
-extern uint8_t chars_uptodate;
+extern bool background_uptodate;
+extern bool sprites_uptodate;
+extern bool chars_uptodate;
 
 // stockage des segments
 

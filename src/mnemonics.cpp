@@ -2,7 +2,6 @@
 #include <stdint.h>
 
 #include "mnemonics.h"
-#include "arduipac_config.h"
 
 struct lookup_tag lookup[] = {
     /* 00 */ {"NOP", 1, 0},

@@ -8,10 +8,9 @@
 #include "arduipac_8245.h"
 #include "arduipac_cset.h"
 #include "arduipac_colors.h"
-#include "arduipac_config.h"
 #include "arduipac_collisions.h"
 
-// #define DEBUG_SERIAL
+// #define DEBUG
 // #define DEBUG_GRID
 // #define DEBUG_DETAIL
 
@@ -19,18 +18,16 @@
 // Storage
 //
 
-uint8_t grid_control = 0;
-uint8_t foreground_control = 0;
-uint8_t grid_dots = 0;
-uint8_t v_segments_width = 3; // This one REALLY needs to be initialized
+bool grid_control = 0;
+bool foreground_control = 0;
+bool grid_dots = 0;
+uint8_t v_segments_width = 2; // This one REALLY needs to be initialized
 uint16_t grid_color = 0;
 uint16_t background_color = 0;
 
-uint8_t background_uptodate = 0;
-uint8_t h_grid_uptodate = 0;
-uint8_t v_grid_uptodate = 0;
-uint8_t sprites_uptodate = 0;
-uint8_t chars_uptodate = 0;
+bool background_uptodate = 0;
+bool sprites_uptodate = 0;
+bool chars_uptodate = 0;
 
 // stockage des segments
 
@@ -46,9 +43,6 @@ displayed_char_t displayed_chars[NB_CHARS];
 
 displayed_sprite_t displayed_sprites[NB_SPRITES];
 
-//
-// Display elements changing
-//
 
 //
 // Initialisations
@@ -61,7 +55,7 @@ void init_grid_elements()
     //
     for (uint8_t column = 0; column < 9; column++)
     {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
+#if defined(DEBUG)
         Serial.print("init_grid_elements() - segments horizontaux de la column  ");
         Serial.println(column);
 #endif
@@ -69,7 +63,8 @@ void init_grid_elements()
         {
             h_segments[column * 9 + row].start_x = 10 + 16 * column;
             h_segments[column * 9 + row].start_y = 24 + 24 * row;
-            h_segments[column * 9 + row].changed_displayed = 0;
+            h_segments[column * 9 + row].changed = false;
+            h_segments[column * 9 + row].displayed = false;
             dots[column * 9 + row].start_x = 10 + 16 * column;
             dots[column * 9 + row].start_y = 24 + 24 * row;
         }
@@ -83,7 +78,7 @@ void init_grid_elements()
     //
     for (uint8_t column = 0; column < 10; column++)
     {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
+#if defined(DEBUG)
         Serial.print("init_grid_elements() - segments verticaux de la column ");
         Serial.println(column);
 #endif
@@ -92,11 +87,12 @@ void init_grid_elements()
             v_segments[column * 8 + row].start_x = 10 + 16 * column;
             v_segments[column * 8 + row].end_x = v_segments[column * 8 + row].start_x + v_segments_width - 1;
             v_segments[column * 8 + row].start_y = 24 + 24 * row;
-            v_segments[column * 8 + row].changed_displayed = 0;
+            v_segments[column * 8 + row].changed = false;
+            v_segments[column * 8 + row].displayed = false;
         }
     }
 
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
+#if defined(DEBUG)
 
     for (int i = 0; i < NB_H_SEGMENTS; i++)
     {
@@ -139,7 +135,8 @@ void init_displayed_chars()
         displayed_chars[char_number].previous_start_x = 0;
         displayed_chars[char_number].previous_start_y = 0;
         displayed_chars[char_number].previous_height = 0;
-        displayed_chars[char_number].changed_displayed = 0;
+        displayed_chars[char_number].changed = false;
+        displayed_chars[char_number].displayed = false;
     }
 }
 
@@ -158,6 +155,7 @@ void init_displayed_sprites()
         displayed_sprites[sprite_number].previous_start_x = 0;
         displayed_sprites[sprite_number].previous_start_y = 0;
         displayed_sprites[sprite_number].previous_size = 0;
-        displayed_sprites[sprite_number].changed_displayed = 0;
+        displayed_sprites[sprite_number].changed = false;
+        displayed_sprites[sprite_number].displayed = false;
     }
 }

@@ -2,6 +2,10 @@
 	"folders": [
 		{
 			"path": ".."
+		},
+		{
+			"name": "JoystickAnalogique pour Travolta",
+			"path": "../../JoystickAnalogique pour Travolta"
 		}
 	],
 	"settings": {}

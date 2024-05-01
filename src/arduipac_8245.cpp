@@ -18,15 +18,11 @@
 #include "arduipac_vmachine.h"
 #include "arduipac_cset.h"
 #include "arduipac_colors.h"
-#include "arduipac_config.h"
 #include "arduipac_collisions.h"
 
-// #undef DEBUG_STDERR
-// #define DEBUG_SERIAL
-// #undef DEBUG_TFT
+// #undef DEBUG
 
 uint8_t intel8245_ram[256];
-uint8_t collisions;
 
 /*
  * show_grid()
@@ -35,61 +31,105 @@ uint8_t collisions;
 
 void show_grid()
 {
+  bool grid_needs_redraw = false;
+  grid_uptodate = true;
 
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID)
+#if defined(DEBUG)
   Serial.println("show_grid()");
 #endif
 
-  if (grid_dots)
+  //
+  // Effacement des Dots
+  //
+  if (!grid_dots)
   {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-    Serial.println("draw_grid() - affichage des points");
+    grid_needs_redraw = true;
+#if defined(DEBUG)
+    Serial.println("draw_grid() - effacement des points");
 #endif
     for (uint8_t dot_idx = 0; dot_idx < NB_DOTS; dot_idx++)
-      graphic_tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, grid_color);
+      graphic_tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, background_color);
   }
+
+  //
+  // Effacement des segments horizontaux
+  //
+#if defined(DEBUG)
+  Serial.println("show_grid() - effacement des segments horizontaux");
+#endif
+
+  for (uint8_t h_seg_idx = 0; h_seg_idx < NB_H_SEGMENTS; h_seg_idx++)
+  {
+    if (h_segments[h_seg_idx].changed && h_segments[h_seg_idx].displayed)
+    {
+      grid_needs_redraw = true;
+      h_segments[h_seg_idx].changed = false;
+      graphic_tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, background_color);
+    }
+  }
+
+  //
+  // Effacement des segments verticaux
+  //
+#if defined(DEBUG)
+  Serial.println("show_grid() - effacement des segments verticaux");
+#endif
+
+  for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
+  {
+    if (h_segments[v_seg_idx].changed && h_segments[v_seg_idx].changed)
+    {
+      grid_needs_redraw = true;
+      v_segments[v_seg_idx].changed = false;
+      graphic_tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, background_color);
+    }
+  }
+
+  //
+  // Affichage des Dots
+  //
+  if (grid_dots && grid_needs_redraw))
+    {
+#if defined(DEBUG)
+      Serial.println("draw_grid() - affichage des points");
+#endif
+      grid_needs_redraw = true;
+      grid_dots_changed = false;
+      for (uint8_t dot_idx = 0; dot_idx < NB_DOTS; dot_idx++)
+        graphic_tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, grid_color);
+    }
 
   //
   // Tracé des segments horizontaux
   //
-  if (!h_grid_uptodate)
+  if (grid_needs_redraw)
   {
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
-    Serial.println("show_grid() - segments horizontaux");
+#if defined(DEBUG)
+    Serial.println("show_grid() - affichage des segments horizontaux");
 #endif
-
-    h_grid_uptodate = 1;
+    grid_needs_redraw = true;
     for (uint8_t h_seg_idx = 0; h_seg_idx < NB_H_SEGMENTS; h_seg_idx++)
     {
-      if (h_segments[h_seg_idx].changed_displayed & 0x02)
-      {
-        if (h_segments[h_seg_idx].changed_displayed & 0x01)
-          graphic_tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, grid_color);
-        else
-          graphic_tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, background_color);
-      }
+      h_segments[h_seg_idx].changed = false;
+      if (h_segments[h_seg_idx].displayed)
+        graphic_tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, grid_color);
     }
   }
+
   //
   // Tracé des segments verticaux
   //
-
-  if (!v_grid_uptodate)
+  if (grid_needs_redraw)
   {
-    v_grid_uptodate = 1;
-#if defined(DEBUG_SERIAL) && defined(DEBUG_GRID) && defined(DEBUG_DETAIL)
+#if defined(DEBUG)
     Serial.println("show_grid() - segments verticaux");
 #endif
-
+    grid_needs_redraw = true;
     for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
     {
-      if (h_segments[v_seg_idx].changed_displayed & 0x02)
-      {
-        if (v_segments[v_seg_idx].changed_displayed & 0x01)
-          graphic_tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, grid_color);
-        else
-          graphic_tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, background_color);
-      }
+      v_segments[v_seg_idx].changed = false;
+      if (v_segments[v_seg_idx].displayed)
+        graphic_tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, grid_color);
     }
   }
 }
@@ -101,36 +141,32 @@ void show_grid()
 
 void show_chars()
 {
-#if defined(DEBUG_STDERR)
-#endif
-#if defined(DEBUG_SERIAL)
+#if defined(DEBUG)
   Serial.println("show_chars()");
 #endif
-#if defined(DEBUG_TFT)
-#endif
-  chars_uptodate = 1;
+  chars_uptodate = true;
 
   for (uint8_t char_number = 0; char_number < 28; char_number++)
   {
-#if defined(DEBUG_SERIAL)
+#if defined(DEBUG)
     Serial.print("char_number ");
     Serial.println(char_number);
 #endif
-    if (displayed_chars[char_number].changed_displayed & 0x02) // Char data was changed
+    if (displayed_chars[char_number].changed)
     {
-#if defined(DEBUG_SERIAL)
+#if defined(DEBUG)
       Serial.println("Changed");
       Serial.print("x = ");
       Serial.print(displayed_chars[char_number].start_x);
       Serial.print(", y = ");
       Serial.println(displayed_chars[char_number].start_y);
 #endif
-      displayed_chars[char_number].changed_displayed &= 0xFD; // Clear change flag
+      displayed_chars[char_number].changed = false;
       //
       // "Erase" old char position
       //
       graphic_tft.fillRect(
-          20 + (2 * displayed_chars[char_number].previous_start_x),
+          LEFT_OFFSET + (2 * displayed_chars[char_number].previous_start_x),
           displayed_chars[char_number].previous_start_y,
           16,
           2 * displayed_chars[char_number].previous_height,
@@ -143,7 +179,7 @@ void show_chars()
       displayed_chars[char_number].previous_height = displayed_chars[char_number].height;
       for (uint8_t row = 0; row < displayed_chars[char_number].height; row++)
       {
-#if defined(DEBUG_SERIAL)
+#if defined(DEBUG)
         Serial.print("row ");
         Serial.println(row);
 #endif
@@ -151,15 +187,15 @@ void show_chars()
         uint8_t mask = 0x80;
         for (int8_t char_column = 0; char_column < 8; char_column++)
         {
-#if defined(DEBUG_SERIAL)
+#if defined(DEBUG)
           Serial.print("char_column = ");
           Serial.println(char_column, HEX);
 #endif
           if (cset_byte & mask)
           {
-#if defined(DEBUG_SERIAL)
+#if defined(DEBUG)
             Serial.println("fillRect");
-            Serial.print(20 + 2 * (displayed_chars[char_number].start_x + char_column));
+            Serial.print(LEFT_OFFSET + 2 * (displayed_chars[char_number].start_x + char_column));
             Serial.print(", ");
             Serial.print(displayed_chars[char_number].start_y + row * 2);
             Serial.print(", 2, 2, ");
@@ -167,11 +203,11 @@ void show_chars()
             Serial.println(")");
 #endif
             graphic_tft.fillRect(
-                20 + (2 * displayed_chars[char_number].start_x) + (2 * char_column),
+                LEFT_OFFSET + (2 * displayed_chars[char_number].start_x) + (2 * char_column),
                 displayed_chars[char_number].start_y + (row * 2),
                 2,
                 2,
-                random(0,0x10000));
+                displayed_chars[char_number].color);
           }
           mask >>= 1;
         }
@@ -184,33 +220,28 @@ void show_chars()
  * show_sprites()
  *
  */
-#undef DEBUG_SERIAL
 
 void show_sprites()
 
 {
   // TODO: gérer shift et even_shift
   // TODO: tenir compte de "displayed"
-#if defined(DEBUG_STDERR)
-  fprintf(stderr, "show_sprites()\n");
-#endif
-#if defined(DEBUG_SERIAL)
+
+#if defined(DEBUG)
   Serial.println("show_sprites()");
 #endif
-#if defined(DEBUG_TFT)
-#endif
 
-  sprites_uptodate = 1;
+  sprites_uptodate = true;
   for (uint8_t sprite_number = 0; sprite_number < NB_SPRITES; sprite_number++)
   {
-    if (displayed_sprites[sprite_number].changed_displayed & 0x02) // Sprite data was changed
+    if (displayed_sprites[sprite_number].changed)
     {
-      displayed_sprites[sprite_number].changed_displayed &= 0xFD; // Clear change flag
+      displayed_sprites[sprite_number].changed = false;
       //
       // "Erase" old sprite position
       //
       graphic_tft.fillRect(
-          20 + (displayed_sprites[sprite_number].previous_start_x * 2),
+          LEFT_OFFSET + (displayed_sprites[sprite_number].previous_start_x * 2),
           displayed_sprites[sprite_number].previous_start_y,
           16 * displayed_sprites[sprite_number].previous_size,
           16 * displayed_sprites[sprite_number].previous_size,
@@ -222,14 +253,14 @@ void show_sprites()
       displayed_sprites[sprite_number].previous_start_y = displayed_sprites[sprite_number].start_y;
       displayed_sprites[sprite_number].previous_size = displayed_sprites[sprite_number].size;
 
-#if defined(DEBUG_SERIAL)
+#if defined(DEBUG)
       Serial.print("show_sprites() - sprite numéro ");
       Serial.println(sprite_number);
 #endif
       for (uint8_t sprite_row = 0; sprite_row < 8; sprite_row++)
       {
         uint8_t sprite_data = intel8245_ram[0x80 + sprite_number * 0x08 + sprite_row];
-#if defined(DEBUG_SERIAL)
+#if defined(DEBUG)
         Serial.print("show_sprites() - affichage de la ligne ");
         Serial.print(sprite_row);
         Serial.print(" - data : 0x");
@@ -251,7 +282,7 @@ void show_sprites()
           if (sprite_data & mask)
           {
             graphic_tft.fillRect(
-                (20 + displayed_sprites[sprite_number].start_x * 2) + (sprite_column * 2 * displayed_sprites[sprite_number].size),
+                (LEFT_OFFSET + displayed_sprites[sprite_number].start_x * 2) + (sprite_column * 2 * displayed_sprites[sprite_number].size),
                 (displayed_sprites[sprite_number].start_y) + (sprite_row * 2 * displayed_sprites[sprite_number].size),
                 2 * displayed_sprites[sprite_number].size,
                 2 * displayed_sprites[sprite_number].size,
@@ -263,12 +294,10 @@ void show_sprites()
     }
   }
 }
-#define DEBUG_SERIAL
 
 /*
  * Detect Collisions
  */
-#undef DEBUG_SERIAL
 uint8_t detect_collisions()
 {
   /*
@@ -346,7 +375,7 @@ uint8_t detect_collisions()
               ((displayed_sprites[sprite_number].end_y >= displayed_sprites[second_sprite_number].start_y) &&
                (displayed_sprites[sprite_number].end_y <= displayed_sprites[second_sprite_number].end_y)))))
         {
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
           Serial.print("Collision sprites ");
           Serial.print(sprite_number);
           Serial.print(" avec ");
@@ -365,7 +394,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
     {
-      if (v_segments[v_segment].changed_displayed & 0x01)
+      if (v_segments[v_segment].displayed & 0x01)
       {
         if (
             (((displayed_sprites[sprite_number].start_x >= v_segments[v_segment].start_x) &&
@@ -377,7 +406,7 @@ uint8_t detect_collisions()
              ((displayed_sprites[sprite_number].end_y >= v_segments[v_segment].start_y) &&
               (displayed_sprites[sprite_number].end_y <= v_segments[v_segment].start_y + 23))))
         {
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
           Serial.print("Collision sprite ");
           Serial.print(sprite_number);
           Serial.print(" x ");
@@ -417,7 +446,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
     {
-      if (h_segments[h_segment].changed_displayed & 0x01)
+      if (h_segments[h_segment].displayed)
       {
         if (
             (((displayed_sprites[sprite_number].start_x >= h_segments[h_segment].start_x) &&
@@ -494,7 +523,7 @@ uint8_t detect_collisions()
               (displayed_sprites[sprite_number].end_y <= displayed_chars[disp_char].end_y))))
         {
           sprites_to_chars[sprite_number][disp_char] = true;
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
           Serial.print("Collision sprite ");
           Serial.print(sprite_number);
           Serial.print(" (");
@@ -533,7 +562,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
     {
-      if (v_segments[v_segment].changed_displayed & 0x01)
+      if (v_segments[v_segment].displayed)
       {
         if (
             (((displayed_chars[char_number].start_x >= v_segments[v_segment].start_x) &&
@@ -571,7 +600,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
     {
-      if (h_segments[h_segment].changed_displayed & 0x01)
+      if (h_segments[h_segment].displayed)
       {
         if (
             (((displayed_chars[char_number].start_x >= h_segments[h_segment].start_x) &&
@@ -738,7 +767,7 @@ uint8_t detect_collisions()
 
   // intel8245_ram[addr] = result;
   // intel8245_ram[addr] = data;
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 
   if (displayed_sprites[2].start_x != 240)
   {
@@ -771,14 +800,12 @@ uint8_t detect_collisions()
     if ((result & 0x88) == 0x88)
       Serial.println("Impact ennemi");
     // Serial.println();
-    ;
   }
-// delay(50);
+
 #endif
 
   return result;
 }
-#define DEBUG_SERIAL
 
 /*
  *
@@ -788,13 +815,9 @@ uint8_t detect_collisions()
 
 void draw_display()
 {
-#ifdef DEBUG_STDERR
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
   Serial.println("draw_display()");
   delay(1000);
-#endif
-#ifdef DEBUG_TFT
 #endif
 
   if (!background_uptodate)
@@ -803,7 +826,7 @@ void draw_display()
     graphic_tft.fillScreen(background_color);
   }
 
-  if (grid_control)
+  if (grid_control && !grid_uptodate)
     show_grid();
 
   if (foreground_control)
@@ -814,22 +837,16 @@ void draw_display()
     if (!sprites_uptodate)
       show_sprites();
   }
-  collisions = detect_collisions();
 }
 
 /*
- *
  * init_intel8245()
  */
 
 void init_intel8245()
 {
-#ifdef DEBUG_STDERR
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
   Serial.println("init_intel8245()");
-#endif
-#ifdef DEBUG_TFT
 #endif
   for (uint8_t i = 0x00; i < 0xFF; i++)
     intel8245_ram[i] = 0x00;
