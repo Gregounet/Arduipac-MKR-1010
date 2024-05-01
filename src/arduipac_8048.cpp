@@ -161,14 +161,8 @@ void exec_8048()
 	uint16_t addr;	 // Address
 	uint16_t temp;	 // Temporary value
 
+#if (TRAVOLTA_TARGET == TRAVOLTA_MKR1010)
 	int8_t elapsed_time;
-
-#define LOG_TIME
-#ifdef LOG_TIME
-	long clk_tck = CLOCKS_PER_SEC;
-	clock_t start_time, current_time;
-
-	start_time = clock();
 #endif
 
 #ifdef DEBUG
@@ -177,42 +171,6 @@ void exec_8048()
 
 	for (;;)
 	{
-#ifdef DEBUG
-		if (Serial.available() > 0)
-		{
-			// read the incoming byte:
-			uint8_t incomingByte = Serial.read();
-			switch (incomingByte)
-			{
-			case '+':
-				debug_delay -= 20;
-				debug_delay = (debug_delay < 0) ? 0 : debug_delay;
-				break;
-			case '-':
-				debug_delay += 200;
-				break;
-			case 'N':
-			case 'n':
-				debug_delay = 10;
-				break;
-			case 'S':
-			case 's':
-				debug_delay += 500;
-				break;
-			case 'F':
-			case 'f':
-				debug_delay = 0;
-				break;
-			case 'P':
-			case 'p':
-				while (!Serial.available())
-					;
-				break;
-			}
-		}
-		delay(debug_delay);
-#endif
-
 		op_cycles = 1;
 #if defined(DEBUG)
 		op = ROM(pc);
@@ -460,6 +418,7 @@ void exec_8048()
 			data = acc;
 			acc = intel8048_ram[intel8048_ram[reg_pnt + (op - 0x20)]];
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0x20)]] = data;
+			break;
 		case 0x23: /* MOV A,#data */
 #ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
@@ -1016,26 +975,13 @@ void exec_8048()
 
 		bigben += op_cycles;
 
-#if defined(LOG_TIME) && defined(DEBUG)
+#if (TRAVOLTA_TARGET == TRAVOLTA_MKR1010)
+#if defined(DEBUG)
 		if ((bigben - previous_bigben) > 3600000)
-		{ /*
-			 current_time = clock();
-			 Serial.print("Current time = ");
-			 Serial.print((double)current_time / 1000);
-			 Serial.print(", last time = ");
-			 Serial.print((double)start_time / 1000);
-			 Serial.print(", elapsed ticks = ");
-			 Serial.print((double)(current_time - start_time));
-			 Serial.print(", elapsed time = ");
-			 Serial.print((double)(current_time - start_time) / ((double)clk_tck));
-			 Serial.print(", ticks/s = ");
-			 Serial.println(clk_tck);
-			 start_time = current_time;
-
-			 minutes = rtc.getMinutes();*/
-			// previous_bigben = bigben;
-			// seconds = rtc.getSeconds();
-			// minutes = rtc.getMinutes();
+		{
+			previous_bigben = bigben;
+			seconds = rtc.getSeconds();
+			minutes = rtc.getMinutes();
 
 			elapsed_time = ((minutes - previous_minutes) * 60 + (seconds - previous_seconds));
 
@@ -1045,7 +991,7 @@ void exec_8048()
 			previous_minutes = minutes;
 			previous_seconds = seconds;
 		}
-
+#endif
 #endif
 
 		horizontal_clock += op_cycles;

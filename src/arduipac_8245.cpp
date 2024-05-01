@@ -29,42 +29,43 @@ uint8_t intel8245_ram[256];
  *
  */
 
-void show_grid()
+void  show_grid()
 {
   bool grid_needs_redraw = false;
   grid_uptodate = true;
 
 #if defined(DEBUG)
-  Serial.println("show_grid()");
 #endif
+  Serial.println("show_grid()");
 
   //
   // Effacement des Dots
   //
-  if (!grid_dots)
+  if (!grid_dots && !dots_uptodate)
   {
     grid_needs_redraw = true;
+    dots_uptodate = true;
 #if defined(DEBUG)
-    Serial.println("draw_grid() - effacement des points");
 #endif
-    for (uint8_t dot_idx = 0; dot_idx < NB_DOTS; dot_idx++)
-      graphic_tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, background_color);
+    Serial.println("draw_grid() - effacement des points");
+    for (uint8_t dot_idx = 0; dot_idx < NB_H_SEGMENTS; dot_idx++)
+      tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, background_color);
   }
 
   //
   // Effacement des segments horizontaux
   //
 #if defined(DEBUG)
-  Serial.println("show_grid() - effacement des segments horizontaux");
 #endif
+  Serial.println("show_grid() - effacement des segments horizontaux");
 
   for (uint8_t h_seg_idx = 0; h_seg_idx < NB_H_SEGMENTS; h_seg_idx++)
   {
-    if (h_segments[h_seg_idx].changed && h_segments[h_seg_idx].displayed)
+    if (h_segments[h_seg_idx].changed && !h_segments[h_seg_idx].displayed)
     {
       grid_needs_redraw = true;
       h_segments[h_seg_idx].changed = false;
-      graphic_tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, background_color);
+      tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, background_color);
     }
   }
 
@@ -72,32 +73,30 @@ void show_grid()
   // Effacement des segments verticaux
   //
 #if defined(DEBUG)
-  Serial.println("show_grid() - effacement des segments verticaux");
 #endif
+  Serial.println("show_grid() - effacement des segments verticaux");
 
   for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
   {
-    if (h_segments[v_seg_idx].changed && h_segments[v_seg_idx].changed)
+    if (v_segments[v_seg_idx].changed && !v_segments[v_seg_idx].displayed)
     {
       grid_needs_redraw = true;
       v_segments[v_seg_idx].changed = false;
-      graphic_tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, background_color);
+      tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, background_color);
     }
   }
 
   //
   // Affichage des Dots
   //
-  if (grid_dots && grid_needs_redraw))
-    {
+  if (grid_dots && (grid_needs_redraw || !dots_uptodate))
+  {
 #if defined(DEBUG)
-      Serial.println("draw_grid() - affichage des points");
 #endif
-      grid_needs_redraw = true;
-      grid_dots_changed = false;
-      for (uint8_t dot_idx = 0; dot_idx < NB_DOTS; dot_idx++)
-        graphic_tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, grid_color);
-    }
+    Serial.println("draw_grid() - affichage des points");
+    for (uint8_t dot_idx = 0; dot_idx < NB_H_SEGMENTS; dot_idx++)
+      tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, grid_color);
+  }
 
   //
   // Tracé des segments horizontaux
@@ -105,14 +104,13 @@ void show_grid()
   if (grid_needs_redraw)
   {
 #if defined(DEBUG)
-    Serial.println("show_grid() - affichage des segments horizontaux");
 #endif
-    grid_needs_redraw = true;
+    Serial.println("show_grid() - affichage des segments horizontaux");
     for (uint8_t h_seg_idx = 0; h_seg_idx < NB_H_SEGMENTS; h_seg_idx++)
     {
       h_segments[h_seg_idx].changed = false;
       if (h_segments[h_seg_idx].displayed)
-        graphic_tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, grid_color);
+        tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, grid_color);
     }
   }
 
@@ -122,14 +120,13 @@ void show_grid()
   if (grid_needs_redraw)
   {
 #if defined(DEBUG)
-    Serial.println("show_grid() - segments verticaux");
 #endif
-    grid_needs_redraw = true;
+    Serial.println("show_grid() - affichage des segments verticaux");
     for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
     {
       v_segments[v_seg_idx].changed = false;
       if (v_segments[v_seg_idx].displayed)
-        graphic_tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, grid_color);
+        tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, grid_color);
     }
   }
 }
@@ -165,7 +162,7 @@ void show_chars()
       //
       // "Erase" old char position
       //
-      graphic_tft.fillRect(
+      tft.fillRect(
           LEFT_OFFSET + (2 * displayed_chars[char_number].previous_start_x),
           displayed_chars[char_number].previous_start_y,
           16,
@@ -202,7 +199,7 @@ void show_chars()
             Serial.print(displayed_chars[char_number].color);
             Serial.println(")");
 #endif
-            graphic_tft.fillRect(
+            tft.fillRect(
                 LEFT_OFFSET + (2 * displayed_chars[char_number].start_x) + (2 * char_column),
                 displayed_chars[char_number].start_y + (row * 2),
                 2,
@@ -240,7 +237,7 @@ void show_sprites()
       //
       // "Erase" old sprite position
       //
-      graphic_tft.fillRect(
+      tft.fillRect(
           LEFT_OFFSET + (displayed_sprites[sprite_number].previous_start_x * 2),
           displayed_sprites[sprite_number].previous_start_y,
           16 * displayed_sprites[sprite_number].previous_size,
@@ -281,7 +278,7 @@ void show_sprites()
         {
           if (sprite_data & mask)
           {
-            graphic_tft.fillRect(
+            tft.fillRect(
                 (LEFT_OFFSET + displayed_sprites[sprite_number].start_x * 2) + (sprite_column * 2 * displayed_sprites[sprite_number].size),
                 (displayed_sprites[sprite_number].start_y) + (sprite_row * 2 * displayed_sprites[sprite_number].size),
                 2 * displayed_sprites[sprite_number].size,
@@ -307,7 +304,6 @@ uint8_t detect_collisions()
   bool sprites_to_sprites[NB_SPRITES][NB_SPRITES];
   bool sprites_to_vgrid[NB_SPRITES][NB_V_SEGMENTS];
   bool sprites_to_hgrid[NB_SPRITES][NB_H_SEGMENTS];
-  bool sprites_to_dots[NB_SPRITES][NB_DOTS];
   bool sprites_to_chars[NB_SPRITES][NB_CHARS];
 
   for (uint8_t sprite = 0; sprite < NB_SPRITES; sprite++)
@@ -318,8 +314,6 @@ uint8_t detect_collisions()
       sprites_to_vgrid[sprite][v_segment] = false;
     for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
       sprites_to_hgrid[sprite][h_segment] = false;
-    for (uint8_t dot = 0; dot < NB_DOTS; dot++)
-      sprites_to_dots[sprite][dot] = false;
     for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
       sprites_to_chars[sprite][char_number] = false;
   }
@@ -341,7 +335,6 @@ uint8_t detect_collisions()
 
   bool chars_to_vgrid[NB_CHARS][NB_V_SEGMENTS];
   bool chars_to_hgrid[NB_CHARS][NB_H_SEGMENTS];
-  bool chars_to_dots[NB_CHARS][NB_DOTS];
 
   for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
   {
@@ -349,8 +342,6 @@ uint8_t detect_collisions()
       chars_to_vgrid[char_number][v_segment] = false;
     for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
       chars_to_hgrid[char_number][h_segment] = false;
-    for (uint8_t dot = 0; dot < NB_DOTS; dot++)
-      chars_to_dots[char_number][dot] = false;
   }
 
   bool digest_chars_to_vgrid = 0;
@@ -434,7 +425,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
     {
-      digest_sprites_to_vgrid[sprite_number] = digest_sprites_to_vgrid[sprite_number] ?: sprites_to_vgrid[sprite_number][v_segment];
+      digest_sprites_to_vgrid[sprite_number] = digest_sprites_to_vgrid[sprite_number] ? true : sprites_to_vgrid[sprite_number][v_segment];
     }
   }
 
@@ -447,7 +438,6 @@ uint8_t detect_collisions()
     for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
     {
       if (h_segments[h_segment].displayed)
-      {
         if (
             (((displayed_sprites[sprite_number].start_x >= h_segments[h_segment].start_x) &&
               (displayed_sprites[sprite_number].start_x <= h_segments[h_segment].start_x + 15)) ||
@@ -457,10 +447,18 @@ uint8_t detect_collisions()
               (displayed_sprites[sprite_number].start_y <= h_segments[h_segment].start_y + 2)) ||
              ((displayed_sprites[sprite_number].end_y >= h_segments[h_segment].start_y) &&
               (displayed_sprites[sprite_number].end_y <= h_segments[h_segment].start_y + 2))))
-        {
           sprites_to_hgrid[sprite_number][h_segment] = true;
-        }
-      }
+      if (grid_dots)
+        if (
+            (((displayed_sprites[sprite_number].start_x >= dots[h_segment].start_x) &&
+              (displayed_sprites[sprite_number].start_x <= dots[h_segment].start_x + 3)) ||
+             ((displayed_sprites[sprite_number].end_x >= dots[h_segment].start_x) &&
+              (displayed_sprites[sprite_number].end_x <= dots[h_segment].start_x + 3))) &&
+            (((displayed_sprites[sprite_number].start_y >= dots[h_segment].start_y) &&
+              (displayed_sprites[sprite_number].start_y <= dots[h_segment].start_y + 2)) ||
+             ((displayed_sprites[sprite_number].end_y >= dots[h_segment].start_y) &&
+              (displayed_sprites[sprite_number].end_y <= dots[h_segment].start_y + 2))))
+          sprites_to_hgrid[sprite_number][h_segment] = true;
     }
   }
 
@@ -472,34 +470,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
     {
-      digest_sprites_to_hgrid[sprite_number] = digest_sprites_to_hgrid[sprite_number] ?: sprites_to_hgrid[sprite_number][h_segment];
-    }
-  }
-
-  /*
-   * Collisions Sprites to Dots
-   */
-
-  for (uint8_t sprite_number = 0; sprite_number < NB_SPRITES; sprite_number++)
-  {
-    ;
-    for (uint8_t dot_number = 0; dot_number < NB_DOTS; dot_number++)
-    {
-      ;
-      // sprites_to_dots[sprite_number][dot_number];
-    }
-  }
-
-  /*
-   * Digest Sprites to Dots
-   */
-
-  for (uint8_t sprite_number = 0; sprite_number < NB_SPRITES; sprite_number++)
-  {
-    for (uint8_t dot_number = 0; dot_number < NB_DOTS; dot_number++)
-    {
-      ;
-      // digest_sprites_to_hgrid[sprite_number] = digest_sprites_to_dots[sprite_number] ?: sprites_to_dots[sprite_number][dot_number];
+      digest_sprites_to_hgrid[sprite_number] = digest_sprites_to_hgrid[sprite_number] ? true : sprites_to_hgrid[sprite_number][h_segment];
     }
   }
 
@@ -550,7 +521,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
     {
-      digest_sprites_to_chars[sprite_number] = digest_sprites_to_chars[sprite_number] ?: sprites_to_chars[sprite_number][char_number];
+      digest_sprites_to_chars[sprite_number] = digest_sprites_to_chars[sprite_number] ? true : sprites_to_chars[sprite_number][char_number];
     }
   }
 
@@ -588,7 +559,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
     {
-      digest_chars_to_vgrid = digest_chars_to_vgrid ?: chars_to_vgrid[char_number][v_segment];
+      digest_chars_to_vgrid = digest_chars_to_vgrid ? true : chars_to_vgrid[char_number][v_segment];
     }
   }
 
@@ -615,6 +586,19 @@ uint8_t detect_collisions()
           chars_to_hgrid[char_number][h_segment] = true;
         }
       }
+      if (grid_dots)
+        if (
+            (((displayed_chars[char_number].start_x >= dots[h_segment].start_x) &&
+              (displayed_chars[char_number].start_x <= dots[h_segment].start_x + 15)) ||
+             ((displayed_chars[char_number].start_x + 7 >= dots[h_segment].start_x) &&
+              (displayed_chars[char_number].start_x + 7 <= dots[h_segment].start_x + 15))) &&
+            (((displayed_chars[char_number].start_y >= dots[h_segment].start_y) &&
+              (displayed_chars[char_number].start_y <= dots[h_segment].start_y + 2)) ||
+             ((displayed_chars[char_number].end_y >= dots[h_segment].start_y) &&
+              (displayed_chars[char_number].end_y <= dots[h_segment].start_y + 2))))
+        {
+          chars_to_hgrid[char_number][h_segment] = true;
+        }
     }
   }
 
@@ -626,7 +610,7 @@ uint8_t detect_collisions()
   {
     for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
     {
-      digest_chars_to_hgrid = digest_chars_to_hgrid ?: chars_to_hgrid[char_number][h_segment];
+      digest_chars_to_hgrid = digest_chars_to_hgrid ? true : chars_to_hgrid[char_number][h_segment];
     }
   }
 
@@ -636,7 +620,7 @@ uint8_t detect_collisions()
 
   for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
   {
-    for (uint8_t dot_number = 0; dot_number < NB_DOTS; dot_number++)
+    for (uint8_t dot_number = 0; dot_number < NB_H_SEGMENTS; dot_number++)
     {
       ;
     }
@@ -648,7 +632,7 @@ uint8_t detect_collisions()
 
   for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
   {
-    for (uint8_t dot_number = 0; dot_number < NB_DOTS; dot_number++)
+    for (uint8_t dot_number = 0; dot_number < NB_H_SEGMENTS; dot_number++)
     {
       ;
     }
@@ -745,28 +729,28 @@ uint8_t detect_collisions()
       result |= 0x20;
   };
 
-  // Serial.print("Checking collisions - ");
-  // Serial.println(data, HEX);
+// Serial.print("Checking collisions - ");
+// Serial.println(data, HEX);
 
-  /*
-  Serial.print("ext_write() [0x");
-  Serial.print(addr, HEX);
-  Serial.print("] <- 0x");
-  Serial.println(data, HEX);
-  if ((data & 0xF0) != 0x00)
-     {
-         Serial.println("Testing other object than sprite");
-         // delay(10000);
-     }
-  else if ((data & 0x0F) != 0x01 && (data & 0x0F) != 0x02 && (data & 0x0F) != 0x04 && (data & 0x0F) != 0x08)
-     {
-         Serial.println("Testing many sprites");
-         // delay(10000);
-     }
-  */
+/*
+Serial.print("ext_write() [0x");
+Serial.print(addr, HEX);
+Serial.print("] <- 0x");
+Serial.println(data, HEX);
+if ((data & 0xF0) != 0x00)
+   {
+       Serial.println("Testing other object than sprite");
+       // delay(10000);
+   }
+else if ((data & 0x0F) != 0x01 && (data & 0x0F) != 0x02 && (data & 0x0F) != 0x04 && (data & 0x0F) != 0x08)
+   {
+       Serial.println("Testing many sprites");
+       // delay(10000);
+   }
+*/
 
-  // intel8245_ram[addr] = result;
-  // intel8245_ram[addr] = data;
+// intel8245_ram[addr] = result;
+// intel8245_ram[addr] = data;
 #ifdef DEBUG
 
   if (displayed_sprites[2].start_x != 240)
@@ -822,8 +806,8 @@ void draw_display()
 
   if (!background_uptodate)
   {
-    background_uptodate = 1;
-    graphic_tft.fillScreen(background_color);
+    background_uptodate = true;
+    tft.fillScreen(background_color);
   }
 
   if (grid_control && !grid_uptodate)

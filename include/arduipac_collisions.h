@@ -68,7 +68,6 @@ struct displayed_sprite_t
 //
 
 #define NB_H_SEGMENTS 81
-#define NB_DOTS 81 // TODO: check this
 #define NB_V_SEGMENTS 80
 #define NB_CHARS 28
 #define NB_SPRITES 4
@@ -85,6 +84,8 @@ extern bool grid_dots;
 extern uint8_t v_segments_width; // This one REALLY needs to be initialized
 extern uint16_t grid_color;
 extern uint16_t background_color;
+extern bool grid_uptodate;
+extern bool dots_uptodate;
 extern bool background_uptodate;
 extern bool sprites_uptodate;
 extern bool chars_uptodate;
@@ -92,7 +93,7 @@ extern bool chars_uptodate;
 // stockage des segments
 
 extern h_segment_t h_segments[NB_H_SEGMENTS];
-extern dot_t dots[NB_DOTS];
+extern dot_t dots[NB_H_SEGMENTS];
 extern v_segment_t v_segments[NB_V_SEGMENTS];
 
 // stockage des caractères

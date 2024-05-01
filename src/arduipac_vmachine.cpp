@@ -156,7 +156,7 @@ void ext_write(uint8_t data, uint8_t addr)
 			if (addr < 0x10) // Sprite control
 			{
 				intel8245_ram[addr] = data;
-				sprites_uptodate = 0;
+				sprites_uptodate = false;
 
 				uint8_t sprite_number = addr / 4;
 				uint8_t sprite_attribute = addr % 4;
@@ -200,7 +200,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.println(data, HEX);
 #endif
 				intel8245_ram[addr] = data;
-				chars_uptodate = 0;
+				chars_uptodate = false;
 				uint8_t char_number = (addr - 0x10) / 4;
 				displayed_chars[char_number].changed = true;
 				displayed_chars[char_number].displayed = true;
@@ -352,7 +352,7 @@ void ext_write(uint8_t data, uint8_t addr)
 			else if (addr >= 0x80 && addr < 0xA0) // Sprite shapes
 			{
 				intel8245_ram[addr] = data;
-				sprites_uptodate = 0;
+				sprites_uptodate = false;
 				uint8_t sprite_number = (addr - 0x80) / 8;
 				displayed_sprites[sprite_number].changed = true;
 				displayed_sprites[sprite_number].displayed = true; // TODO compute "display" depending on x y values
@@ -390,6 +390,7 @@ void ext_write(uint8_t data, uint8_t addr)
 					{
 						grid_control = data & 0x08;
 						grid_uptodate = false;
+						dots_uptodate = false;
 						for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
 						{
 							h_segments[h_segment].changed = true;
@@ -412,8 +413,8 @@ void ext_write(uint8_t data, uint8_t addr)
 					// Foreground objects (ie chars and sprites) display on / off
 					// Nota bene: FG objects should never been set off once already set on
 					foreground_control = data & 0x20;
-					sprites_uptodate = 0;
-					chars_uptodate = 0;
+					sprites_uptodate = false;
+					chars_uptodate = false;
 #ifdef DEBUG
 					Serial.print("foreground_control = ");
 					Serial.println(foreground_control);
@@ -433,6 +434,7 @@ void ext_write(uint8_t data, uint8_t addr)
 					Serial.println("Changing grid color");
 #endif
 					// Grid color
+					grid_uptodate = false;
 					grid_color = (data & 0x40) ? LIGHT_COLORS(data & 0x07) : DARK_COLORS(data & 0x07);
 					for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
 						h_segments[h_segment].changed = true;
@@ -446,9 +448,10 @@ void ext_write(uint8_t data, uint8_t addr)
 					//
 					// Need to force redrawing everything !
 					//
-					background_uptodate = 0;
-					sprites_uptodate = 0;
-					chars_uptodate = 0;
+					background_uptodate = false;
+					sprites_uptodate = false;
+					chars_uptodate = false;
+					grid_uptodate = false;
 					// Force redrawing grid elements
 					// TODO: find a way to indicate to the all show routines that all elements must be drawn
 					for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)

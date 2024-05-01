@@ -10,8 +10,6 @@
 #undef DEBUG
 
 // #define DEBUG
-// #undef DEBUG_KEYBOARD
-// #define DEBUG_JOYSTICK
 
 // TODO: déplacer dans arduipac.c ou bien arduipac_8048.c ou encore arduipac_vmachine.C ce code
 // Il n'est pas spécifique aux inputs puisqu'il gère aussi la sélection de la banque de ROMS
@@ -26,7 +24,7 @@ void write_p1(uint8_t data)
 
   port1 = data;
   rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
-  
+
 #ifdef DEBUG
   Serial.print("rom_bank_select == 0x");
   Serial.println(rom_bank_select, HEX);
@@ -39,7 +37,7 @@ read_p2() // 4x3 Keypad used as a keyboard
   uint8_t scan_input;
   uint8_t scan_output = 0x01; // Aucune touche pressée
 
-#if defined(DEBUG) || defined(DEBUG_KEYBOARD)
+#if defined(DEBUG)
   Serial.print(" - read_p2() - valeur P2 == 0x");
   Serial.println(port2, HEX);
 #endif
@@ -49,7 +47,7 @@ read_p2() // 4x3 Keypad used as a keyboard
   {
     scan_input = (port2 & 0x07);
 
-#if defined(DEBUG) || defined(DEBUG_KEYBOARD)
+#if defined(DEBUG)
     Serial.print("scan_input == ");
     Serial.println(scan_input);
 #endif
@@ -122,7 +120,7 @@ read_p2() // 4x3 Keypad used as a keyboard
   port2 &= 0x0F;
   port2 |= (scan_output << 4);
 
-#if defined(DEBUG) || defined(DEBUG_KEYBOARD)
+#if defined(DEBUG)
   Serial.print("scan_output == ");
   Serial.println(scan_output);
   Serial.print("Retour read_p2() == 0x");
@@ -137,7 +135,7 @@ in_bus()
 {
   uint8_t data_output = 0xFF;
 
-#if defined(DEBUG) && defined(DEBUG_JOYSTICK)
+#if defined(DEBUG)
   Serial.print("in_bus() - P1 == 0x");
   Serial.print(port1, HEX);
   Serial.print(" - P2 == 0x");
@@ -147,9 +145,9 @@ in_bus()
   if ((port1 & 0x18) == 0x18) // Ni le 8245 ni la RAM externe ne sont activés
   {
     if (port2 & 0x04)
-    digitalWrite(UNO_JOYSTICK_SELECT, HIGH);
-  else
-    digitalWrite(UNO_JOYSTICK_SELECT, LOW);
+      digitalWrite(UNO_JOYSTICK_SELECT, HIGH);
+    else
+      digitalWrite(UNO_JOYSTICK_SELECT, LOW);
 
     if (digitalRead(UNO_JOYSTICK_B0) == LOW)
       data_output &= 0xFE;

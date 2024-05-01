@@ -3,9 +3,7 @@
 
 #include <stdint.h>
 
-/*
- * MKR 1010 
- *
+#if (TRAVOLTA_TARGET == TRAVOLTA_MKR1010)
 #define KEYBOARD_R1 2
 #define KEYBOARD_R2 3
 #define KEYBOARD_R3 4
@@ -21,12 +19,12 @@
 #define UNO_JOYSTICK_B4 13
 
 #define UNO_JOYSTICK_SELECT 5
- */
+#endif
 
 //
 // Pico:
 //
-
+#if (TRAVOLTA_TARGET == TRAVOLTA_PICO)
 #define KEYBOARD_R1 11
 #define KEYBOARD_R2 12
 #define KEYBOARD_R3 13
@@ -42,6 +40,7 @@
 #define UNO_JOYSTICK_B4 6
 
 #define UNO_JOYSTICK_SELECT 7
+#endif
 
 void write_p1 (uint8_t data);
 uint8_t read_p2 ();

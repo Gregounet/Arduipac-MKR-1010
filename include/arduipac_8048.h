@@ -13,6 +13,5 @@ void init_intel8048 (void);
 void exec_8048 (void);
 
 extern uint32_t bigben;
-extern uint16_t debug_delay;
 
 #endif /*ARDUIPAC_8048_H */

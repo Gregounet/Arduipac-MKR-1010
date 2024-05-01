@@ -11,38 +11,29 @@
 #include "arduipac_collisions.h"
 
 // #define DEBUG
-// #define DEBUG_GRID
-// #define DEBUG_DETAIL
 
 //
 // Storage
 //
 
-bool grid_control = 0;
-bool foreground_control = 0;
-bool grid_dots = 0;
+bool grid_control = false;
+bool foreground_control = false;
+bool grid_dots = false;
 uint8_t v_segments_width = 2; // This one REALLY needs to be initialized
 uint16_t grid_color = 0;
 uint16_t background_color = 0;
 
-bool background_uptodate = 0;
-bool sprites_uptodate = 0;
-bool chars_uptodate = 0;
-
-// stockage des segments
+bool grid_uptodate = false;
+bool dots_uptodate = false;
+bool background_uptodate = false;
+bool sprites_uptodate = false;
+bool chars_uptodate = false;
 
 h_segment_t h_segments[NB_H_SEGMENTS];
-dot_t dots[NB_DOTS];
+dot_t dots[NB_H_SEGMENTS];
 v_segment_t v_segments[NB_V_SEGMENTS];
-
-// stockage des caractères
-
 displayed_char_t displayed_chars[NB_CHARS];
-
-// stockage des sprites
-
 displayed_sprite_t displayed_sprites[NB_SPRITES];
-
 
 //
 // Initialisations
