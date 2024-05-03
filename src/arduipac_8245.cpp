@@ -29,9 +29,8 @@ uint8_t intel8245_ram[256];
  *
  */
 
-void  show_grid()
+void show_grid()
 {
-  bool grid_needs_redraw = false;
   grid_uptodate = true;
 
 #if defined(DEBUG)
@@ -39,95 +38,64 @@ void  show_grid()
   Serial.println("show_grid()");
 
   //
-  // Effacement des Dots
-  //
-  if (!grid_dots && !dots_uptodate)
-  {
-    grid_needs_redraw = true;
-    dots_uptodate = true;
-#if defined(DEBUG)
-#endif
-    Serial.println("draw_grid() - effacement des points");
-    for (uint8_t dot_idx = 0; dot_idx < NB_H_SEGMENTS; dot_idx++)
-      tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, background_color);
-  }
-
-  //
-  // Effacement des segments horizontaux
-  //
-#if defined(DEBUG)
-#endif
-  Serial.println("show_grid() - effacement des segments horizontaux");
-
-  for (uint8_t h_seg_idx = 0; h_seg_idx < NB_H_SEGMENTS; h_seg_idx++)
-  {
-    if (h_segments[h_seg_idx].changed && !h_segments[h_seg_idx].displayed)
-    {
-      grid_needs_redraw = true;
-      h_segments[h_seg_idx].changed = false;
-      tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, background_color);
-    }
-  }
-
-  //
-  // Effacement des segments verticaux
-  //
-#if defined(DEBUG)
-#endif
-  Serial.println("show_grid() - effacement des segments verticaux");
-
-  for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
-  {
-    if (v_segments[v_seg_idx].changed && !v_segments[v_seg_idx].displayed)
-    {
-      grid_needs_redraw = true;
-      v_segments[v_seg_idx].changed = false;
-      tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, background_color);
-    }
-  }
-
-  //
   // Affichage des Dots
   //
-  if (grid_dots && (grid_needs_redraw || !dots_uptodate))
+  if (!dots_uptodate)
   {
 #if defined(DEBUG)
 #endif
     Serial.println("draw_grid() - affichage des points");
-    for (uint8_t dot_idx = 0; dot_idx < NB_H_SEGMENTS; dot_idx++)
-      tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, grid_color);
+    if (grid_dots)
+      for (uint8_t dot_idx = 0; dot_idx < NB_H_SEGMENTS; dot_idx++)
+        tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, grid_color);
+    else
+      for (uint8_t dot_idx = 0; dot_idx < NB_H_SEGMENTS; dot_idx++)
+        tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, background_color);
   }
 
   //
   // Tracé des segments horizontaux
   //
-  if (grid_needs_redraw)
+
+  if (!h_segs_uptodate)
   {
+    h_segs_uptodate = true;
 #if defined(DEBUG)
 #endif
     Serial.println("show_grid() - affichage des segments horizontaux");
     for (uint8_t h_seg_idx = 0; h_seg_idx < NB_H_SEGMENTS; h_seg_idx++)
-    {
-      h_segments[h_seg_idx].changed = false;
-      if (h_segments[h_seg_idx].displayed)
-        tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, grid_color);
-    }
+      if (h_segments[h_seg_idx].changed)
+      {
+        Serial.println("affichage d'un segment h");
+        h_segments[h_seg_idx].changed = false;
+        if (h_segments[h_seg_idx].displayed)
+          tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, grid_color);
+        else
+          tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, background_color);
+      }
   }
 
   //
   // Tracé des segments verticaux
   //
-  if (grid_needs_redraw)
+  if (!v_segs_uptodate)
   {
+    v_segs_uptodate = true;
 #if defined(DEBUG)
 #endif
     Serial.println("show_grid() - affichage des segments verticaux");
     for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
-    {
-      v_segments[v_seg_idx].changed = false;
-      if (v_segments[v_seg_idx].displayed)
-        tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, grid_color);
-    }
+      if (v_segments[v_seg_idx].changed)
+      {
+        {
+          Serial.println("affichage d'un segment v");
+          v_segments[v_seg_idx].changed = false;
+          if (v_segments[v_seg_idx].displayed)
+            tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, grid_color);
+          else
+            tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, background_color);
+        }
+      }
   }
 }
 

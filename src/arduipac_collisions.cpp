@@ -10,20 +10,18 @@
 #include "arduipac_colors.h"
 #include "arduipac_collisions.h"
 
-// #define DEBUG
-
-//
-// Storage
-//
-
 bool grid_control = false;
 bool foreground_control = false;
 bool grid_dots = false;
-uint8_t v_segments_width = 2; // This one REALLY needs to be initialized
+
+uint8_t v_segments_width = 2;
+
 uint16_t grid_color = 0;
 uint16_t background_color = 0;
 
 bool grid_uptodate = false;
+bool h_segs_uptodate = false;
+bool v_segs_uptodate = false;
 bool dots_uptodate = false;
 bool background_uptodate = false;
 bool sprites_uptodate = false;
@@ -127,7 +125,7 @@ void init_displayed_chars()
         displayed_chars[char_number].previous_start_y = 0;
         displayed_chars[char_number].previous_height = 0;
         displayed_chars[char_number].changed = false;
-        displayed_chars[char_number].displayed = false;
+        // displayed_chars[char_number].displayed = false;
     }
 }
 
@@ -147,6 +145,6 @@ void init_displayed_sprites()
         displayed_sprites[sprite_number].previous_start_y = 0;
         displayed_sprites[sprite_number].previous_size = 0;
         displayed_sprites[sprite_number].changed = false;
-        displayed_sprites[sprite_number].displayed = false;
+        // displayed_sprites[sprite_number].displayed = false;
     }
 }

@@ -32,7 +32,6 @@ struct v_segment_t
 
 struct displayed_char_t
 { // variable height, fixed width
-
     uint8_t start_x;
     uint8_t start_y;
     uint8_t end_y;
@@ -43,7 +42,7 @@ struct displayed_char_t
     uint8_t previous_start_y;
     uint8_t previous_height;
     bool changed;
-    bool displayed;
+    // bool displayed;
 };
 
 struct displayed_sprite_t
@@ -60,7 +59,7 @@ struct displayed_sprite_t
     uint8_t previous_start_y;
     uint8_t previous_size;
     bool changed;
-    bool displayed;
+    // bool displayed;
 };
 
 //
@@ -71,6 +70,7 @@ struct displayed_sprite_t
 #define NB_V_SEGMENTS 80
 #define NB_CHARS 28
 #define NB_SPRITES 4
+
 #define LEFT_OFFSET 20
 #define TOP_OFFSET 20
 
@@ -81,10 +81,15 @@ struct displayed_sprite_t
 extern bool grid_control;
 extern bool foreground_control;
 extern bool grid_dots;
-extern uint8_t v_segments_width; // This one REALLY needs to be initialized
+
+extern uint8_t v_segments_width; 
+
 extern uint16_t grid_color;
 extern uint16_t background_color;
+
 extern bool grid_uptodate;
+extern bool h_segs_uptodate;
+extern bool v_segs_uptodate;
 extern bool dots_uptodate;
 extern bool background_uptodate;
 extern bool sprites_uptodate;

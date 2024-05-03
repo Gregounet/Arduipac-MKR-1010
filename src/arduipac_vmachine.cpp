@@ -170,7 +170,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.println(data, HEX);
 #endif
 				displayed_sprites[sprite_number].changed = true;
-				displayed_sprites[sprite_number].displayed = true; // TODO compute "display" depending on x & y values
+				// displayed_sprites[sprite_number].displayed = true; // TODO compute "display" depending on x & y values
 				switch (sprite_attribute)
 				{
 				case 0: // y
@@ -203,15 +203,15 @@ void ext_write(uint8_t data, uint8_t addr)
 				chars_uptodate = false;
 				uint8_t char_number = (addr - 0x10) / 4;
 				displayed_chars[char_number].changed = true;
-				displayed_chars[char_number].displayed = true;
+				// displayed_chars[char_number].displayed = true;
 				if (char_number >= 12 && char_number % 4 == 0) // 1st char from a quad
 				{
 					displayed_chars[char_number + 1].changed = true;
-					displayed_chars[char_number + 1].displayed = true;
+					// displayed_chars[char_number + 1].displayed = true;
 					displayed_chars[char_number + 2].changed = true;
-					displayed_chars[char_number + 2].displayed = true;
+					// displayed_chars[char_number + 2].displayed = true;
 					displayed_chars[char_number + 3].changed = true;
-					displayed_chars[char_number + 3].displayed = true;
+					// displayed_chars[char_number + 3].displayed = true;
 				}
 				uint8_t char_attribute = addr % 4;
 				switch (char_attribute)
@@ -355,7 +355,7 @@ void ext_write(uint8_t data, uint8_t addr)
 				sprites_uptodate = false;
 				uint8_t sprite_number = (addr - 0x80) / 8;
 				displayed_sprites[sprite_number].changed = true;
-				displayed_sprites[sprite_number].displayed = true; // TODO compute "display" depending on x y values
+				// displayed_sprites[sprite_number].displayed = true; // TODO compute "display" depending on x y values
 #if defined(DEBUG)
 				Serial.print("Sprites shapes - sprite number ");
 				Serial.println(sprite_number);
@@ -390,17 +390,13 @@ void ext_write(uint8_t data, uint8_t addr)
 					{
 						grid_control = data & 0x08;
 						grid_uptodate = false;
+						h_segs_uptodate = false;
+						v_segs_uptodate = false;
 						dots_uptodate = false;
 						for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
-						{
 							h_segments[h_segment].changed = true;
-							h_segments[h_segment].displayed = false;
-						}
-						for (uint8_t v_segment = 0; v_segment < NB_H_SEGMENTS; v_segment++)
-						{
+						for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
 							h_segments[v_segment].changed = true;
-							h_segments[v_segment].displayed = false;
-						}
 					}
 
 #ifdef DEBUG
@@ -435,6 +431,9 @@ void ext_write(uint8_t data, uint8_t addr)
 #endif
 					// Grid color
 					grid_uptodate = false;
+					h_segs_uptodate = false;
+					v_segs_uptodate = false;
+					dots_uptodate = false;
 					grid_color = (data & 0x40) ? LIGHT_COLORS(data & 0x07) : DARK_COLORS(data & 0x07);
 					for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
 						h_segments[h_segment].changed = true;
@@ -452,6 +451,9 @@ void ext_write(uint8_t data, uint8_t addr)
 					sprites_uptodate = false;
 					chars_uptodate = false;
 					grid_uptodate = false;
+					h_segs_uptodate = false;
+					v_segs_uptodate = false;
+					dots_uptodate = false;
 					// Force redrawing grid elements
 					// TODO: find a way to indicate to the all show routines that all elements must be drawn
 					for (uint8_t h_segment = 0; h_segment < NB_H_SEGMENTS; h_segment++)
@@ -473,6 +475,7 @@ void ext_write(uint8_t data, uint8_t addr)
 			{
 				intel8245_ram[addr] = data;
 				grid_uptodate = false;
+				h_segs_uptodate = false;
 
 				uint8_t base_index = (addr - 0xC0) * 9;
 				uint8_t mask = 0x01;
@@ -482,6 +485,8 @@ void ext_write(uint8_t data, uint8_t addr)
 				{
 					if (data & mask)
 						h_segments[base_index + bit].displayed = true;
+					else
+						h_segments[base_index + bit].displayed = false;
 					mask <<= 1;
 				}
 			}
@@ -489,17 +494,20 @@ void ext_write(uint8_t data, uint8_t addr)
 			{
 				intel8245_ram[addr] = data;
 				grid_uptodate = false;
+				h_segs_uptodate = false;
 
 				uint8_t base_index = (addr - 0xD0) * 9;
+				h_segments[base_index + 8].changed = true;
 				if (data & 0x01)
-					h_segments[base_index + 8].changed = true;
-				else
 					h_segments[base_index + 8].displayed = true;
+				else
+					h_segments[base_index + 8].displayed = false;
 			}
 			else if (addr >= 0xE0 && addr <= 0xE9) // Grid vertical segments
 			{
 				intel8245_ram[addr] = data;
 				grid_uptodate = false;
+				v_segs_uptodate = false;
 
 				uint8_t base_index = (addr - 0xE0) * 8;
 				uint8_t mask = 0x01;
@@ -509,6 +517,8 @@ void ext_write(uint8_t data, uint8_t addr)
 				{
 					if (data & mask)
 						v_segments[base_index + bit].displayed = true;
+					else
+						v_segments[base_index + bit].displayed = false;
 					mask <<= 1;
 				}
 			}
