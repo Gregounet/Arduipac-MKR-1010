@@ -3,8 +3,8 @@
 
 extern uint8_t horizontal_clock;
 
-extern uint8_t p1;
-extern uint8_t p2;
+extern uint8_t port1;
+extern uint8_t port2;
 
 extern uint16_t rom_bank_select;
 
@@ -13,6 +13,5 @@ void init_intel8048 (void);
 void exec_8048 (void);
 
 extern uint32_t bigben;
-extern uint16_t debug_delay;
 
 #endif /*ARDUIPAC_8048_H */

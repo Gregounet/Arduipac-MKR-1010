@@ -2,7 +2,6 @@
 #include <Adafruit_ST77xx.h>
 
 #include "arduipac_colors.h"
-#include "arduipac_config.h"
 
 #define O2_COLOR_DARK_GREY   0x8410
 #define O2_COLOR_LIGHT_GREY  0xC618
@@ -11,7 +10,8 @@
 #define O2_COLOR_DARK_GREEN  0x0400
 #define O2_COLOR_LIGHT_GREEN 0x87F0
 
-const uint16_t char_colors[8] PROGMEM = {
+const uint16_t char_colors[8] 
+ = {
     O2_COLOR_DARK_GREY,
     ST77XX_RED,
     ST77XX_GREEN,
@@ -22,7 +22,7 @@ const uint16_t char_colors[8] PROGMEM = {
     ST77XX_WHITE
     };
 
-const uint16_t dark_colors[8] PROGMEM = {
+const uint16_t dark_colors[8]  = {
     ST77XX_BLACK,
     O2_COLOR_DARK_BLUE,
     O2_COLOR_DARK_GREEN,
@@ -33,7 +33,8 @@ const uint16_t dark_colors[8] PROGMEM = {
     O2_COLOR_LIGHT_GREY
     };
 
-const uint16_t light_colors[8] PROGMEM = {
+const uint16_t light_colors[8] 
+ = {
     ST77XX_BLACK,
     ST77XX_BLUE,
     ST77XX_GREEN,
@@ -44,29 +45,3 @@ const uint16_t light_colors[8] PROGMEM = {
     O2_COLOR_LIGHT_GREY
     };
 
-// All white
-/*
-const uint16_t colors[8] PROGMEM = {
-    ST77XX_WHITE,
-    ST77XX_WHITE,
-    ST77XX_WHITE,
-    ST77XX_WHITE,
-    ST77XX_WHITE,
-    ST77XX_WHITE,
-    ST77XX_WHITE,
-    ST77XX_WHITE
-    };
-*/
-
-// All red
-/*
-const uint16_t colors[8] PROGMEM = {
-    ST77XX_RED,
-    ST77XX_RED,
-    ST77XX_RED,
-    ST77XX_RED,
-    ST77XX_RED,
-    ST77XX_RED,
-    ST77XX_RED,
-    ST77XX_RED};
-    */

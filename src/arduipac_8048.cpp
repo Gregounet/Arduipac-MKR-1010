@@ -17,11 +17,6 @@
 #include "arduipac_vmachine.h"
 #include "arduipac_bios_rom.h"
 #include "mnemonics.h"
-#include "arduipac_config.h"
-
-// #define DEBUG_SERIAL
-#define DEBUG_DELAY 0
-uint16_t debug_delay = DEBUG_DELAY;
 
 #define push(d)                    \
 	{                              \
@@ -54,8 +49,8 @@ uint8_t reg_pnt; // Register Pointer (Registers are part of the built-in RAM)
 
 uint8_t sp; // Stack Pointer                                                                    (Values 8 - 23 : saved as 3 bits in PSW bits 0 - 2)
 
-uint8_t p1; // I/O Port #1
-uint8_t p2; // I/O Port #2
+uint8_t port1; // I/O Port #1
+uint8_t port2; // I/O Port #2
 
 uint8_t executing_isr; // Executing ISR
 
@@ -91,9 +86,9 @@ void init_intel8048()
 	rom_bank_select = 0x1000; // TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
 
 	sp = 0x08;
-	p1 = 0xFF;
+	port1 = 0xFF;
 
-	p2 = 0xFF;
+	port2 = 0xFF;
 	reg_pnt = 0x00;
 	bs = 0x00;
 	ac = 0x00;
@@ -112,15 +107,8 @@ void init_intel8048()
 	tirq_enabled = 0;
 	xirq_enabled = 0;
 
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "Initializing intel8048_ram\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 	Serial.println("Initializing intel8048_ram");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("Initializing intel8048_ram\n");
-	delay(TFT_DEBUG_DELAY);
 #endif
 	for (uint8_t i = 0; i < 0x40; i++)
 		intel8048_ram[i] = 0;
@@ -128,15 +116,8 @@ void init_intel8048()
 
 void ext_irq()
 {
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "ext_irq()\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 	Serial.println("ext_irq()");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("ext_irq()\n");
-	delay(TFT_DEBUG_DELAY);
 #endif
 
 	interrupt_clock = 5;
@@ -155,15 +136,8 @@ void ext_irq()
 
 void timer_irq()
 {
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "timer_irq()\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 	Serial.println("timer_irq()");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("timer_irq()\n");
-	delay(TFT_DEBUG_DELAY);
 #endif
 
 	if (tirq_enabled && !executing_isr)
@@ -187,80 +161,21 @@ void exec_8048()
 	uint16_t addr;	 // Address
 	uint16_t temp;	 // Temporary value
 
+#if (TRAVOLTA_TARGET == TRAVOLTA_MKR1010)
 	int8_t elapsed_time;
-
-#define LOG_TIME
-#ifdef LOG_TIME
-	long clk_tck = CLOCKS_PER_SEC;
-	clock_t start_time, current_time;
-
-	start_time = clock();
 #endif
 
-#ifdef DEBUG_STDERR
-	fprintf(stderr, "Entering exec_8048()\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 	Serial.println("Entering exec_8048()");
-#endif
-#ifdef DEBUG_TFT
-	text_print_string("Entering exec_8048()\n");
-	delay(TFT_DEBUG_DELAY);
 #endif
 
 	for (;;)
 	{
-#ifdef DEBUG_SERIAL
-		if (Serial.available() > 0)
-		{
-			// read the incoming byte:
-			incomingByte = Serial.read();
-			switch (incomingByte)
-			{
-			case '+':
-				debug_delay -= 20;
-				debug_delay = (debug_delay < 0) ? 0 : debug_delay;
-				break;
-			case '-':
-				debug_delay += 200;
-				break;
-			case 'N':
-			case 'n':
-				debug_delay = 10;
-				break;
-			case 'S':
-			case 's':
-				debug_delay += 500;
-				break;
-			case 'F':
-			case 'f':
-				debug_delay = 0;
-				break;
-			case 'P':
-			case 'p':
-				while (!Serial.available())
-					;
-				break;
-			}
-		}
-		delay(debug_delay);
-#endif
-
 		op_cycles = 1;
-#if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
+#if defined(DEBUG)
 		op = ROM(pc);
 #endif
-#ifdef DEBUG_STDERR
-		fprintf(stderr,
-				"%06d\tBS: %d SP: 0x%02X REGPNT: 0x%02X Cy: %d\tR0: 0x%02X R1: 0x%02X R2: 0x%02X R3: 0x%02X R4: 0x%02X R5: 0x%02X R6: 0x%02X R7: 0x%02X\t\tAcc: 0x%02X\tPC: 0x%03X (%s)\tOp: 0x%02X\t%s",
-				bigben, bs >> 4) sp, reg_pnt, cy, intel8048_ram[reg_pnt],
-				intel8048_ram[reg_pnt + 1], intel8048_ram[reg_pnt + 2],
-				intel8048_ram[reg_pnt + 3], intel8048_ram[reg_pnt + 4],
-				intel8048_ram[reg_pnt + 5], intel8048_ram[reg_pnt + 6],
-				intel8048_ram[reg_pnt + 7], acc, pc,
-				(pc < 0x400) ? "bios" : "cart", op, lookup[op].mnemonic);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 		Serial.println();
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
@@ -291,9 +206,9 @@ void exec_8048()
 		Serial.print(" R7: ");
 		Serial.print(intel8048_ram[reg_pnt + 7], HEX);
 		Serial.print(" P1: ");
-		Serial.print(p1, HEX);
+		Serial.print(port1, HEX);
 		Serial.print(" P2: ");
-		Serial.print(p2, HEX);
+		Serial.print(port2, HEX);
 		Serial.print(" A11: ");
 		Serial.print(a11, HEX);
 		Serial.print(" rom_bank_select : ");
@@ -307,167 +222,12 @@ void exec_8048()
 		Serial.print(lookup[op].mnemonic);
 		Serial.print(" ");
 #endif
-#ifdef DEBUG_TFT
-		text_tft.fillScreen(ST77XX_BLACK);
 
-		// Bank Select
-		text_tft.setCursor(0, 0);
-		text_print_string("BS ");
-		text_print_dec(bs >> 4);
-
-		// Registres - Bank 0
-		text_tft.setCursor(32, 0);
-		text_print_string("R0 ");
-		text_print_hex(intel8048_ram[0]);
-		text_print_string(" R1 ");
-		text_print_hex(intel8048_ram[1]);
-		text_print_string(" R2 ");
-		text_print_hex(intel8048_ram[2]);
-		text_print_string(" R3 ");
-		text_print_hex(intel8048_ram[3]);
-
-		text_tft.setCursor(32, 8);
-		text_print_string("R4 ");
-		text_print_hex(intel8048_ram[4]);
-		text_print_string(" R5 ");
-		text_print_hex(intel8048_ram[5]);
-		text_print_string(" R6 ");
-		text_print_hex(intel8048_ram[6]);
-		text_print_string(" R7 ");
-		text_print_hex(intel8048_ram[7]);
-
-		// Registres - Bank 0
-		text_tft.setCursor(32, 24);
-		text_print_string("R0 ");
-		text_print_hex(intel8048_ram[0x24]);
-		text_print_string(" R1 ");
-		text_print_hex(intel8048_ram[0x25]);
-		text_print_string(" R2 ");
-		text_print_hex(intel8048_ram[0x26]);
-		text_print_string(" R3 ");
-		text_print_hex(intel8048_ram[0x27]);
-
-		text_tft.setCursor(32, 32);
-		text_print_string("R4 ");
-		text_print_hex(intel8048_ram[0x28]);
-		text_print_string(" R5 ");
-		text_print_hex(intel8048_ram[0x29]);
-		text_print_string(" R6 ");
-		text_print_hex(intel8048_ram[0x2A]);
-		text_print_string(" R7 ");
-		text_print_hex(intel8048_ram[0x2B]);
-
-		// Accumulateur
-		text_tft.setCursor(0, 48);
-		text_print_string("Acc ");
-		text_print_hex(acc);
-
-		// Flags
-		text_tft.setCursor(0, 56);
-		text_print_string("Cy ");
-		text_print_dec(cy);
-		text_print_string(" AC ");
-		text_print_dec(ac);
-
-		// Stack + Stack Pointer
-		/*
-		text_tft.setCursor(208, 48);
-		text_print_hex(intel8048_ram[22]);
-		text_tft.setCursor(232, 48);
-		text_print_hex(intel8048_ram[23]);
-		text_tft.setCursor(208, 56);
-		text_print_hex(intel8048_ram[20]);
-		text_tft.setCursor(232, 56);
-		text_print_hex(intel8048_ram[21]);
-		text_tft.setCursor(208, 64);
-		text_print_hex(intel8048_ram[18]);
-		text_tft.setCursor(232, 64);
-		text_print_hex(intel8048_ram[19]);
-		text_tft.setCursor(208, 72);
-		text_print_hex(intel8048_ram[16]);
-		text_tft.setCursor(232, 72);
-		text_print_hex(intel8048_ram[17]);
-		text_tft.setCursor(208, 80);
-		text_print_hex(intel8048_ram[14]);
-		text_tft.setCursor(232, 80);
-		text_print_hex(intel8048_ram[15]);
-		text_tft.setCursor(208, 88);
-		text_print_hex(intel8048_ram[12]);
-		text_tft.setCursor(232, 88);
-		text_print_hex(intel8048_ram[13]);
-		text_tft.setCursor(208, 96);
-		text_print_hex(intel8048_ram[10]);
-		text_tft.setCursor(232, 96);
-		text_print_hex(intel8048_ram[11]);
-		text_tft.setCursor(208, 104);
-		text_print_hex(intel8048_ram[8]);
-		text_tft.setCursor(232, 104);
-		text_print_hex(intel8048_ram[9]);
-		text_tft.setCursor(0, 64);
-		*/
-		text_print_string("SP ");
-		text_print_hex(sp);
-
-		// Big Ben
-		text_tft.setCursor(0, 120);
-		text_print_string("bigben ");
-		text_print_dec(bigben);
-
-		// Exécution
-		text_tft.setCursor(0, 72);
-		text_print_string("PC ");
-		text_print_hex(pc);
-		if (pc < 0x400)
-			text_print_string(" (bios)");
-		else
-			text_print_string(" (cart)");
-		text_tft.setCursor(0, 80);
-		text_print_string("Op ");
-		text_print_hex(op);
-
-		text_tft.setCursor(0, 88);
-		text_print_string(lookup[op].mnemonic);
-
-		delay(TFT_DEBUG_DELAY);
-#endif
-
-#if defined(DEBUG_STDERR) || defined(DEBUG_SERIAL) || defined(DEBUG_TFT)
+#if defined(DEBUG)
 		pc++;
 #else
 		op = ROM(pc++);
 #endif
-#ifdef DEBUG_TFT
-		if ((bigben / 100) * 100 == bigben)
-		{
-			// Big Ben
-			text_tft.fillScreen(ST77XX_BLACK);
-			text_tft.setCursor(0, 120);
-			text_print_string("bigben ");
-			text_print_dec(bigben);
-		}
-#endif
-		/*
-				// Exécution
-				text_tft.setCursor(0, 72);
-				text_print_string("PC ");
-				text_print_hex(pc);
-				if (pc < 0x400)
-					text_print_string(" (bios)");
-				else
-					text_print_string(" (cart)");
-				text_tft.setCursor(0, 80);
-				text_print_string("Op ");
-				text_print_hex(op);
-
-				text_tft.setCursor(0, 88);
-				text_print_string(lookup[op].mnemonic);
-		*/
-		/*
-		Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
-			Serial.print(" Op: ");
-			Serial.print(op, HEX);
-			Serial.println(lookup[op].mnemonic);
-		*/
 		switch (op)
 		{
 		case 0x00: /* NOP */
@@ -524,15 +284,8 @@ void exec_8048()
 		case 0x03: /* ADD A,#data */
 		case 0x13: /* ADDC A,#data */
 			data = ROM(pc++);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 
 			ac = 0x00;
@@ -554,15 +307,8 @@ void exec_8048()
 			op_cycles = 2;
 			break;
 		case 0xA3: /* MOVP A,@A */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " (0x%02X)", ROM((pc & 0xF00) | acc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM((pc & 0xF00) | acc), HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(ROM((pc & 0xF00) | acc));
-			delay(TFT_DEBUG_DELAY);
 #endif
 
 			acc = ROM((pc & 0xF00) | acc);
@@ -594,15 +340,8 @@ void exec_8048()
 			pc = ROM(pc) | a11;
 			pc |= ((uint16_t)(op & 0xE0)) << 3;
 			op_cycles = 2;
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%03X", pc);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(pc, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(pc);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			break;
 		case 0x05: /* EN I */
@@ -616,7 +355,7 @@ void exec_8048()
 			op_cycles = 2;
 			break;
 		case 0x09: /* IN A,P1 */
-			acc = p1;
+			acc = port1;
 			op_cycles = 2;
 			break;
 		case 0x0A: /* IN A,P2 */
@@ -643,15 +382,8 @@ void exec_8048()
 		case 0xD2: /* JBb address */
 		case 0xF2: /* JBb address */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " (0x%02X)", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (acc & (0x01 << ((op - 0x12) / 0x20)))
 				pc = (pc & 0xF00) | data;
@@ -661,15 +393,8 @@ void exec_8048()
 			break;
 		case 0x16: /* JTF */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " (0x%02X)", pc);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(pc, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(pc);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (timer_flag)
 				pc = (pc & 0xF00) | data;
@@ -693,30 +418,17 @@ void exec_8048()
 			data = acc;
 			acc = intel8048_ram[intel8048_ram[reg_pnt + (op - 0x20)]];
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0x20)]] = data;
+			break;
 		case 0x23: /* MOV A,#data */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", ROM(pc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(ROM(pc));
-			delay(TFT_DEBUG_DELAY);
 #endif
 			acc = ROM(pc++);
 			op_cycles = 2;
 			break;
 		case 0x53: /* ANL A,#data */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", ROM(pc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(ROM(pc));
-			delay(TFT_DEBUG_DELAY);
 #endif
 			acc &= ROM(pc++);
 			op_cycles = 2;
@@ -759,7 +471,7 @@ void exec_8048()
 			if (op == 0x39)
 				write_p1(acc);
 			else
-				p2 = acc;
+				port2 = acc;
 			op_cycles = 2;
 			break;
 		case 0x3C: /* MOVD P4,A */
@@ -771,28 +483,14 @@ void exec_8048()
 			break;
 		case 0x40: /* ORL A,@Ri */
 		case 0x41: /* ORL A,@Ri */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " (0x%02X)", intel8048_ram[intel8048_ram[reg_pnt + (op - 0x40)]]);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(intel8048_ram[intel8048_ram[reg_pnt + (op - 0x40)]], HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(intel8048_ram[intel8048_ram[reg_pnt + (op - 0x40)]]);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			acc |= intel8048_ram[intel8048_ram[reg_pnt + (op - 0x40)]];
 			break;
 		case 0x43: /* ORL A,#data */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", ROM(pc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(ROM(pc));
-			delay(TFT_DEBUG_DELAY);
 #endif
 			acc |= ROM(pc++);
 			op_cycles = 2;
@@ -816,15 +514,8 @@ void exec_8048()
 		case 0x46: /* JNT1 */
 		case 0x56: /* JT1 */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			switch (op)
 			{
@@ -982,15 +673,8 @@ void exec_8048()
 			break;
 		case 0x86: /* JNI address */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (interrupt_clock > 0)
 				pc = (pc & 0xF00) | data;
@@ -1000,19 +684,13 @@ void exec_8048()
 			break;
 		case 0x89: /* ORL Pp,#data */
 		case 0x8A: /* ORL Pp,#data */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", ROM(pc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
 #endif
-#ifdef DEBUG_TFT
-			text_print_hex(ROM(pc));
-#endif
 			if (op == 0x89)
-				write_p1(p1 | ROM(pc++));
+				write_p1(port1 | ROM(pc++));
 			else
-				p2 |= ROM(pc++);
+				port2 |= ROM(pc++);
 			op_cycles = 2;
 			break;
 		case 0x8C: /* ORLD P4,A */
@@ -1049,20 +727,13 @@ void exec_8048()
 			break;
 		case 0x99: /* ANL Pp,#data */
 		case 0x9A: /* ANL Pp,#data */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", ROM(pc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
 #endif
-#ifdef DEBUG_TFT
-			text_print_hex(ROM(pc));
-			delay(TFT_DEBUG_DELAY);
-#endif
 			if (op == 0x99)
-				write_p1(p1 & ROM(pc++));
+				write_p1(port1 & ROM(pc++));
 			else
-				p2 &= ROM(pc++);
+				port2 &= ROM(pc++);
 			op_cycles = 2;
 			break;
 		case 0x9C: /* ANLD P4,A */
@@ -1080,15 +751,8 @@ void exec_8048()
 			break;
 		case 0xB6: /* JF0 address */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (f0)
 				pc = (pc & 0xF00) | data;
@@ -1104,15 +768,8 @@ void exec_8048()
 			break;
 		case 0x76: /* JF1 address */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (f1)
 				pc = (pc & 0xF00) | data;
@@ -1138,18 +795,9 @@ void exec_8048()
 			break;
 		case 0xB0: /* MOV @Ri,#data */
 		case 0xB1: /* MOV @Ri,#data */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", ROM(pc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
 #endif
-#ifdef DEBUG_TFT
-			text_print_hex(ROM(pc));
-			delay(TFT_DEBUG_DELAY);
-#endif
-			// The infamous ALIEN INVADERS BUG (april 2024 - GTE)
-			//		intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB1)]] = ROM(pc++);
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB0)]] = ROM(pc++);
 			op_cycles = 2;
 			break;
@@ -1166,15 +814,8 @@ void exec_8048()
 		case 0xBD: /* MOV Rr,#data */
 		case 0xBE: /* MOV Rr,#data */
 		case 0xBF: /* MOV Rr,#data */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", ROM(pc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(ROM(pc));
-			delay(TFT_DEBUG_DELAY);
 #endif
 			intel8048_ram[reg_pnt + (op - 0xB8)] = ROM(pc++);
 			op_cycles = 2;
@@ -1186,15 +827,8 @@ void exec_8048()
 			break;
 		case 0xC6: /* JZ address */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (acc == 0)
 				pc = (pc & 0xF00) | data;
@@ -1204,15 +838,8 @@ void exec_8048()
 			break;
 		case 0x96: /* JNZ address */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (acc != 0)
 				pc = (pc & 0xF00) | data;
@@ -1249,15 +876,8 @@ void exec_8048()
 			acc ^= intel8048_ram[intel8048_ram[reg_pnt + (op - 0xD0)]];
 			break;
 		case 0xD3: /* XRL A,#data */
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", ROM(pc));
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(ROM(pc), HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			acc ^= ROM(pc++);
 			op_cycles = 2;
@@ -1277,15 +897,8 @@ void exec_8048()
 			break;
 		case 0xF6: /* JC address */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " (0x%02X)", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (cy)
 				pc = (pc & 0xF00) | data;
@@ -1295,15 +908,8 @@ void exec_8048()
 			break;
 		case 0xE6: /* JNC address */
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " (0x%02X)", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (!cy)
 				pc = (pc & 0xF00) | data;
@@ -1321,15 +927,8 @@ void exec_8048()
 		case 0xEF: /* DJNZ Rr,address */
 			intel8048_ram[reg_pnt + (op - 0xE8)]--;
 			data = ROM(pc);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%02X", data);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(data, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(data);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			if (intel8048_ram[reg_pnt + (op - 0xE8)] != 0)
 				pc = (pc & 0xF00) | data;
@@ -1354,15 +953,8 @@ void exec_8048()
 			push(pc & 0xFF);
 			push(((pc & 0xF00) >> 8) | (psw & 0xF0));
 			pc = a11 | ((uint16_t)(op & 0xE0)) << 3 | ROM(pc - 1);
-#ifdef DEBUG_STDERR
-			fprintf(stderr, " 0x%03X", pc);
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 			Serial.print(pc, HEX);
-#endif
-#ifdef DEBUG_TFT
-			text_print_hex(pc);
-			delay(TFT_DEBUG_DELAY);
 #endif
 			op_cycles = 2;
 			break;
@@ -1377,32 +969,16 @@ void exec_8048()
 			acc = intel8048_ram[reg_pnt + (op - 0xF8)];
 			break;
 		}
-#ifdef DEBUG_STDERR
-		fprintf(stderr, "\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 		Serial.println();
 #endif
 
 		bigben += op_cycles;
 
-#ifdef LOG_TIME
+#if (TRAVOLTA_TARGET == TRAVOLTA_MKR1010)
+#if defined(DEBUG)
 		if ((bigben - previous_bigben) > 3600000)
-		{ /*
-			 current_time = clock();
-			 Serial.print("Current time = ");
-			 Serial.print((double)current_time / 1000);
-			 Serial.print(", last time = ");
-			 Serial.print((double)start_time / 1000);
-			 Serial.print(", elapsed ticks = ");
-			 Serial.print((double)(current_time - start_time));
-			 Serial.print(", elapsed time = ");
-			 Serial.print((double)(current_time - start_time) / ((double)clk_tck));
-			 Serial.print(", ticks/s = ");
-			 Serial.println(clk_tck);
-			 start_time = current_time;
-
-			 minutes = rtc.getMinutes();*/
+		{
 			previous_bigben = bigben;
 			seconds = rtc.getSeconds();
 			minutes = rtc.getMinutes();
@@ -1415,19 +991,13 @@ void exec_8048()
 			previous_minutes = minutes;
 			previous_seconds = seconds;
 		}
-
+#endif
 #endif
 
 		horizontal_clock += op_cycles;
 		vertical_clock += op_cycles;
 
-#ifdef DEBUG_STDERR
-		fprintf(stderr, "bigben == %d\n", bigben);
-		fprintf(stderr, "horizontal_clock == %d\n", horizontal_clock);
-		fprintf(stderr, "vertical_clock == %d\n", vertical_clock);
-		fprintf(stderr, "machine_state == %d\n");
-#endif
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");
@@ -1435,21 +1005,7 @@ void exec_8048()
 		Serial.print("machine_state == ");
 		Serial.println(machine_state);
 #endif
-#undef DEBUG_SERIAL
 
-#ifdef DEBUG_TFT
-		text_tft.setCursor(0, 104);
-		text_print_string("bigben ");
-		text_print_dec(bigben);
-		text_print_string(" h_clock ");
-		text_print_dec(horizontal_clock);
-		text_tft.setCursor(0, 112);
-		text_print_string("v_clk ");
-		text_print_dec(vertical_clock);
-		text_print_string(" m_state ");
-		text_print_dec(machine_state);
-		delay(TFT_DEBUG_DELAY);
-#endif
 		if (interrupt_clock >= op_cycles)
 			interrupt_clock -= op_cycles;
 		else
@@ -1470,7 +1026,6 @@ void exec_8048()
 				}
 			}
 		}
-		// draw_display(); // Je ne vais pas faire un draw_display() à chaque opcode !!! TODO
 
 		if (timer_on)
 		{
