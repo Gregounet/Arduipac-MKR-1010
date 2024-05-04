@@ -50,6 +50,9 @@ void setup()
   tft.setSPISpeed(100000000);
   tft.setRotation(1);
   tft.setTextColor(ST77XX_WHITE);
+#ifdef TRTAVOLTA_INVERT_TFT
+  tft.invertDisplay(false);
+#endif
 
 #ifdef DEBUG
   Serial.println("Entering main()");

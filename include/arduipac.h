@@ -10,6 +10,7 @@
 extern Adafruit_ST7789 tft;
 
 #undef DEBUG
+#define TRAVOLTA_INVERT_DISPLAY
 
 #define TRAVOLTA_MKR1010 1
 #define TRAVOLTA_PICO 2
