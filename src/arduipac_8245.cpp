@@ -34,8 +34,8 @@ void show_grid()
   grid_uptodate = true;
 
 #if defined(DEBUG)
-#endif
   Serial.println("show_grid()");
+#endif
 
   //
   // Affichage des Dots
@@ -43,8 +43,8 @@ void show_grid()
   if (!dots_uptodate)
   {
 #if defined(DEBUG)
-#endif
     Serial.println("draw_grid() - affichage des points");
+#endif
     if (grid_dots)
       for (uint8_t dot_idx = 0; dot_idx < NB_H_SEGMENTS; dot_idx++)
         tft.fillRect(dots[dot_idx].start_x * 2, dots[dot_idx].start_y, 4, 3, grid_color);
@@ -61,12 +61,12 @@ void show_grid()
   {
     h_segs_uptodate = true;
 #if defined(DEBUG)
-#endif
     Serial.println("show_grid() - affichage des segments horizontaux");
+#endif
     for (uint8_t h_seg_idx = 0; h_seg_idx < NB_H_SEGMENTS; h_seg_idx++)
       if (h_segments[h_seg_idx].changed)
       {
-        Serial.println("affichage d'un segment h");
+        // Serial.println("affichage d'un segment h");
         h_segments[h_seg_idx].changed = false;
         if (h_segments[h_seg_idx].displayed)
           tft.fillRect(h_segments[h_seg_idx].start_x * 2, h_segments[h_seg_idx].start_y, 36, 3, grid_color);
@@ -82,13 +82,13 @@ void show_grid()
   {
     v_segs_uptodate = true;
 #if defined(DEBUG)
-#endif
     Serial.println("show_grid() - affichage des segments verticaux");
+#endif
     for (uint8_t v_seg_idx = 0; v_seg_idx < NB_V_SEGMENTS; v_seg_idx++)
       if (v_segments[v_seg_idx].changed)
       {
         {
-          Serial.println("affichage d'un segment v");
+          // Serial.println("affichage d'un segment v");
           v_segments[v_seg_idx].changed = false;
           if (v_segments[v_seg_idx].displayed)
             tft.fillRect(v_segments[v_seg_idx].start_x * 2, v_segments[v_seg_idx].start_y, v_segments_width * 2, 24, grid_color);

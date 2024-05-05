@@ -25,21 +25,24 @@
 // Pico:
 //
 #if (TRAVOLTA_TARGET == TRAVOLTA_PICO)
-#define KEYBOARD_R1 11
-#define KEYBOARD_R2 12
-#define KEYBOARD_R3 13
-#define KEYBOARD_R4 14
-#define KEYBOARD_C1 8
-#define KEYBOARD_C2 9
-#define KEYBOARD_C3 10
 
-#define UNO_JOYSTICK_B0 2
-#define UNO_JOYSTICK_B1 3
-#define UNO_JOYSTICK_B2 4
-#define UNO_JOYSTICK_B3 5
-#define UNO_JOYSTICK_B4 6
-
-#define UNO_JOYSTICK_SELECT 7
+#define UNO_JOYSTICK_SELECT 0
+#define UNO_JOYSTICK_B0 1
+// Gnd
+#define UNO_JOYSTICK_B1 2
+#define UNO_JOYSTICK_B2 3
+#define UNO_JOYSTICK_B3 4
+#define UNO_JOYSTICK_B4 5
+// Gnd
+#define KEYBOARD_R1 6
+#define KEYBOARD_R2 7
+#define KEYBOARD_R3 8
+#define KEYBOARD_R4 9
+// Gnd
+#define KEYBOARD_C1 10
+#define KEYBOARD_C2 11
+#define KEYBOARD_C3 12
+ 
 #endif
 
 void write_p1 (uint8_t data);

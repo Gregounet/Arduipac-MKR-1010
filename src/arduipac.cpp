@@ -50,7 +50,7 @@ void setup()
   tft.setSPISpeed(100000000);
   tft.setRotation(1);
   tft.setTextColor(ST77XX_WHITE);
-#ifdef TRTAVOLTA_INVERT_TFT
+#ifdef TRAVOLTA_INVERT_DISPLAY
   tft.invertDisplay(false);
 #endif
 
@@ -61,17 +61,17 @@ void setup()
   pinMode(KEYBOARD_R1, INPUT_PULLDOWN);
   pinMode(KEYBOARD_R2, INPUT_PULLDOWN);
   pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
-  pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
+  pinMode(KEYBOARD_R4, INPUT_PULLDOWN);
 
   pinMode(KEYBOARD_C1, OUTPUT);
   pinMode(KEYBOARD_C2, OUTPUT);
   pinMode(KEYBOARD_C3, OUTPUT);
 
-  pinMode(UNO_JOYSTICK_B0, INPUT);
-  pinMode(UNO_JOYSTICK_B1, INPUT);
-  pinMode(UNO_JOYSTICK_B2, INPUT);
-  pinMode(UNO_JOYSTICK_B3, INPUT);
-  pinMode(UNO_JOYSTICK_B4, INPUT);
+  pinMode(UNO_JOYSTICK_B0, INPUT_PULLUP);
+  pinMode(UNO_JOYSTICK_B1, INPUT_PULLUP);
+  pinMode(UNO_JOYSTICK_B2, INPUT_PULLUP);
+  pinMode(UNO_JOYSTICK_B3, INPUT_PULLUP);
+  pinMode(UNO_JOYSTICK_B4, INPUT_PULLUP);
 
   pinMode(UNO_JOYSTICK_SELECT, OUTPUT);
 

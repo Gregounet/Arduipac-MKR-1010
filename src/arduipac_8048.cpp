@@ -171,6 +171,7 @@ void exec_8048()
 
 	for (;;)
 	{
+		delayMicroseconds(1);
 		op_cycles = 1;
 #if defined(DEBUG)
 		op = ROM(pc);
@@ -915,8 +916,8 @@ void exec_8048()
 				pc = (pc & 0xF00) | data;
 			else
 				pc++;
-			break;
 			op_cycles = 2;
+			break;
 		case 0xE8: /* DJNZ Rr,address */
 		case 0xE9: /* DJNZ Rr,address */
 		case 0xEA: /* DJNZ Rr,address */

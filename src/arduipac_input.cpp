@@ -136,12 +136,12 @@ in_bus()
   uint8_t data_output = 0xFF;
 
 #if defined(DEBUG)
+#endif
+
   Serial.print("in_bus() - P1 == 0x");
   Serial.print(port1, HEX);
   Serial.print(" - P2 == 0x");
   Serial.println(port2, HEX);
-#endif
-
   if ((port1 & 0x18) == 0x18) // Ni le 8245 ni la RAM externe ne sont activés
   {
     if (port2 & 0x04)
@@ -162,9 +162,9 @@ in_bus()
   }
 
 #if defined(DEBUG)
+#endif
   Serial.print("in_bus() returns 0x");
   Serial.println(data_output, HEX);
-#endif
 
   return data_output;
 }
