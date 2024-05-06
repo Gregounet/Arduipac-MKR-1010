@@ -1,9 +1,18 @@
-Tentative de porter o2em sur un Arduino Uno
+# Travolta
+### Fork of o2em to run on Micro-Controllers
 
-O2em est un émulateur de la console de jeu Odyssey 2 (Vidéopac en France)
+O2em is a Magnavox Odyssey 2 console emulator (known as Philips Videopac in Europe).
 
-La source du fork est O2EM2 en version 1.5
+#### Currently (may 2024) running on:
 
-La cible finale serait un Arduino Uno (MCU ATmega328 doté de 32 kO de Flash et 2 k0 de SRAM) mais faute du matériel disponible sous la main je travaille actuellement sur un Arduino MKR Wifi 1010.
+###### *) Arduino MKR 1010n WiFi (MCU Atmel SAMD21)
+###### *) Raspberry Pico (MCU RP2040)
+###### *) Mini ESP 32 (MCU ESP32-C3)
+
+
+### Work in progress:
+
+###### *) Arduino Nano ESP (MCU ESP32-S3)
+
 
 
