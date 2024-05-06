@@ -139,7 +139,7 @@ void init_displayed_sprites()
         displayed_sprites[sprite_number].end_x = 0;
         displayed_sprites[sprite_number].end_y = 0;
         displayed_sprites[sprite_number].color = 0;
-        displayed_sprites[sprite_number].prev.changedious_start_x = 0;
+        displayed_sprites[sprite_number].previous_start_x = 0;
         displayed_sprites[sprite_number].previous_start_y = 0;
         displayed_sprites[sprite_number].previous_size = 0;
         displayed_sprites[sprite_number].changed = false;

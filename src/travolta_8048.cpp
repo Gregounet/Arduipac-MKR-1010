@@ -107,7 +107,7 @@ void init_intel8048()
 	tirq_enabled = 0;
 	xirq_enabled = 0;
 
-#ifdef DEBUG
+#if defined(DEBUG)
 	Serial.println("Initializing intel8048_ram");
 #endif
 	for (uint8_t i = 0; i < 0x40; i++)
@@ -116,7 +116,7 @@ void init_intel8048()
 
 void ext_irq()
 {
-#ifdef DEBUG
+#if defined(DEBUG)
 	Serial.println("ext_irq()");
 #endif
 
@@ -136,7 +136,7 @@ void ext_irq()
 
 void timer_irq()
 {
-#ifdef DEBUG
+#if defined(DEBUG)
 	Serial.println("timer_irq()");
 #endif
 
@@ -165,18 +165,18 @@ void exec_8048()
 	int8_t elapsed_time;
 #endif
 
-#ifdef DEBUG
+#if defined(DEBUG)
 	Serial.println("Entering exec_8048()");
 #endif
 
 	for (;;)
 	{
-		delayMicroseconds(1);
+		delayMicroseconds(SLOW_DOWN_DELAY);
 		op_cycles = 1;
 #if defined(DEBUG)
 		op = ROM(pc);
 #endif
-#ifdef DEBUG
+#if defined(DEBUG)
 		Serial.println();
 		Serial.print("Big Ben: ");
 		Serial.println(bigben);
@@ -286,7 +286,7 @@ void exec_8048()
 		case 0x13: /* ADDC A,#data */
 		temp = 0 ; // useless but useful (sic) just to avoid compilation warning 
 			data = ROM(pc++);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 
@@ -309,7 +309,7 @@ void exec_8048()
 			op_cycles = 2;
 			break;
 		case 0xA3: /* MOVP A,@A */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM((pc & 0xF00) | acc), HEX);
 #endif
 
@@ -342,7 +342,7 @@ void exec_8048()
 			pc = ROM(pc) | a11;
 			pc |= ((uint16_t)(op & 0xE0)) << 3;
 			op_cycles = 2;
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(pc, HEX);
 #endif
 			break;
@@ -384,7 +384,7 @@ void exec_8048()
 		case 0xD2: /* JBb address */
 		case 0xF2: /* JBb address */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (acc & (0x01 << ((op - 0x12) / 0x20)))
@@ -395,7 +395,7 @@ void exec_8048()
 			break;
 		case 0x16: /* JTF */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(pc, HEX);
 #endif
 			if (timer_flag)
@@ -422,14 +422,14 @@ void exec_8048()
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0x20)]] = data;
 			break;
 		case 0x23: /* MOV A,#data */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM(pc), HEX);
 #endif
 			acc = ROM(pc++);
 			op_cycles = 2;
 			break;
 		case 0x53: /* ANL A,#data */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM(pc), HEX);
 #endif
 			acc &= ROM(pc++);
@@ -485,13 +485,13 @@ void exec_8048()
 			break;
 		case 0x40: /* ORL A,@Ri */
 		case 0x41: /* ORL A,@Ri */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(intel8048_ram[intel8048_ram[reg_pnt + (op - 0x40)]], HEX);
 #endif
 			acc |= intel8048_ram[intel8048_ram[reg_pnt + (op - 0x40)]];
 			break;
 		case 0x43: /* ORL A,#data */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM(pc), HEX);
 #endif
 			acc |= ROM(pc++);
@@ -516,7 +516,7 @@ void exec_8048()
 		case 0x46: /* JNT1 */
 		case 0x56: /* JT1 */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			switch (op)
@@ -675,7 +675,7 @@ void exec_8048()
 			break;
 		case 0x86: /* JNI address */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (interrupt_clock > 0)
@@ -686,7 +686,7 @@ void exec_8048()
 			break;
 		case 0x89: /* ORL Pp,#data */
 		case 0x8A: /* ORL Pp,#data */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM(pc), HEX);
 #endif
 			if (op == 0x89)
@@ -729,7 +729,7 @@ void exec_8048()
 			break;
 		case 0x99: /* ANL Pp,#data */
 		case 0x9A: /* ANL Pp,#data */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM(pc), HEX);
 #endif
 			if (op == 0x99)
@@ -753,7 +753,7 @@ void exec_8048()
 			break;
 		case 0xB6: /* JF0 address */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (f0)
@@ -770,7 +770,7 @@ void exec_8048()
 			break;
 		case 0x76: /* JF1 address */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (f1)
@@ -797,7 +797,7 @@ void exec_8048()
 			break;
 		case 0xB0: /* MOV @Ri,#data */
 		case 0xB1: /* MOV @Ri,#data */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM(pc), HEX);
 #endif
 			intel8048_ram[intel8048_ram[reg_pnt + (op - 0xB0)]] = ROM(pc++);
@@ -816,7 +816,7 @@ void exec_8048()
 		case 0xBD: /* MOV Rr,#data */
 		case 0xBE: /* MOV Rr,#data */
 		case 0xBF: /* MOV Rr,#data */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM(pc), HEX);
 #endif
 			intel8048_ram[reg_pnt + (op - 0xB8)] = ROM(pc++);
@@ -829,7 +829,7 @@ void exec_8048()
 			break;
 		case 0xC6: /* JZ address */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (acc == 0)
@@ -840,7 +840,7 @@ void exec_8048()
 			break;
 		case 0x96: /* JNZ address */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (acc != 0)
@@ -878,7 +878,7 @@ void exec_8048()
 			acc ^= intel8048_ram[intel8048_ram[reg_pnt + (op - 0xD0)]];
 			break;
 		case 0xD3: /* XRL A,#data */
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(ROM(pc), HEX);
 #endif
 			acc ^= ROM(pc++);
@@ -899,7 +899,7 @@ void exec_8048()
 			break;
 		case 0xF6: /* JC address */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (cy)
@@ -910,7 +910,7 @@ void exec_8048()
 			break;
 		case 0xE6: /* JNC address */
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (!cy)
@@ -929,7 +929,7 @@ void exec_8048()
 		case 0xEF: /* DJNZ Rr,address */
 			intel8048_ram[reg_pnt + (op - 0xE8)]--;
 			data = ROM(pc);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(data, HEX);
 #endif
 			if (intel8048_ram[reg_pnt + (op - 0xE8)] != 0)
@@ -955,7 +955,7 @@ void exec_8048()
 			push(pc & 0xFF);
 			push(((pc & 0xF00) >> 8) | (psw & 0xF0));
 			pc = a11 | ((uint16_t)(op & 0xE0)) << 3 | ROM(pc - 1);
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.print(pc, HEX);
 #endif
 			op_cycles = 2;
@@ -971,7 +971,7 @@ void exec_8048()
 			acc = intel8048_ram[reg_pnt + (op - 0xF8)];
 			break;
 		}
-#ifdef DEBUG
+#if defined(DEBUG)
 		Serial.println();
 #endif
 
@@ -999,7 +999,7 @@ void exec_8048()
 		horizontal_clock += op_cycles;
 		vertical_clock += op_cycles;
 
-#ifdef DEBUG
+#if defined(DEBUG)
 		Serial.print("horizontal_clock == ");
 		Serial.println(horizontal_clock);
 		Serial.print("vertical_clock == ");

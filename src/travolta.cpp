@@ -9,7 +9,6 @@
 #include <time.h>
 #include <stdbool.h>
 
-
 #include "travolta.h"
 #include "travolta_vmachine.h"
 #include "travolta_8048.h"
@@ -41,8 +40,10 @@ Adafruit_ST7789 tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GRAPHIC_TF
 
 void setup()
 {
+#if defined(DEBUG)
   Serial.begin(9600);
   delay(100);
+#endif
 
   tft.init(240, 320);
   tft.fillScreen(ST77XX_BLACK);
@@ -53,10 +54,11 @@ void setup()
   tft.invertDisplay(false);
 #endif
 
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println("Entering main()");
 #endif
 
+#if defined(KEYPAD)
   pinMode(KEYBOARD_R1, INPUT_PULLDOWN);
   pinMode(KEYBOARD_R2, INPUT_PULLDOWN);
   pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
@@ -65,28 +67,38 @@ void setup()
   pinMode(KEYBOARD_C1, OUTPUT);
   pinMode(KEYBOARD_C2, OUTPUT);
   pinMode(KEYBOARD_C3, OUTPUT);
+#else
+  pinMode(BUTTON, INPUT_PULLDOWN);
+#endif
 
+#if defined(UNO_JOYSTICK)
   pinMode(UNO_JOYSTICK_B0, INPUT_PULLUP);
   pinMode(UNO_JOYSTICK_B1, INPUT_PULLUP);
   pinMode(UNO_JOYSTICK_B2, INPUT_PULLUP);
   pinMode(UNO_JOYSTICK_B3, INPUT_PULLUP);
   pinMode(UNO_JOYSTICK_B4, INPUT_PULLUP);
-
   pinMode(UNO_JOYSTICK_SELECT, OUTPUT);
+#else
+  pinMode(JOYSTICK_B0, INPUT_PULLUP);
+  pinMode(JOYSTICK_B1, INPUT_PULLUP);
+  pinMode(JOYSTICK_B2, INPUT_PULLUP);
+  pinMode(JOYSTICK_B3, INPUT_PULLUP);
+  pinMode(JOYSTICK_B4, INPUT_PULLUP);
+#endif
 
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println("main(): launching init_intel8245()");
 #endif
 
   init_intel8245();
 
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println("main(): launching init_intel8048()");
 #endif
 
   init_intel8048();
 
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println("main(): launching init_vmachine()");
 #endif
 
@@ -98,7 +110,7 @@ void setup()
   rtc.setSeconds(0);
 #endif
 
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println("main(): launching exec_8048()");
 #endif
 
@@ -107,7 +119,7 @@ void setup()
 
 void loop()
 {
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println("loop()");
 #endif
 }

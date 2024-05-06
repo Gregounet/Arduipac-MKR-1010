@@ -7,11 +7,6 @@
 #include "travolta_input.h"
 #include "travolta_8048.h"
 
-#undef DEBUG
-
-// #define DEBUG
-
-
 uint8_t
 read_port2() // 4x3 Keypad used as a keyboard
 {
@@ -33,6 +28,7 @@ read_port2() // 4x3 Keypad used as a keyboard
     Serial.println(scan_input);
 #endif
 
+#if defined(KEYPAD) // use keypad to emulate keyboard
     uint8_t keyboard[12];
 
     for (uint8_t i = 0; i < 12; i++)
@@ -96,6 +92,9 @@ read_port2() // 4x3 Keypad used as a keyboard
         scan_output = 0x0A;
       break;
     }
+    #else // use button to emulate a one button keyboard !
+    if (digitalRead(BUTTON) == LOW && scan_input == 0) scan_output = 0x02 ;
+    #endif
   }
 
   port2 &= 0x0F;
@@ -117,14 +116,15 @@ read_bus()
   uint8_t data_output = 0xFF;
 
 #if defined(DEBUG)
-#endif
-
   Serial.print("read_bus() - P1 == 0x");
   Serial.print(port1, HEX);
   Serial.print(" - P2 == 0x");
   Serial.println(port2, HEX);
+#endif
+
   if ((port1 & 0x18) == 0x18) // Ni le 8245 ni la RAM externe ne sont activés
   {
+#if defined(UNO_JOYSTICK)
     if (port2 & 0x04)
       digitalWrite(UNO_JOYSTICK_SELECT, HIGH);
     else
@@ -140,12 +140,24 @@ read_bus()
       data_output &= 0xF7;
     if (digitalRead(UNO_JOYSTICK_B4) == LOW)
       data_output &= 0xEF;
+#else
+    if (digitalRead(JOYSTICK_B0) == LOW)
+      data_output &= 0xFE;
+    if (digitalRead(JOYSTICK_B1) == LOW)
+      data_output &= 0xFD;
+    if (digitalRead(JOYSTICK_B2) == LOW)
+      data_output &= 0xFB;
+    if (digitalRead(JOYSTICK_B3) == LOW)
+      data_output &= 0xF7;
+    if (digitalRead(JOYSTICK_B4) == LOW)
+      data_output &= 0xEF;
+#endif
   }
 
 #if defined(DEBUG)
-#endif
   Serial.print("read_bus() returns 0x");
   Serial.println(data_output, HEX);
+#endif
 
   return data_output;
 }

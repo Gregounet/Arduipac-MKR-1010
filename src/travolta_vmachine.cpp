@@ -17,11 +17,9 @@ uint8_t x_latch, y_latch;
 uint8_t machine_state; // 0 during normal operation and 1 during Vertical Blank
 uint8_t external_ram[256];
 
-#undef DEBUG
-
 void init_vmachine()
 {
-#ifdef DEBUG
+#if defined(DEBUG)
 	Serial.println("init_vmachine()");
 #endif
 	vertical_clock = 0;
@@ -33,13 +31,9 @@ void init_vmachine()
 }
 
 uint8_t
-read_t1()#define O2_COLOR_LIGHT_GREY  0xC618
-#define O2_COLOR_VIOLET      0xC418
-#define O2_COLOR_DARK_BLUE   0x0010
-#define O2_COLOR_DARK_GREEN  0x0400
-#define O2_COLOR_LIGHT_GREEN 0x87F0
+read_t1()
 {
-#ifdef DEBUG
+#if defined(DEBUG)
 	Serial.println("read_t1()");
 #endif
 	if (horizontal_clock > 16 || vertical_clock > START_VBLCLK)
@@ -47,23 +41,19 @@ read_t1()#define O2_COLOR_LIGHT_GREY  0xC618
 	else
 		return 0;
 }
-#define O2_COLOR_LIGHT_GREY  0xC618
-#define O2_COLOR_VIOLET      0xC418
-#define O2_COLOR_DARK_BLUE   0x0010
-#define O2_COLOR_DARK_GREEN  0x0400
-#define O2_COLOR_LIGHT_GREEN 0x87F0
+
 uint8_t
 ext_read(uint8_t addr)
 {
 	uint8_t data;
-#ifdef DEBUG
+#if defined(DEBUG)
 	Serial.print("ext_read(");
 	Serial.print(addr, HEX);
 	Serial.println(")");
 #endif
 	if ((port1 & 0x58) == 0x10) // Read from VDC RAM
 	{
-#ifdef DEBUG
+#if defined(DEBUG)
 		Serial.println("VDC RAM Access");
 #endif
 
@@ -71,7 +61,7 @@ ext_read(uint8_t addr)
 		{
 		case 0xA1: // 8245 Status byte - Some other bits should normally be set
 		{
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.println("VDC 0xA0 Status Register");
 #endif
 			data = intel8245_ram[0xA0] & 0x02;
@@ -84,7 +74,7 @@ ext_read(uint8_t addr)
 		}
 		case 0xA2: // Collision Register
 		{
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.println("VDC 0xA2 Collision Register");
 #endif
 			return detect_collisions();
@@ -92,7 +82,7 @@ ext_read(uint8_t addr)
 		}
 		case 0xA4:
 		{
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.println("0xA4 y_latch");
 #endif
 			if ((intel8245_ram[0xA0] & 0x02))
@@ -106,18 +96,18 @@ ext_read(uint8_t addr)
 		}
 		case 0xA5:
 		{
-#ifdef DEBUG
+#if defined(DEBUG)
 			Serial.println("0xA5 x_latch");
 #endif
 			if ((intel8245_ram[0xA0] & 0x02))
 			{									 // Le bit 1 de VRAM[0xA0] vaut 1 donc x_latch suit le beam
 				x_latch = horizontal_clock * 12; // TODO D'ou sort ce 2 ?
 			}
-		#define O2_COLOR_LIGHT_GREY  0xC618
-#define O2_COLOR_VIOLET      0xC418
-#define O2_COLOR_DARK_BLUE   0x0010
-#define O2_COLOR_DARK_GREEN  0x0400
-#define O2_COLOR_LIGHT_GREEN 0x87F0	return x_latch;
+#define O2_COLOR_LIGHT_GREY 0xC618
+#define O2_COLOR_VIOLET 0xC418
+#define O2_COLOR_DARK_BLUE 0x0010
+#define O2_COLOR_DARK_GREEN 0x0400
+#define O2_COLOR_LIGHT_GREEN 0x87F0 return x_latch;
 			break;
 		}
 		default:
@@ -126,7 +116,7 @@ ext_read(uint8_t addr)
 	}
 	else if (!(port1 & 0x10))
 	{
-#ifdef DEBUG
+#if defined(DEBUG)
 		if (addr >= 0x3A && addr <= 0x3B)
 		{
 			Serial.print("ext_read() - external_ram[0x");
@@ -151,7 +141,7 @@ void ext_write(uint8_t data, uint8_t addr)
 	{
 	case 0x08: // External RAM
 	{
-#ifdef DEBUG
+#if defined(DEBUG)
 		Serial.print("ext_write() - external_ram[0x");
 		Serial.print(addr, HEX);
 		Serial.print("] <- 0x");
@@ -204,7 +194,7 @@ void ext_write(uint8_t data, uint8_t addr)
 			}
 			else if (addr >= 0x10 && addr < 0x80) // Characters (or quads)
 			{
-#ifdef DEBUG
+#if defined(DEBUG)
 				Serial.print("Accessing Characters [0x");
 				Serial.print(addr, HEX);
 				Serial.print("] <- 0x");
@@ -405,7 +395,7 @@ void ext_write(uint8_t data, uint8_t addr)
 							h_segments[v_segment].changed = true;
 					}
 
-#ifdef DEBUG
+#if defined(DEBUG)
 					Serial.print("grid_control = ");
 					Serial.println(grid_control);
 #endif
@@ -417,7 +407,7 @@ void ext_write(uint8_t data, uint8_t addr)
 					foreground_control = data & 0x20;
 					sprites_uptodate = false;
 					chars_uptodate = false;
-#ifdef DEBUG
+#if defined(DEBUG)
 					Serial.print("foreground_control = ");
 					Serial.println(foreground_control);
 #endif
@@ -535,20 +525,19 @@ void ext_write(uint8_t data, uint8_t addr)
 	}
 }
 
-
 void write_port1(uint8_t data)
 {
-#ifdef DEBUG
-  Serial.print(" - write_port1(0x");
-  Serial.print(data, HEX);
-  Serial.println(")");
+#if defined(DEBUG)
+	Serial.print(" - write_port1(0x");
+	Serial.print(data, HEX);
+	Serial.println(")");
 #endif
 
-  port1 = data;
-  rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
+	port1 = data;
+	rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
 
-#ifdef DEBUG
-  Serial.print("rom_bank_select == 0x");
-  Serial.println(rom_bank_select, HEX);
+#if defined(DEBUG)
+	Serial.print("rom_bank_select == 0x");
+	Serial.println(rom_bank_select, HEX);
 #endif
 }
