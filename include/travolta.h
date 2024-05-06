@@ -1,5 +1,5 @@
-#ifndef ARDUIPAC_H
-#define ARDUIPAC_H
+#ifndef TRAVOLTA_H
+#define TRAVOLTA_H
 
 #include <stdint.h>
 
@@ -26,4 +26,4 @@ extern uint8_t seconds;
 extern uint8_t previous_seconds;
 #endif
 
-#endif /* (ARDUIPAC_H) */
+#endif /* (TRAVOLTA_H) */

@@ -1,5 +1,5 @@
-#ifndef ARDUIPAC_8245_H
-#define ARDUIPAC_8245_H
+#ifndef TRAVOLTA_8245_H
+#define TRAVOLTA_8245_H
 
 extern uint8_t intel8245_ram[];
 
@@ -8,4 +8,4 @@ void draw_display ();
 
 uint8_t detect_collisions();
 
-#endif /* ARDUIPAC_8245_H */
+#endif /* TRAVOLTA_8245_H */

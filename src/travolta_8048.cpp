@@ -7,15 +7,15 @@
 #include <stdbool.h>
 
 #include <Adafruit_GFX.h>
-#include <Adafruit_ST7735.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
 
-#include "arduipac.h"
-#include "arduipac_8048.h"
-#include "arduipac_8245.h"
-#include "arduipac_vmachine.h"
-#include "arduipac_bios_rom.h"
+#include "travolta.h"
+#include "travolta_8048.h"
+#include "travolta_8245.h"
+#include "travolta_vmachine.h"
+#include "travolta_input.h"
+#include "travolta_bios_rom.h"
 #include "mnemonics.h"
 
 #define push(d)                    \
@@ -284,6 +284,7 @@ void exec_8048()
 			break;
 		case 0x03: /* ADD A,#data */
 		case 0x13: /* ADDC A,#data */
+		temp = 0 ; // useless but useful (sic) just to avoid compilation warning 
 			data = ROM(pc++);
 #ifdef DEBUG
 			Serial.print(data, HEX);
@@ -352,7 +353,7 @@ void exec_8048()
 			xirq_enabled = 0;
 			break;
 		case 0x08: /* INS A,BUS */
-			acc = in_bus();
+			acc = read_bus();
 			op_cycles = 2;
 			break;
 		case 0x09: /* IN A,P1 */
@@ -360,7 +361,7 @@ void exec_8048()
 			op_cycles = 2;
 			break;
 		case 0x0A: /* IN A,P2 */
-			acc = read_p2();
+			acc = read_port2();
 			op_cycles = 2;
 			break;
 		case 0x0C: /* MOVD A,P4 */
@@ -470,7 +471,7 @@ void exec_8048()
 		case 0x39: /* OUTL P1,A */
 		case 0x3A: /* OUTL P2,A */
 			if (op == 0x39)
-				write_p1(acc);
+				write_port1(acc);
 			else
 				port2 = acc;
 			op_cycles = 2;
@@ -689,7 +690,7 @@ void exec_8048()
 			Serial.print(ROM(pc), HEX);
 #endif
 			if (op == 0x89)
-				write_p1(port1 | ROM(pc++));
+				write_port1(port1 | ROM(pc++));
 			else
 				port2 |= ROM(pc++);
 			op_cycles = 2;
@@ -732,7 +733,7 @@ void exec_8048()
 			Serial.print(ROM(pc), HEX);
 #endif
 			if (op == 0x99)
-				write_p1(port1 & ROM(pc++));
+				write_port1(port1 & ROM(pc++));
 			else
 				port2 &= ROM(pc++);
 			op_cycles = 2;

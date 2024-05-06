@@ -3,42 +3,23 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "arduipac.h"
-#include "arduipac_input.h"
-#include "arduipac_8048.h"
+#include "travolta.h"
+#include "travolta_input.h"
+#include "travolta_8048.h"
 
 #undef DEBUG
 
 // #define DEBUG
 
-// TODO: déplacer dans arduipac.c ou bien arduipac_8048.c ou encore arduipac_vmachine.C ce code
-// Il n'est pas spécifique aux inputs puisqu'il gère aussi la sélection de la banque de ROMS
-//
-void write_p1(uint8_t data)
-{
-#ifdef DEBUG
-  Serial.print(" - write_p1(0x");
-  Serial.print(data, HEX);
-  Serial.println(")");
-#endif
-
-  port1 = data;
-  rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
-
-#ifdef DEBUG
-  Serial.print("rom_bank_select == 0x");
-  Serial.println(rom_bank_select, HEX);
-#endif
-}
 
 uint8_t
-read_p2() // 4x3 Keypad used as a keyboard
+read_port2() // 4x3 Keypad used as a keyboard
 {
   uint8_t scan_input;
   uint8_t scan_output = 0x01; // Aucune touche pressée
 
 #if defined(DEBUG)
-  Serial.print(" - read_p2() - valeur P2 == 0x");
+  Serial.print(" - read_port2() - valeur P2 == 0x");
   Serial.println(port2, HEX);
 #endif
 
@@ -123,7 +104,7 @@ read_p2() // 4x3 Keypad used as a keyboard
 #if defined(DEBUG)
   Serial.print("scan_output == ");
   Serial.println(scan_output);
-  Serial.print("Retour read_p2() == 0x");
+  Serial.print("Retour read_port2() == 0x");
   Serial.println(port2, HEX);
 #endif
 
@@ -131,14 +112,14 @@ read_p2() // 4x3 Keypad used as a keyboard
 }
 
 uint8_t
-in_bus()
+read_bus()
 {
   uint8_t data_output = 0xFF;
 
 #if defined(DEBUG)
 #endif
 
-  Serial.print("in_bus() - P1 == 0x");
+  Serial.print("read_bus() - P1 == 0x");
   Serial.print(port1, HEX);
   Serial.print(" - P2 == 0x");
   Serial.println(port2, HEX);
@@ -163,7 +144,7 @@ in_bus()
 
 #if defined(DEBUG)
 #endif
-  Serial.print("in_bus() returns 0x");
+  Serial.print("read_bus() returns 0x");
   Serial.println(data_output, HEX);
 
   return data_output;

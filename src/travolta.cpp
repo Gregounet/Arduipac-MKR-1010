@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
 #include <Adafruit_GFX.h>
-#include <Adafruit_ST7735.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
 
@@ -11,12 +10,12 @@
 #include <stdbool.h>
 
 
-#include "arduipac.h"
-#include "arduipac_vmachine.h"
-#include "arduipac_8048.h"
-#include "arduipac_8245.h"
-#include "arduipac_bios_rom.h"
-#include "arduipac_input.h"
+#include "travolta.h"
+#include "travolta_vmachine.h"
+#include "travolta_8048.h"
+#include "travolta_8245.h"
+#include "travolta_bios_rom.h"
+#include "travolta_input.h"
 
 #if (TRAVOLTA_TARGET == TRAVOLTA_MKR1010)
 #include <RTCZero.h>
@@ -102,8 +101,6 @@ void setup()
 #ifdef DEBUG
   Serial.println("main(): launching exec_8048()");
 #endif
-
-
 
   exec_8048();
 }

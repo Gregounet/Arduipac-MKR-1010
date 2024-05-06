@@ -1,5 +1,5 @@
-#ifndef ARDUIPAC_COLLISIONS_H
-#define ARDUIPAC_COLLISIONS_H
+#ifndef TRAVOLTA_DISPLAY_H
+#define TRAVOLTA_DISPLAY_H
 
 #include <stdint.h>
 
@@ -59,7 +59,6 @@ struct displayed_sprite_t
     uint8_t previous_start_y;
     uint8_t previous_size;
     bool changed;
-    // bool displayed;
 };
 
 //
@@ -115,4 +114,4 @@ void init_grid_elements();
 void init_displayed_chars();
 void init_displayed_sprites();
 
-#endif /* (ARDUIPAC_COLLISIONS_H) */
+#endif /* (TRAVOLTA_DISPLAY_H) */

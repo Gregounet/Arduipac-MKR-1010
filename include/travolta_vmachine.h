@@ -1,5 +1,5 @@
-#ifndef ARDUIPAC_VMACHINE_H
-#define ARDUIPAC_VMACHINE_H
+#ifndef TRAVOLTA_VMACHINE_H
+#define TRAVOLTA_VMACHINE_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -21,18 +21,15 @@ extern uint8_t machine_state;
 /*
  * Relatif aux ports I/O du 8048
  */
-uint8_t read_p2();
-void write_p1(uint8_t data);
 
 void ext_write(uint8_t data, uint8_t addr);
 uint8_t ext_read(uint8_t addr);
-
-uint8_t in_bus();
-uint8_t read_t1();
+uint8_t read_t1() ;
+void write_port1(uint8_t data);
 
 /*
  * Autre
  */
 void init_vmachine();
 
-#endif /* ARDUIPAC_VMACHINE_H */
+#endif /* TRAVOLTA_VMACHINE_H */

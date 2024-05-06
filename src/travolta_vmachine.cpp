@@ -3,13 +3,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "arduipac.h"
-#include "arduipac_vmachine.h"
-#include "arduipac_8048.h"
-#include "arduipac_8245.h"
-#include "arduipac_bios_rom.h"
-#include "arduipac_collisions.h"
-#include "arduipac_colors.h"
+#include "travolta.h"
+#include "travolta_vmachine.h"
+#include "travolta_8048.h"
+#include "travolta_8245.h"
+#include "travolta_bios_rom.h"
+#include "travolta_video_rom.h"
+#include "travolta_display.h"
 
 uint16_t vertical_clock;
 uint8_t horizontal_clock;
@@ -33,7 +33,11 @@ void init_vmachine()
 }
 
 uint8_t
-read_t1()
+read_t1()#define O2_COLOR_LIGHT_GREY  0xC618
+#define O2_COLOR_VIOLET      0xC418
+#define O2_COLOR_DARK_BLUE   0x0010
+#define O2_COLOR_DARK_GREEN  0x0400
+#define O2_COLOR_LIGHT_GREEN 0x87F0
 {
 #ifdef DEBUG
 	Serial.println("read_t1()");
@@ -43,7 +47,11 @@ read_t1()
 	else
 		return 0;
 }
-
+#define O2_COLOR_LIGHT_GREY  0xC618
+#define O2_COLOR_VIOLET      0xC418
+#define O2_COLOR_DARK_BLUE   0x0010
+#define O2_COLOR_DARK_GREEN  0x0400
+#define O2_COLOR_LIGHT_GREEN 0x87F0
 uint8_t
 ext_read(uint8_t addr)
 {
@@ -105,7 +113,11 @@ ext_read(uint8_t addr)
 			{									 // Le bit 1 de VRAM[0xA0] vaut 1 donc x_latch suit le beam
 				x_latch = horizontal_clock * 12; // TODO D'ou sort ce 2 ?
 			}
-			return x_latch;
+		#define O2_COLOR_LIGHT_GREY  0xC618
+#define O2_COLOR_VIOLET      0xC418
+#define O2_COLOR_DARK_BLUE   0x0010
+#define O2_COLOR_DARK_GREEN  0x0400
+#define O2_COLOR_LIGHT_GREEN 0x87F0	return x_latch;
 			break;
 		}
 		default:
@@ -170,7 +182,6 @@ void ext_write(uint8_t data, uint8_t addr)
 				Serial.println(data, HEX);
 #endif
 				displayed_sprites[sprite_number].changed = true;
-				// displayed_sprites[sprite_number].displayed = true; // TODO compute "display" depending on x & y values
 				switch (sprite_attribute)
 				{
 				case 0: // y
@@ -203,15 +214,11 @@ void ext_write(uint8_t data, uint8_t addr)
 				chars_uptodate = false;
 				uint8_t char_number = (addr - 0x10) / 4;
 				displayed_chars[char_number].changed = true;
-				// displayed_chars[char_number].displayed = true;
 				if (char_number >= 12 && char_number % 4 == 0) // 1st char from a quad
 				{
 					displayed_chars[char_number + 1].changed = true;
-					// displayed_chars[char_number + 1].displayed = true;
 					displayed_chars[char_number + 2].changed = true;
-					// displayed_chars[char_number + 2].displayed = true;
 					displayed_chars[char_number + 3].changed = true;
-					// displayed_chars[char_number + 3].displayed = true;
 				}
 				uint8_t char_attribute = addr % 4;
 				switch (char_attribute)
@@ -355,7 +362,6 @@ void ext_write(uint8_t data, uint8_t addr)
 				sprites_uptodate = false;
 				uint8_t sprite_number = (addr - 0x80) / 8;
 				displayed_sprites[sprite_number].changed = true;
-				// displayed_sprites[sprite_number].displayed = true; // TODO compute "display" depending on x y values
 #if defined(DEBUG)
 				Serial.print("Sprites shapes - sprite number ");
 				Serial.println(sprite_number);
@@ -479,10 +485,9 @@ void ext_write(uint8_t data, uint8_t addr)
 
 				uint8_t base_index = (addr - 0xC0) * 9;
 				uint8_t mask = 0x01;
-				for (uint8_t row = 0; row < 8; row++)
-					h_segments[base_index + row].changed = true;
 				for (uint8_t bit = 0; bit < 8; bit++)
 				{
+					h_segments[base_index + bit].changed = true;
 					if (data & mask)
 						h_segments[base_index + bit].displayed = true;
 					else
@@ -528,4 +533,22 @@ void ext_write(uint8_t data, uint8_t addr)
 		break;
 	}
 	}
+}
+
+
+void write_port1(uint8_t data)
+{
+#ifdef DEBUG
+  Serial.print(" - write_port1(0x");
+  Serial.print(data, HEX);
+  Serial.println(")");
+#endif
+
+  port1 = data;
+  rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
+
+#ifdef DEBUG
+  Serial.print("rom_bank_select == 0x");
+  Serial.println(rom_bank_select, HEX);
+#endif
 }

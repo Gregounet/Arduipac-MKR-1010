@@ -12,13 +12,12 @@
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
 
-#include "arduipac.h"
-#include "arduipac_8245.h"
-#include "arduipac_8048.h"
-#include "arduipac_vmachine.h"
-#include "arduipac_cset.h"
-#include "arduipac_colors.h"
-#include "arduipac_collisions.h"
+#include "travolta.h"
+#include "travolta_8245.h"
+#include "travolta_8048.h"
+#include "travolta_vmachine.h"
+#include "travolta_video_rom.h"
+#include "travolta_display.h"
 
 // #undef DEBUG
 
@@ -111,7 +110,7 @@ void show_chars()
 #endif
   chars_uptodate = true;
 
-  for (uint8_t char_number = 0; char_number < 28; char_number++)
+  for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
   {
 #if defined(DEBUG)
     Serial.print("char_number ");
@@ -353,14 +352,14 @@ uint8_t detect_collisions()
   {
     for (uint8_t v_segment = 0; v_segment < NB_V_SEGMENTS; v_segment++)
     {
-      if (v_segments[v_segment].displayed & 0x01)
+      if (v_segments[v_segment].displayed)
       {
         if (
             (((displayed_sprites[sprite_number].start_x >= v_segments[v_segment].start_x) &&
               (displayed_sprites[sprite_number].start_x <= v_segments[v_segment].end_x)) ||
              ((displayed_sprites[sprite_number].end_x >= v_segments[v_segment].start_x) &&
               (displayed_sprites[sprite_number].end_x <= v_segments[v_segment].end_x))) &&
-            (((displayed_sprites[sprite_number].start_y >= v_segments[v_segment].start_y) &&
+            (((displaye.changedd_sprites[sprite_number].start_y >= v_segments[v_segment].start_y) &&
               (displayed_sprites[sprite_number].start_y <= v_segments[v_segment].start_y + 23)) ||
              ((displayed_sprites[sprite_number].end_y >= v_segments[v_segment].start_y) &&
               (displayed_sprites[sprite_number].end_y <= v_segments[v_segment].start_y + 23))))
@@ -582,29 +581,6 @@ uint8_t detect_collisions()
     }
   }
 
-  /*
-   * Collisions Chars to Dots
-   */
-
-  for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
-  {
-    for (uint8_t dot_number = 0; dot_number < NB_H_SEGMENTS; dot_number++)
-    {
-      ;
-    }
-  }
-
-  /*
-   * Digest Chars to Dots
-   */
-
-  for (uint8_t char_number = 0; char_number < NB_CHARS; char_number++)
-  {
-    for (uint8_t dot_number = 0; dot_number < NB_H_SEGMENTS; dot_number++)
-    {
-      ;
-    }
-  }
 
   /*
    * Reply to question...

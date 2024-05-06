@@ -1,8 +1,13 @@
 #include <Arduino.h>
 
-#include "arduipac_cset.h"
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
+#include <Adafruit_ST7789.h>
+#include <SPI.h>
 
-const uint8_t cset[512]  = {
+#include "travolta_video_rom.h"
+
+const uint8_t cset[512] = {
     0x7C, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0x7C, 0x00,
     0x18, 0x38, 0x18, 0x18, 0x18, 0x18, 0x3C, 0x00,
     0x3C, 0x66, 0x0C, 0x18, 0x30, 0x60, 0x7E, 0x00,
@@ -67,3 +72,40 @@ const uint8_t cset[512]  = {
     0x00, 0x03, 0x63, 0xFF, 0xFF, 0x18, 0x08, 0x00,
     0x00, 0x00, 0x00, 0x10, 0x38, 0xFF, 0x7E, 0x00,
     0x00, 0x00, 0x00, 0x06, 0x6E, 0xFF, 0x7E, 0x00};
+
+
+/*
+
+Color maps copied by MAME, to who respect is due ;-)
+
+*/
+
+const uint16_t char_colors[8] = {
+    O2_COLOR_DARK_GREY,
+    TRAVOLTA_RED,
+    TRAVOLTA_GREEN,
+    ST77XX_ORANGE,
+    TRAVOLTA_BLUE,
+    TRAVOLTA_VIOLET,
+    TRAVOLTA_LITE_GREY,
+    TRAVOLTA_WHITE};
+
+const uint16_t dark_colors[8] = {
+    TRAVOLTA_BLACK,
+    TRAVOLTA_RED,
+    TRAVOLTA_GREEN,
+    TRAVOLTA_KHAKI,
+    TRAVOLTA_BLUE,
+    TRAVOLTA_VIOLET,
+    TRAVOLTA_BLUE_GREEN,
+    TRAVOLTA_LITE_GREY};
+
+const uint16_t light_colors[8] = {
+    TRAVOLTA_BLACK,
+    TRAVOLTA_LITE_RED,
+    TRAVOLTA_LITE_GREEN,
+    TRAVOLTA_LITE_YELLOW,
+    TRAVOLTA_LITE_BLUE,
+    TRAVOLTA_LITE_VIOLET,
+    TRAVOLTA_LITE_BLUE_GREEN,
+    TRAVOLTA_WHITE};

@@ -4,11 +4,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "arduipac.h"
-#include "arduipac_8245.h"
-#include "arduipac_cset.h"
-#include "arduipac_colors.h"
-#include "arduipac_collisions.h"
+#include "travolta.h"
+#include "travolta_8245.h"
+#include "travolta_video_rom.h"
+#include "travolta_display.h"
 
 bool grid_control = false;
 bool foreground_control = false;
@@ -125,7 +124,6 @@ void init_displayed_chars()
         displayed_chars[char_number].previous_start_y = 0;
         displayed_chars[char_number].previous_height = 0;
         displayed_chars[char_number].changed = false;
-        // displayed_chars[char_number].displayed = false;
     }
 }
 
@@ -141,10 +139,9 @@ void init_displayed_sprites()
         displayed_sprites[sprite_number].end_x = 0;
         displayed_sprites[sprite_number].end_y = 0;
         displayed_sprites[sprite_number].color = 0;
-        displayed_sprites[sprite_number].previous_start_x = 0;
+        displayed_sprites[sprite_number].prev.changedious_start_x = 0;
         displayed_sprites[sprite_number].previous_start_y = 0;
         displayed_sprites[sprite_number].previous_size = 0;
         displayed_sprites[sprite_number].changed = false;
-        // displayed_sprites[sprite_number].displayed = false;
     }
 }
