@@ -69,6 +69,31 @@
  
 #endif
 
+//
+// Arduino Nano ESP32:
+//
+#if (TRAVOLTA_TARGET == TRAVOLTA_ESP32_NANO)
+
+#undef UNO_JOYSTICK
+#define KEYPAD 1
+
+#define JOYSTICK_B0 A1          
+#define JOYSTICK_B1 A2
+#define JOYSTICK_B2 A0
+#define JOYSTICK_B3 A3
+#define JOYSTICK_B4 A4
+
+#define KEYBOARD_R1 8
+#define KEYBOARD_R2 7
+#define KEYBOARD_R3 6
+#define KEYBOARD_R4 5
+
+#define KEYBOARD_C1 4
+#define KEYBOARD_C2 3
+#define KEYBOARD_C3 2
+ 
+#endif
+
 uint8_t read_port2 ();
 uint8_t read_bus ();
 
