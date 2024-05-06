@@ -12,6 +12,9 @@
 #define KEYBOARD_C2 7
 #define KEYBOARD_C3 8
 
+#define UNO_JOYSTICK 1
+#define KEYPAD 1
+
 #define UNO_JOYSTICK_B0 9
 #define UNO_JOYSTICK_B1 10
 #define UNO_JOYSTICK_B2 11
@@ -25,6 +28,9 @@
 // Pico:
 //
 #if (TRAVOLTA_TARGET == TRAVOLTA_PICO)
+
+#define UNO_JOYSTICK 1
+#define KEYPAD 1
 
 #define UNO_JOYSTICK_SELECT 0
 #define UNO_JOYSTICK_B0 1
@@ -42,6 +48,24 @@
 #define KEYBOARD_C1 10
 #define KEYBOARD_C2 11
 #define KEYBOARD_C3 12
+ 
+#endif
+
+//
+// Mini ESP32-C3:
+//
+#if (TRAVOLTA_TARGET == TRAVOLTA_ESP32C3)
+
+#undef UNO_JOYSTICK
+#undef KEYPAD
+
+#define JOYSTICK_B0 3
+#define JOYSTICK_B1 9
+#define JOYSTICK_B2 2
+#define JOYSTICK_B3 8
+#define JOYSTICK_B4 10
+
+#define BUTTON 1
  
 #endif
 

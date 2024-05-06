@@ -1,5 +1,7 @@
 {
     "C_Cpp.dimInactiveRegions": true,
     "C_Cpp.errorSquiggles": "disabled",
-    "cmake.sourceDirectory": "/home/gregoire/Documents/PlatformIO/Projects/Arduipac MKR 1010/.pio/libdeps/mkrwifi1010/Adafruit BusIO"
+    "cmake.sourceDirectory": "/home/gregoire/Documents/PlatformIO/Projects/Travolta/.pio/libdeps/mkrwifi1010/Adafruit BusIO",
+    "idf.adapterTargetName": "esp32c3",
+    "idf.flashType": "UART"
 }

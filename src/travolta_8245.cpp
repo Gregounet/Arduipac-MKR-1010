@@ -333,7 +333,7 @@ uint8_t detect_collisions()
               ((displayed_sprites[sprite_number].end_y >= displayed_sprites[second_sprite_number].start_y) &&
                (displayed_sprites[sprite_number].end_y <= displayed_sprites[second_sprite_number].end_y)))))
         {
-#ifdef DEBUG
+#if defined(DEBUG)
           Serial.print("Collision sprites ");
           Serial.print(sprite_number);
           Serial.print(" avec ");
@@ -359,12 +359,12 @@ uint8_t detect_collisions()
               (displayed_sprites[sprite_number].start_x <= v_segments[v_segment].end_x)) ||
              ((displayed_sprites[sprite_number].end_x >= v_segments[v_segment].start_x) &&
               (displayed_sprites[sprite_number].end_x <= v_segments[v_segment].end_x))) &&
-            (((displaye.changedd_sprites[sprite_number].start_y >= v_segments[v_segment].start_y) &&
+            (((displayed_sprites[sprite_number].start_y >= v_segments[v_segment].start_y) &&
               (displayed_sprites[sprite_number].start_y <= v_segments[v_segment].start_y + 23)) ||
              ((displayed_sprites[sprite_number].end_y >= v_segments[v_segment].start_y) &&
               (displayed_sprites[sprite_number].end_y <= v_segments[v_segment].start_y + 23))))
         {
-#ifdef DEBUG
+#if defined(DEBUG)
           Serial.print("Collision sprite ");
           Serial.print(sprite_number);
           Serial.print(" x ");
@@ -461,7 +461,7 @@ uint8_t detect_collisions()
               (displayed_sprites[sprite_number].end_y <= displayed_chars[disp_char].end_y))))
         {
           sprites_to_chars[sprite_number][disp_char] = true;
-#ifdef DEBUG
+#if defined(DEBUG)
           Serial.print("Collision sprite ");
           Serial.print(sprite_number);
           Serial.print(" (");
@@ -581,7 +581,6 @@ uint8_t detect_collisions()
     }
   }
 
-
   /*
    * Reply to question...
    */
@@ -695,7 +694,7 @@ else if ((data & 0x0F) != 0x01 && (data & 0x0F) != 0x02 && (data & 0x0F) != 0x04
 
 // intel8245_ram[addr] = result;
 // intel8245_ram[addr] = data;
-#ifdef DEBUG
+#if defined(DEBUG)
 
   if (displayed_sprites[2].start_x != 240)
   {
@@ -743,9 +742,8 @@ else if ((data & 0x0F) != 0x01 && (data & 0x0F) != 0x02 && (data & 0x0F) != 0x04
 
 void draw_display()
 {
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println("draw_display()");
-  delay(1000);
 #endif
 
   if (!background_uptodate)
@@ -773,7 +771,7 @@ void draw_display()
 
 void init_intel8245()
 {
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println("init_intel8245()");
 #endif
   for (uint8_t i = 0x00; i < 0xFF; i++)

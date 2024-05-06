@@ -10,12 +10,14 @@
 extern Adafruit_ST7789 tft;
 
 #undef DEBUG
+
 #define TRAVOLTA_INVERT_DISPLAY 1
 
 #define TRAVOLTA_MKR1010 1
 #define TRAVOLTA_PICO 2
+#define TRAVOLTA_ESP32C3 3
 
-#define TRAVOLTA_TARGET TRAVOLTA_PICO
+#define TRAVOLTA_TARGET TRAVOLTA_ESP32C3
 
 #if (TRAVOLTA_TARGET == TRAVOLTA_MKR1010)
 #include <RTCZero.h>
@@ -24,6 +26,31 @@ extern uint8_t minutes;
 extern uint8_t previous_minutes;
 extern uint8_t seconds;
 extern uint8_t previous_seconds;
+#endif
+
+
+#if (TRAVOLTA_TARGET == TRAVOLTA_MKR1010)
+#define GRAPHIC_TFT_CS 6
+#define GRAPHIC_TFT_RST -1
+#define GRAPHIC_TFT_DC 7
+
+#define SLOW_DOWN_DELAY 1
+#endif
+
+#if (TRAVOLTA_TARGET == TRAVOLTA_PICO)
+#define GRAPHIC_TFT_CS 17
+#define GRAPHIC_TFT_RST 21
+#define GRAPHIC_TFT_DC 20
+
+#define SLOW_DOWN_DELAY 2
+#endif
+
+#if (TRAVOLTA_TARGET == TRAVOLTA_ESP32C3)
+#define GRAPHIC_TFT_CS 7
+#define GRAPHIC_TFT_RST 8
+#define GRAPHIC_TFT_DC 9
+
+#define SLOW_DOWN_DELAY 1
 #endif
 
 #endif /* (TRAVOLTA_H) */
