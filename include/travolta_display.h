@@ -70,8 +70,7 @@ struct displayed_sprite_t
 #define NB_CHARS 28
 #define NB_SPRITES 4
 
-#define LEFT_OFFSET 20
-#define TOP_OFFSET 20
+#define LEFT_OFFSET 10
 
 //
 // Storage

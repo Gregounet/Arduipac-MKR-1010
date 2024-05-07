@@ -208,7 +208,7 @@ void show_chars()
       // "Erase" old char position
       //
       tft.fillRect(
-          LEFT_OFFSET + (2 * displayed_chars[char_number].previous_start_x),
+          2 * displayed_chars[char_number].previous_start_x,
           displayed_chars[char_number].previous_start_y,
           16,
           2 * displayed_chars[char_number].previous_height,
@@ -237,7 +237,7 @@ void show_chars()
           {
 #if defined(DEBUG)
             Serial.println("fillRect");
-            Serial.print(LEFT_OFFSET + 2 * (displayed_chars[char_number].start_x + char_column));
+            Serial.print(2 * (displayed_chars[char_number].start_x + char_column));
             Serial.print(", ");
             Serial.print(displayed_chars[char_number].start_y + row * 2);
             Serial.print(", 2, 2, ");
@@ -245,7 +245,7 @@ void show_chars()
             Serial.println(")");
 #endif
             tft.fillRect(
-                LEFT_OFFSET + (2 * displayed_chars[char_number].start_x) + (2 * char_column),
+                2 * (displayed_chars[char_number].start_x + char_column),
                 displayed_chars[char_number].start_y + (row * 2),
                 2,
                 2,
@@ -283,7 +283,7 @@ void show_sprites()
       // "Erase" old sprite position
       //
       tft.fillRect(
-          LEFT_OFFSET + (displayed_sprites[sprite_number].previous_start_x * 2),
+          2 * displayed_sprites[sprite_number].previous_start_x,
           displayed_sprites[sprite_number].previous_start_y,
           16 * displayed_sprites[sprite_number].previous_size,
           16 * displayed_sprites[sprite_number].previous_size,
@@ -324,7 +324,7 @@ void show_sprites()
           if (sprite_data & mask)
           {
             tft.fillRect(
-                (LEFT_OFFSET + displayed_sprites[sprite_number].start_x * 2) + (sprite_column * 2 * displayed_sprites[sprite_number].size),
+                2 * (displayed_sprites[sprite_number].start_x + sprite_column * displayed_sprites[sprite_number].size),
                 (displayed_sprites[sprite_number].start_y) + (sprite_row * 2 * displayed_sprites[sprite_number].size),
                 2 * displayed_sprites[sprite_number].size,
                 2 * displayed_sprites[sprite_number].size,
