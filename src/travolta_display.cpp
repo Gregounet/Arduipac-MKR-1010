@@ -35,8 +35,7 @@ displayed_sprite_t displayed_sprites[NB_SPRITES];
 //
 // Initialisations
 //
-
-void init_grid_elements()
+void init_h_grid_elements()
 {
     //
     // Coordonnées des 9 rows horizontales et des dots
@@ -57,10 +56,23 @@ void init_grid_elements()
             dots[column * 9 + row].start_y = 24 + 24 * row;
         }
     }
+#if defined(DEBUG)
+    for (int i = 0; i < NB_H_SEGMENTS; i++)
+    {
+        Serial.print("h_segments[");
+        Serial.print(i);
+        Serial.print("].start_x = ");
+        Serial.print(h_segments[i].start_x);
+        Serial.print(", start_y = ");
+        Serial.print(h_segments[i].start_y);
+        Serial.print(", displayed = ");
+        Serial.println(h_segments[i].displayed);
+    }
+#endif
+}
 
-    v_segments_width = 2;
-    // Default to standard width
-
+void init_v_grid_elements()
+{
     //
     // Coordonnées des 10 columns verticales
     //
@@ -79,21 +91,7 @@ void init_grid_elements()
             v_segments[column * 8 + row].displayed = false;
         }
     }
-
 #if defined(DEBUG)
-
-    for (int i = 0; i < NB_H_SEGMENTS; i++)
-    {
-        Serial.print("h_segments[");
-        Serial.print(i);
-        Serial.print("].start_x = ");
-        Serial.print(h_segments[i].start_x);
-        Serial.print(", start_y = ");
-        Serial.print(h_segments[i].start_y);
-        Serial.print(", displayed = ");
-        Serial.println(h_segments[i].displayed);
-    }
-
     for (int i = 0; i < NB_V_SEGMENTS; i++)
     {
         Serial.print("v_segments[");
@@ -108,6 +106,12 @@ void init_grid_elements()
         Serial.println(v_segments[i].displayed);
     }
 #endif
+}
+
+void init_grid_elements()
+{
+    init_h_grid_elements();
+    init_v_grid_elements();
 }
 
 void init_displayed_chars()

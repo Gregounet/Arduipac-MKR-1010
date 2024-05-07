@@ -424,8 +424,14 @@ void ext_write(uint8_t data, uint8_t addr)
 				}
 				if ((intel8245_ram[0xA0] & 0x40) != (data & 0x40)) // Dots objects
 					grid_dots = data & 0x40;
-				if ((intel8245_ram[0xA0] & 0x80) != (data & 0x80)) // Vertical segments width
+				if ((intel8245_ram[0xA0] & 0x80) != (data & 0x80))
+				{ // Vertical segments width
 					v_segments_width = (data & 0x80) ? 16 : 2;
+					init_v_grid_elements();
+					for (uint8_t column = 0; column < 10; column++)
+						for (uint8_t row = 0; row < 8; row++)
+							v_segments[column * 8 + row].changed = true;
+				}
 				intel8245_ram[0xA0] = data;
 			}
 			else if (addr == 0xA3) // VDC Color Register
