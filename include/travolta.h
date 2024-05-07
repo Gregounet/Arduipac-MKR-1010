@@ -60,7 +60,7 @@ extern uint8_t previous_seconds;
 #define GRAPHIC_TFT_RST -1
 #define GRAPHIC_TFT_DC 9
 
-#define SLOW_DOWN_DELAY 1
+#define SLOW_DOWN_DELAY 10
 #endif
 
 #endif /* (TRAVOLTA_H) */
