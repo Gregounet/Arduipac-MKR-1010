@@ -1,7 +1,10 @@
 {
 	"folders": [
 		{
-			"name": "Travolta",
+			"name": "Test keypad",
+			"path": "../Test keypad"
+		},
+		{
 			"path": "."
 		}
 	],

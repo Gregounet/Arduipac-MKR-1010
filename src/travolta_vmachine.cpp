@@ -15,7 +15,7 @@ uint16_t vertical_clock;
 uint8_t horizontal_clock;
 uint8_t x_latch, y_latch;
 uint8_t machine_state; // 0 during normal operation and 1 during Vertical Blank
-uint8_t external_ram[256];
+uint8_t external_ram[128];
 
 void init_vmachine()
 {
@@ -26,7 +26,7 @@ void init_vmachine()
 	horizontal_clock = 0;
 	machine_state = 0;
 
-	for (uint16_t i = 0x00; i <= 0xFF; i++)
+	for (uint16_t i = 0x00; i <= 0x7F; i++)
 		external_ram[i] = 0x00;
 }
 
@@ -138,12 +138,17 @@ void ext_write(uint8_t data, uint8_t addr)
 	case 0x08: // External RAM
 	{
 #if defined(DEBUG)
-		Serial.print("ext_write() - external_ram[0x");
-		Serial.print(addr, HEX);
-		Serial.print("] <- 0x");
-		Serial.println(data, HEX);
 #endif
-		external_ram[addr] = data;
+
+		if (addr < 0x80)
+			external_ram[addr] = data;
+		else
+		{
+			Serial.print("ext_write() - external_ram[0x");
+			Serial.print(addr, HEX);
+			Serial.print("] <- 0x");
+			Serial.println(data, HEX);
+		}
 		break;
 	}
 	case 0x10: // VDC RAM

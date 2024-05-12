@@ -28,7 +28,7 @@
 // PETER
 
 
-#define GAME KRAZY
+#define GAME MUNCH
 
 #ifdef GAME
 #if GAME == ALIEN
