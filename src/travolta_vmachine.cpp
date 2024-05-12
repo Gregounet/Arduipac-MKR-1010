@@ -121,7 +121,8 @@ ext_read(uint8_t addr)
 			Serial.println(external_ram[addr], HEX);
 		}
 #endif
-		return external_ram[addr];
+		if (addr < 0x80)
+			return external_ram[addr];
 	}
 	return 0;
 }
