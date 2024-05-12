@@ -1,4 +1,7 @@
 #include <Arduino.h>
+
+#include <SoftwareSerial.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -7,8 +10,71 @@
 #include "travolta_input.h"
 #include "travolta_8048.h"
 
+#if defined(EXTERNAL_KEYPADS)
+const int keypads_rx = KEYPADS_RX;
+const int keypads_tx = KEYPADS_TX;
+SoftwareSerial uart_keypads(keypads_rx, keypads_tx);
+#endif
+
+#if defined(EXTERNAL_JOYSTICKS)
+const int joysticks_rx = JOYSTICKS_RX;
+const int joysticks_tx = JOYSTICKS_TX;
+SoftwareSerial uart_joysticks(joysticks_rx, joysticks_tx);
+#endif
+
+#if defined(DIRECT_JOYSTICK)
+const int joystick_b0 = JOYSTICK_B0;
+const int joystick_b1 = JOYSTICK_B1;
+const int joystick_b2 = JOYSTICK_B2;
+const int joystick_b3 = JOYSTICK_B3;
+const int joystick_b4 = JOYSTICK_B4;
+#endif
+
+#if defined(DIRECT_KEYPAD)
+const int keypad_r1 = KEYPAD_R1;
+const int keypad_r2 = KEYPAD_R2;
+const int keypad_r3 = KEYPAD_R3;
+const int keypad_c1 = keypad_c1;
+const int keypad_c2 = KEYPAD_C2;
+const int keypad_c3 = KEYPAD_C3;
+const int keypad_c4 = KEYPAD_C4;
+#endif
+
+void init_input_pins()
+{
+#if defined(EXTERNAL_KEYPADS)
+  uart_keypads.begin(9600);
+#endif
+
+#if defined(DIRECT_KEYPAD)
+  pinMode(keypad_r1, INPUT_PULLUP);
+  pinMode(keypad_r2, INPUT_PULLUP);
+  pinMode(keypad_r3, INPUT_PULLUP);
+  pinMode(keypad_r4, INPUT_PULLUP);
+  pinMode(keypad_c1, INPUT);
+  pinMode(keypad_c2, INPUT);
+  pinMode(keypad_c3, INPUT);
+#endif
+
+#if defined(BUTTON)
+  pinMode(button, INPUT_PULLUP);
+#endif
+
+#if defined(EXTERNAL_JOYSTICKS)
+  uart_joysticks.begin(9600);
+#endif
+
+#if defined(DIRECT_JOYSTICK)
+  pinMode(JOYSTICK_B0, INPUT_PULLUP);
+  pinMode(JOYSTICK_B1, INPUT_PULLUP);
+  pinMode(JOYSTICK_B2, INPUT_PULLUP);
+  pinMode(JOYSTICK_B3, INPUT_PULLUP);
+  pinMode(JOYSTICK_B4, INPUT_PULLUP);
+#endif
+}
+
 uint8_t
-read_port2() // 4x3 Keypad used as a keyboard
+read_port2()
 {
   uint8_t scan_input;
   uint8_t scan_output = 0x01; // Aucune touche pressée
@@ -28,36 +94,47 @@ read_port2() // 4x3 Keypad used as a keyboard
     Serial.println(scan_input);
 #endif
 
-#if defined(KEYPAD) // use keypad to emulate keyboard
+#if defined(EXTERNAL_KEYPADS)
+    uart_keypads.write(scan_input);
+    if uart_keypads
+      .available()
+      {
+        scan_output = uart_keypads.read();
+      }
+#endif
+
+#if defined(DIRECT_KEYPAD) // use keypad to emulate keyboard
     uint8_t keyboard[12];
 
     for (uint8_t i = 0; i < 12; i++)
       keyboard[i] = 0;
+    ;
+    pinMode(keypad1_c1, OUTPUT);
+    digitalWrite(keypad_c1, LOW);
+    keyboard[0] = (uint8_t)digitalRead(keypad_r1);
+    keyboard[3] = (uint8_t)digitalRead(keypad_r2);
+    keyboard[6] = (uint8_t)digitalRead(keypad_r3);
+    keyboard[9] = (uint8_t)digitalRead(keypad_r4);
+    digitalWrite(keypad_c1, HIGH);
+    pinMode(keypad_c1, INPUT);
 
-    digitalWrite(KEYBOARD_C1, LOW);
-    digitalWrite(KEYBOARD_C2, LOW);
-    digitalWrite(KEYBOARD_C3, LOW);
+    pinMode(keypad_c2, OUTPUT);
+    digitalWrite(keypad_c2, LOW);
+    keyboard[1] = (uint8_t)digitalRead(keypad_r1);
+    keyboard[4] = (uint8_t)digitalRead(keypad_r2);
+    keyboard[7] = (uint8_t)digitalRead(keypad_r3);
+    keyboard[10] = (uint8_t)digitalRead(keypad_r4);
+    digitalWrite(keypad_c2, HIGH);
+    pinMode(keypad_c2, INPUT);
 
-    digitalWrite(KEYBOARD_C1, HIGH);
-    keyboard[0] = (uint8_t)digitalRead(KEYBOARD_R1);
-    keyboard[3] = (uint8_t)digitalRead(KEYBOARD_R2);
-    keyboard[6] = (uint8_t)digitalRead(KEYBOARD_R3);
-    keyboard[9] = (uint8_t)digitalRead(KEYBOARD_R4);
-    digitalWrite(KEYBOARD_C1, LOW);
-
-    digitalWrite(KEYBOARD_C2, HIGH);
-    keyboard[1] = (uint8_t)digitalRead(KEYBOARD_R1);
-    keyboard[4] = (uint8_t)digitalRead(KEYBOARD_R2);
-    keyboard[7] = (uint8_t)digitalRead(KEYBOARD_R3);
-    keyboard[10] = (uint8_t)digitalRead(KEYBOARD_R4);
-    digitalWrite(KEYBOARD_C2, LOW);
-
-    digitalWrite(KEYBOARD_C3, HIGH);
-    keyboard[2] = (uint8_t)digitalRead(KEYBOARD_R1);
-    keyboard[5] = (uint8_t)digitalRead(KEYBOARD_R2);
-    keyboard[8] = (uint8_t)digitalRead(KEYBOARD_R3);
-    keyboard[11] = (uint8_t)digitalRead(KEYBOARD_R4);
-    digitalWrite(KEYBOARD_C3, LOW);
+    pinMode(keypad_c3, OUTPUT);
+    digitalWrite(keypad_c3, LOW);
+    keyboard[2] = (uint8_t)digitalRead(keypad_r1);
+    keyboard[5] = (uint8_t)digitalRead(keypad_r2);
+    keyboard[8] = (uint8_t)digitalRead(keypad_r3);
+    keyboard[11] = (uint8_t)digitalRead(keypad_r4);
+    digitalWrite(keypad_c3, HIGH);
+    pinMode(keypad_c3, INPUT);
 
     switch (scan_input)
     {
@@ -92,20 +169,24 @@ read_port2() // 4x3 Keypad used as a keyboard
         scan_output = 0x0A;
       break;
     }
-    #else // use button to emulate a one button keyboard !
-    if (digitalRead(BUTTON) == LOW && scan_input == 0) scan_output = 0x02 ;
-    #endif
+#else
+
+#if defined(BUTTON)
+// use button to emulate a one button keyboard !
+    if (digitalRead(BUTTON) == LOW && scan_input == 0)
+      scan_output = 0x02;
+#endif
   }
 
   port2 &= 0x0F;
   port2 |= (scan_output << 4);
 
 #if defined(DEBUG)
+#endif
   Serial.print("scan_output == ");
   Serial.println(scan_output);
   Serial.print("Retour read_port2() == 0x");
   Serial.println(port2, HEX);
-#endif
 
   return port2;
 }
@@ -124,32 +205,24 @@ read_bus()
 
   if ((port1 & 0x18) == 0x18) // Ni le 8245 ni la RAM externe ne sont activés
   {
-#if defined(UNO_JOYSTICK)
+
+#if defined(EXTERNAL_JOYSTICKS)
     if (port2 & 0x04)
       digitalWrite(UNO_JOYSTICK_SELECT, HIGH);
     else
       digitalWrite(UNO_JOYSTICK_SELECT, LOW);
+#endif
 
-    if (digitalRead(UNO_JOYSTICK_B0) == LOW)
+#if defined(DIRECT_JOYSTICK)
+    if (digitalRead(joystick_b0) == LOW)
       data_output &= 0xFE;
-    if (digitalRead(UNO_JOYSTICK_B1) == LOW)
+    if (digitalRead(joystick_b1) == LOW)
       data_output &= 0xFD;
-    if (digitalRead(UNO_JOYSTICK_B2) == LOW)
+    if (digitalRead(joystick_b2) == LOW)
       data_output &= 0xFB;
-    if (digitalRead(UNO_JOYSTICK_B3) == LOW)
+    if (digitalRead(joystick_b3) == LOW)
       data_output &= 0xF7;
-    if (digitalRead(UNO_JOYSTICK_B4) == LOW)
-      data_output &= 0xEF;
-#else
-    if (digitalRead(JOYSTICK_B0) == LOW)
-      data_output &= 0xFE;
-    if (digitalRead(JOYSTICK_B1) == LOW)
-      data_output &= 0xFD;
-    if (digitalRead(JOYSTICK_B2) == LOW)
-      data_output &= 0xFB;
-    if (digitalRead(JOYSTICK_B3) == LOW)
-      data_output &= 0xF7;
-    if (digitalRead(JOYSTICK_B4) == LOW)
+    if (digitalRead(joystick_b4) == LOW)
       data_output &= 0xEF;
 #endif
   }

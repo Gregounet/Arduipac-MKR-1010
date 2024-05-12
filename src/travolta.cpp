@@ -24,25 +24,19 @@ uint8_t minutes;
 uint8_t previous_minutes;
 uint8_t seconds;
 uint8_t previous_seconds;
-
-#define GRAPHIC_TFT_CS 6
-#define GRAPHIC_TFT_RST -1
-#define GRAPHIC_TFT_DC 7
 #endif
 
-#if (TRAVOLTA_TARGET == TRAVOLTA_PICO)
-#define GRAPHIC_TFT_CS 17
-#define GRAPHIC_TFT_RST 21
-#define GRAPHIC_TFT_DC 20
-#endif
-
-Adafruit_ST7789 tft = Adafruit_ST7789(GRAPHIC_TFT_CS, GRAPHIC_TFT_DC, GRAPHIC_TFT_RST);
+Adafruit_ST7789 tft = Adafruit_ST7789(graphic_tft_cs, graphic_tft_dc, graphic_tft_rst);
 
 void setup()
 {
 #if defined(DEBUG)
   Serial.begin(9600);
   delay(100);
+#endif
+
+#if defined(DEBUG)
+  Serial.println("Entering setup()");
 #endif
 
   tft.init(240, 320);
@@ -54,37 +48,7 @@ void setup()
   tft.invertDisplay(false);
 #endif
 
-#if defined(DEBUG)
-  Serial.println("Entering main()");
-#endif
-
-#if defined(KEYPAD)
-  pinMode(KEYBOARD_R1, INPUT_PULLDOWN);
-  pinMode(KEYBOARD_R2, INPUT_PULLDOWN);
-  pinMode(KEYBOARD_R3, INPUT_PULLDOWN);
-  pinMode(KEYBOARD_R4, INPUT_PULLDOWN);
-
-  pinMode(KEYBOARD_C1, OUTPUT);
-  pinMode(KEYBOARD_C2, OUTPUT);
-  pinMode(KEYBOARD_C3, OUTPUT);
-#else
-  pinMode(BUTTON, INPUT_PULLDOWN);
-#endif
-
-#if defined(UNO_JOYSTICK)
-  pinMode(UNO_JOYSTICK_B0, INPUT_PULLUP);
-  pinMode(UNO_JOYSTICK_B1, INPUT_PULLUP);
-  pinMode(UNO_JOYSTICK_B2, INPUT_PULLUP);
-  pinMode(UNO_JOYSTICK_B3, INPUT_PULLUP);
-  pinMode(UNO_JOYSTICK_B4, INPUT_PULLUP);
-  pinMode(UNO_JOYSTICK_SELECT, OUTPUT);
-#else
-  pinMode(JOYSTICK_B0, INPUT_PULLUP);
-  pinMode(JOYSTICK_B1, INPUT_PULLUP);
-  pinMode(JOYSTICK_B2, INPUT_PULLUP);
-  pinMode(JOYSTICK_B3, INPUT_PULLUP);
-  pinMode(JOYSTICK_B4, INPUT_PULLUP);
-#endif
+init_input_pins();
 
 #if defined(DEBUG)
   Serial.println("main(): launching init_intel8245()");
