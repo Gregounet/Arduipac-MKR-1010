@@ -3,20 +3,24 @@
 
 #include <stdint.h>
 
-#if defined(EXTERNAL_KEYPADS) || defined(EXTERNAL_JOYSTICKS)
-#include <SoftwareSerial.h>
-#endif
-
 #if defined(EXTERNAL_KEYPADS) // External keypads
 
-extern const int keypads_rx;
-extern const int keypads_tx;
-
-extern SoftwareSerial uart_keypads;
-
 #if (TRAVOLTA_TARGET == TRAVOLTA_ESP32_NANO)
-#define KEYPADS_RX 6
-#define KEYPADS_TX 7
+#define INPUT_B0 6
+#define INPUT_B1 7
+#define INPUT_B2 8
+#define INPUT_B4 5
+#define INPUT_B5 4
+#define INPUT_B6 3
+#define INPUT_B7 2
+
+extern const int input_b4;
+extern const int input_b5;
+extern const int input_b6;
+extern const int input_b7;
+extern const int input_b0;
+extern const int input_b1;
+extern const int input_b2;
 #endif
 
 #else // Direct keypad

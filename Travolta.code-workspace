@@ -1,11 +1,10 @@
 {
 	"folders": [
 		{
-			"name": "Test keypad",
-			"path": "../Test keypad"
+			"path": "."
 		},
 		{
-			"path": "."
+			"path": "../ReceiveSerial"
 		}
 	],
 	"settings": {}
