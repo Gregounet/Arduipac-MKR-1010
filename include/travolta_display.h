@@ -70,8 +70,7 @@ struct displayed_sprite_t
 #define NB_CHARS 28
 #define NB_SPRITES 4
 
-#define LEFT_OFFSET 20
-#define TOP_OFFSET 20
+#define LEFT_OFFSET 10
 
 //
 // Storage
@@ -111,6 +110,8 @@ extern displayed_sprite_t displayed_sprites[NB_SPRITES];
 // Functions
 
 void init_grid_elements();
+void init_h_grid_elements();
+void init_v_grid_elements();
 void init_displayed_chars();
 void init_displayed_sprites();
 
