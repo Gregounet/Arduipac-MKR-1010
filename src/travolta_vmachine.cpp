@@ -577,8 +577,8 @@ void write_port1(uint8_t data)
 #endif
 
 	port1 = data;
-	// rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
-	rom_bank_select = (port1 & 0x03) << 12;
+	rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
+	//rom_bank_select = (port1 & 0x03) << 12;
 
 #if defined(DEBUG)
 	Serial.print("rom_bank_select == 0x");
