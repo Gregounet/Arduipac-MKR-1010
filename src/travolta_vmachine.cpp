@@ -575,13 +575,25 @@ void write_port1(uint8_t data)
 	Serial.print(data, HEX);
 	Serial.println(")");
 #endif
-
-	port1 = data;
-	rom_bank_select = (port1 & 0x01) ? 0x1000 : 0x0000;
-	//rom_bank_select = (port1 & 0x03) << 12;
-
+	if ((data & 0x03) != (port1 & 0x03))
+	{
+		switch (rom_size)
+		{
+		case 8192:
+		{
+			rom_bank_select = ((uint16_t) data & 0x01) << 12;
+			break;
+		}
+		case 16384:
+		{
+			rom_bank_select = ((uint16_t) data & 0x03) << 12;
+			break;
+		}
+		}
 #if defined(DEBUG)
-	Serial.print("rom_bank_select == 0x");
-	Serial.println(rom_bank_select, HEX);
+		Serial.print("rom_bank_select == 0x");
+		Serial.println(rom_bank_select, HEX);
 #endif
+	}
+	port1 = data;
 }

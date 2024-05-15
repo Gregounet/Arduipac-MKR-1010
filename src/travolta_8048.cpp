@@ -83,9 +83,25 @@ void init_intel8048()
 	a11 = 0x000;
 	a11_backup = 0x000;
 
-//	rom_bank_select = 0x3000; // TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
-	rom_bank_select = 0x1000; // TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
-
+	// TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
+	switch (rom_size)
+	{
+	case 4096:
+	{
+		rom_bank_select = 0x0000;
+		break;
+	}
+	case 8192:
+	{
+		rom_bank_select = 0x1000;
+		break;
+	}
+	case 16384:
+	{
+		rom_bank_select = 0x3000;
+		break;
+	}
+	}
 	sp = 0x08;
 	port1 = 0xFF;
 
@@ -283,9 +299,9 @@ void exec_8048()
 		case 0x17: /* INC A */
 			acc++;
 			break;
-		case 0x03: /* ADD A,#data */
-		case 0x13: /* ADDC A,#data */
-		temp = 0 ; // useless but useful (sic) just to avoid compilation warning 
+		case 0x03:	  /* ADD A,#data */
+		case 0x13:	  /* ADDC A,#data */
+			temp = 0; // useless but useful (sic) just to avoid compilation warning
 			data = ROM(pc++);
 #if defined(DEBUG)
 			Serial.print(data, HEX);

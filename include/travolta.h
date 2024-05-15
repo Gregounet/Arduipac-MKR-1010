@@ -9,7 +9,7 @@
 
 extern Adafruit_ST7789 tft;
 
-#define DEBUG
+#undef DEBUG
 
 #undef TRAVOLTA_INVERT_DISPLAY
 
