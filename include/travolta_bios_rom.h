@@ -3,7 +3,7 @@
 
 extern uint8_t *rom;
 
-extern const uint8_t rom_size;
+extern const int rom_size;
 extern const char bios_name[];
 extern const char rom_name[];
 
