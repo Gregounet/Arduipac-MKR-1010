@@ -83,7 +83,7 @@ void init_intel8048()
 	a11 = 0x000;
 	a11_backup = 0x000;
 
-	rom_bank_select = 0x1000; // TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
+	rom_bank_select = 0x3000; // TODO: ce code concerne la vmachine (le O2) et non le CPU, donc devrait aller dans vmachine.c
 
 	sp = 0x08;
 	port1 = 0xFF;

@@ -4,3 +4,5 @@ test
 lib
 *.json
 *.code-workspace
+roms/
+

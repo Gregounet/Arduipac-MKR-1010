@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../O2-tools/Roms8k.C"
 		}
 	],
 	"settings": {}
