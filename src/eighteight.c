@@ -11,7 +11,7 @@
 
 #if GAME == BLOBBERS
 #define ROM_BLOBBERS
-#elif GAME == FROGGER
+#elif GAME == FROGGERdo_kluges
 #define ROM_FROGGER
 #elif GAME == MUNCH
 #define ROM_MUNCH

@@ -1,13 +1,8 @@
 {
 	"folders": [
 		{
-			"path": "."
-		},
-		{
-			"path": "../O2-tools/Roms8k.C"
-		},
-		{
-			"path": "../O2-tools/Roms4k.C"
+			"name": "Test-array-ptr",
+			"path": "../Test-array-ptr"
 		}
 	],
 	"settings": {}
