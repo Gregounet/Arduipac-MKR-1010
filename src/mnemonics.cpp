@@ -235,7 +235,7 @@ struct lookup_tag lookup[] = {
     /* E4 */ {"JMP", 2, 2},
     /* E5 */ {"SEL MB0", 2, 2},
     /* E6 */ {"JNC", 2, 3},
-    /* E7 */ {"RL A", 1, 0},
+    /* E7 */ {"RL A", 1, 0},0x3C
     /* E8 */ {"DJNZ R0,", 2, 3},
     /* E9 */ {"DJNZ R1,", 2, 3},
     /* EA */ {"DJNZ R2,", 2, 3},
