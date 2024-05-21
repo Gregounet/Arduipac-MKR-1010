@@ -191,8 +191,8 @@ void exec_8048()
 		delayMicroseconds(SLOW_DOWN_DELAY);
 		op_cycles = 1;
 #if defined(DEBUG)
-#endif
 		op = ROM(pc);
+#endif
 #if defined(DEBUG)
 		Serial.println();
 		Serial.print("Big Ben: ");
@@ -243,18 +243,18 @@ void exec_8048()
 
 		// if (pc >= 0x400)
 		// {
-			Serial.print("PC: 0x");
-			Serial.print(pc, HEX);
-			Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
-			Serial.print(" Op: 0x");
-			Serial.println(op, HEX);
-			delay(1000);
-		}
+		// 	Serial.print("PC: 0x");
+		// 	Serial.print(pc, HEX);
+		// 	Serial.print((pc < 0x400) ? "(bios)" : "(cart)");
+		// 	Serial.print(" Op: 0x");
+		// 	Serial.println(op, HEX);
+		// 	delay(1000);
+		// }
 
 #if defined(DEBUG)
-#else
 		pc++;
-//		op = ROM(pc++);
+#else
+		op = ROM(pc++);
 #endif
 		switch (op)
 		{

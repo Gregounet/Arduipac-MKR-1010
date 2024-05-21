@@ -2,6 +2,10 @@
 	"folders": [
 		{
 			"path": ".."
+		},
+		{
+			"name": "O2 card reader",
+			"path": "../../O2 card reader"
 		}
 	],
 	"settings": {}
