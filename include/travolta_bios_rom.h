@@ -2,8 +2,6 @@
 #define TRAVOLTA_ROM_BIOS_H
 
 extern uint8_t rom[];
-// extern uint8_t *rom;
-// extern uint8_t rom[8192];
 
 extern const int rom_size;
 extern const char bios_name[];
