@@ -33,10 +33,10 @@ const int joystick_b4 = JOYSTICK_B4;
 const int keypad_r1 = KEYPAD_R1;
 const int keypad_r2 = KEYPAD_R2;
 const int keypad_r3 = KEYPAD_R3;
+const int keypad_r4 = KEYPAD_R4;
 const int keypad_c1 = KEYPAD_C1;
 const int keypad_c2 = KEYPAD_C2;
 const int keypad_c3 = KEYPAD_C3;
-const int keypad_c4 = KEYPAD_C4;
 #endif
 
 void init_input_pins()
@@ -94,9 +94,9 @@ read_port2()
     uint8_t read_value;
 
 #if defined(DEBUG)
+#endif
     Serial.print("scan_input == ");
     Serial.println(scan_input, HEX);
-#endif
 
 #if defined(EXTERNAL_KEYPADS)
     read_value =
@@ -118,11 +118,11 @@ read_port2()
     if ((read_value & 7) == scan_input && !(read_value & 0x10))
     {
 #if defined(DEBUG)
-    Serial.println("Caractère reçu");
+      Serial.println("Caractère reçu");
 #endif
       scan_output = read_value;
     }
-      port2 = scan_output;
+    port2 = scan_output;
 
 #endif
 
@@ -131,8 +131,8 @@ read_port2()
 
     for (uint8_t i = 0; i < 12; i++)
       keyboard[i] = 0;
-    ;
-    pinMode(keypad1_c1, OUTPUT);
+
+    pinMode(keypad_c1, OUTPUT);
     digitalWrite(keypad_c1, LOW);
     keyboard[0] = (uint8_t)digitalRead(keypad_r1);
     keyboard[3] = (uint8_t)digitalRead(keypad_r2);
@@ -159,44 +159,58 @@ read_port2()
     digitalWrite(keypad_c3, HIGH);
     pinMode(keypad_c3, INPUT);
 
+    for (uint8_t i = 0; i < 12; i++)
+    {
+      Serial.print("keyboard[");
+      Serial.print(i);
+      Serial.print("] == ");
+      Serial.println(keyboard[i]);
+    }
+
     switch (scan_input)
     {
     case 0:
-      if (keyboard[10])
+    {
+      if (keyboard[10] == 0)
         scan_output = 0x00;
-      if (keyboard[0])
+      if (keyboard[0] == 0)
         scan_output = 0x20;
-      if (keyboard[1])
+      if (keyboard[1] == 0)
         scan_output = 0x40;
-      if (keyboard[2])
+      if (keyboard[2] == 0)
         scan_output = 0x60;
-      if (keyboard[3])
+      if (keyboard[3] == 0)
         scan_output = 0x80;
-      if (keyboard[4])
+      if (keyboard[4] == 0)
         scan_output = 0xA0;
-      if (keyboard[5])
+      if (keyboard[5] == 0)
         scan_output = 0xC0;
-      if (keyboard[6])
+      if (keyboard[6] == 0)
         scan_output = 0xE0;
       break;
+    }
     case 1:
-      if (keyboard[7])
+    {
+      if (keyboard[7] == 0)
         scan_output = 0x01;
-      if (keyboard[8])
+      if (keyboard[8] == 0)
         scan_output = 0x21;
       break;
+    }
     case 5:
-      if (keyboard[9])
+    {
+      if (keyboard[9] == 0)
         scan_output = 0x89;
-      if (keyboard[11])
+      if (keyboard[11] == 0)
         scan_output = 0xA9;
       break;
-      port2 = scan_output;
-#if defined(DEBUG)
-      Serial.print("scan_output == ");
-      Serial.println(scan_output, HEX);
-#endif
     }
+    }
+    port2 = scan_output;
+#if defined(DEBUG)
+#endif
+    Serial.print("scan_output == ");
+    Serial.println(scan_output, HEX);
 #endif
 
 #if defined(BUTTON)

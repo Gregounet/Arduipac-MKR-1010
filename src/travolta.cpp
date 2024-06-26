@@ -35,6 +35,16 @@ void setup()
   delay(100);
 #endif
 
+  Serial.println("Starting disco session:");
+  Serial.print("BIOS = ");
+  Serial.println(bios_name);
+  Serial.print("ROM = ");
+  Serial.println(rom_name);
+  Serial.print("ROM size = ");
+  Serial.println(rom_size);
+  Serial.println();
+
+
 #if defined(DEBUG)
   Serial.println("Entering setup()");
 #endif

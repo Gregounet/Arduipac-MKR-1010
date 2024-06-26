@@ -46,22 +46,22 @@ extern const int input_b2;
 #endif
 
 #if (TRAVOLTA_TARGET == TRAVOLTA_ESP32_NANO)
-#define KEYPAD_R1 8
-#define KEYPAD_R2 7
-#define KEYPAD_R3 6
-#define KEYPAD_R4 5
-#define KEYPAD_C1 4
-#define KEYPAD_C2 3
-#define KEYPAD_C3 2
+#define KEYPAD_R1 24
+#define KEYPAD_R2 23
+#define KEYPAD_R3 22
+#define KEYPAD_R4 21
+#define KEYPAD_C1 20
+#define KEYPAD_C2 19
+#define KEYPAD_C3 18
 #endif
 
 extern const int keypad_r1 ;
 extern const int keypad_r2 ;
 extern const int keypad_r3 ;
+extern const int keypad_r4 ;
 extern const int keypad_c1 ;
 extern const int keypad_c2 ;
 extern const int keypad_c3 ;
-extern const int keypad_c4 ;
 
 #endif // End of keypad(s) choices
 
